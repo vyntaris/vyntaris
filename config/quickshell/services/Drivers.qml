@@ -31,6 +31,29 @@ Singleton {
         onExited: root.surveying = false
     }
 
+    readonly property string nvidiaFile: "/etc/modprobe.d/vyntaris-nvidia-on-demand.conf"
+    readonly property bool nvidiaAtStart: !/^blacklist nvidia/m.test(nvidiaStart.text())
+    property bool nvidiaBusy: false
+    FileView { id: nvidiaStart; path: root.nvidiaFile; printErrors: false; watchChanges: true; onFileChanged: reload() }
+    function setNvidiaAtStart(on) {
+        if (nvidiaBusy) return;
+        nvidiaBusy = true;
+        failure = "";
+        nvidiaJob.command = ["pkexec", Quickshell.env("VYNTARIS_SETTINGS_ADMIN") || "/usr/lib/vyntaris/settings-admin",
+            "nvidia-start", on ? "boot" : "demand"];
+        nvidiaJob.running = true;
+    }
+    Process {
+        id: nvidiaJob
+        stderr: StdioCollector { id: nvidiaErr }
+        onExited: code => {
+            root.nvidiaBusy = false;
+            if (code !== 0 && code !== 126 && code !== 127)
+                root.failure = nvidiaErr.text.trim().split("\n").pop() || Tr.t("That couldn't be changed");
+            nvidiaStart.reload();
+        }
+    }
+
     function install() {
         if (installing) return;
         installing = true;

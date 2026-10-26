@@ -2,7 +2,8 @@ use std::io::{Read, Write};
 use std::process::{Command, Stdio};
 
 const USAGE: &str = "settings-admin user-add NAME \"FULL NAME\" admin|standard | user-remove NAME | user-admin NAME on|off \
-                     | user-password NAME | user-name NAME \"FULL NAME\" | locale LANGUAGE [FORMATS]";
+                     | user-password NAME | user-name NAME \"FULL NAME\" | locale LANGUAGE [FORMATS] \
+                     | nvidia-start boot|demand";
 
 #[derive(Debug, PartialEq)]
 pub struct Refused(pub String);
@@ -25,6 +26,7 @@ pub trait System {
 pub enum File {
     LocaleGen,
     Supported,
+    NvidiaStart,
 }
 
 pub fn is_name(s: &str) -> bool {
@@ -186,6 +188,10 @@ pub fn set_locale(sys: &mut dyn System, language: &str, formats: Option<&str>) -
     sys.run(&cmd, None)
 }
 
+pub fn nvidia_start(sys: &mut dyn System, at_boot: bool) -> Result<(), Refused> {
+    sys.write(File::NvidiaStart, if at_boot { "" } else { "blacklist nvidia\n" })
+}
+
 pub fn dispatch(sys: &mut dyn System, a: &[&str]) -> Result<(), Option<Refused>> {
     match a {
         ["user-add", name, full, kind] => user_add(sys, name, full, kind),
@@ -196,12 +202,16 @@ pub fn dispatch(sys: &mut dyn System, a: &[&str]) -> Result<(), Option<Refused>>
         ["user-name", name, full] => user_name(sys, name, full),
         ["locale", lang] => set_locale(sys, lang, None),
         ["locale", lang, form] => set_locale(sys, lang, Some(form)),
+        ["nvidia-start", "boot"] => nvidia_start(sys, true),
+        ["nvidia-start", "demand"] => nvidia_start(sys, false),
         _ => return Err(None),
     }
     .map_err(Some)
 }
 
 struct Real;
+
+const NVIDIA_START: &str = "/etc/modprobe.d/vyntaris-nvidia-on-demand.conf";
 
 fn group_members(group: &str) -> Vec<String> {
     std::fs::read_to_string("/etc/group")
@@ -252,12 +262,17 @@ impl System for Real {
         std::fs::read_to_string(match what {
             File::LocaleGen => "/etc/locale.gen",
             File::Supported => "/usr/share/i18n/SUPPORTED",
+            File::NvidiaStart => NVIDIA_START,
         })
         .ok()
     }
     fn write(&mut self, what: File, text: &str) -> Result<(), Refused> {
         let path = match what {
             File::LocaleGen => "/etc/locale.gen",
+            File::NvidiaStart => {
+                let _ = std::fs::create_dir_all("/etc/modprobe.d");
+                NVIDIA_START
+            }
             File::Supported => return no("SUPPORTED isn't written"),
         };
         std::fs::write(path, text).map_err(|e| Refused(e.to_string()))
@@ -300,6 +315,7 @@ mod tests {
         admins: Vec<String>,
         caller: String,
         locale_gen: String,
+        nvidia: String,
         stdin: String,
     }
 
@@ -321,10 +337,14 @@ mod tests {
             Some(match what {
                 File::Supported => "en_US.UTF-8 UTF-8\nen_US ISO-8859-1\nsr_RS UTF-8\nsr_RS@latin UTF-8\nde_DE.UTF-8 UTF-8\n".into(),
                 File::LocaleGen => self.locale_gen.clone(),
+                File::NvidiaStart => self.nvidia.clone(),
             })
         }
-        fn write(&mut self, _: File, text: &str) -> Result<(), Refused> {
-            self.locale_gen = text.into();
+        fn write(&mut self, what: File, text: &str) -> Result<(), Refused> {
+            match what {
+                File::NvidiaStart => self.nvidia = text.into(),
+                _ => self.locale_gen = text.into(),
+            }
             Ok(())
         }
         fn password(&mut self) -> String {
@@ -403,5 +423,15 @@ mod tests {
         user_admin(&mut f, "eve", true).unwrap();
         assert_eq!(f.ran.last().unwrap().0, ["gpasswd", "-a", "eve", "wheel"]);
         assert_eq!(dispatch(&mut f, &["user-admin", "eve", "maybe"]), Err(None));
+    }
+
+    #[test]
+    fn nvidia_at_start_or_on_demand() {
+        let mut f = Fake::default();
+        dispatch(&mut f, &["nvidia-start", "demand"]).unwrap();
+        assert_eq!(f.nvidia, "blacklist nvidia\n");
+        dispatch(&mut f, &["nvidia-start", "boot"]).unwrap();
+        assert_eq!(f.nvidia, "");
+        assert_eq!(dispatch(&mut f, &["nvidia-start", "never"]), Err(None));
     }
 }

@@ -65,6 +65,22 @@ memory_reserve() {
     [ "$in_chroot" = 1 ] || sysctl -q -w vm.watermark_scale_factor="$wsf" || true
 }
 
+nvidia_on_demand() {
+    local f=/etc/modprobe.d/vyntaris-nvidia-on-demand.conf d n=0 nv="" conn card
+    [ -e "$f" ] && return 0
+    for d in /sys/bus/pci/devices/*; do
+        case "$(cat "$d/class")" in 0x03*) n=$((n + 1)); [ "$(cat "$d/vendor")" = 0x10de ] && nv=1 ;; esac
+    done
+    [ -n "$nv" ] && [ "$n" -ge 2 ] || return 0
+    mkdir -p /etc/modprobe.d
+    for conn in /sys/class/drm/card*-*; do
+        [ "$(cat "$conn/status" 2>/dev/null)" = connected ] || continue
+        card="${conn##*/}"; card="${card%%-*}"
+        [ "$(cat "/sys/class/drm/$card/device/vendor" 2>/dev/null)" = 0x10de ] && { : > "$f"; return 0; }
+    done
+    printf 'blacklist nvidia\n' > "$f"
+}
+
 upkeep_timers() {
     enable fstrim.timer
     [ "$(findmnt -no FSTYPE /)" = btrfs ] && enable btrfs-scrub@-.timer
@@ -308,6 +324,7 @@ if [ "$mode" = refresh ]; then
     enable vyntaris-drivers.timer paccache.timer
     upkeep_timers
     memory_reserve
+    nvidia_on_demand
     firewall
     kms="$(early_kms)"
     if { safe_updates || [ "$kms" = changed ]; } && [ "$in_chroot" = 0 ]; then
@@ -359,6 +376,7 @@ enable NetworkManager.service bluetooth.service power-profiles-daemon.service re
     fwupd-refresh.timer paccache.timer systemd-oomd.service
 upkeep_timers
 memory_reserve
+nvidia_on_demand
 systemctl mask systemd-tpm2-setup-early.service systemd-pcrproduct.service systemd-pcrlogin@.service >/dev/null 2>&1 || true
 if pacman -Q nss-mdns >/dev/null 2>&1 && ! grep -q mdns_minimal /etc/nsswitch.conf; then
     sed -i '/^hosts:/ s/\(resolve\|dns\)/mdns_minimal [NOTFOUND=return] \1/' /etc/nsswitch.conf

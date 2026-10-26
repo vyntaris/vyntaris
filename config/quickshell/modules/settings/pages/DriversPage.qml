@@ -50,6 +50,23 @@ SettingsPage {
         text: Drivers.failure
     }
 
+    SettingsSection { visible: Gpu.present; text: Tr.t("NVIDIA graphics") }
+    SettingsRow {
+        visible: Gpu.present
+        title: Tr.t("Start its driver with the system")
+        Switch { checked: Drivers.nvidiaAtStart; onToggled: on => Drivers.setNvidiaAtStart(on) }
+    }
+    Label {
+        visible: Gpu.present
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        color: Theme.subtext0
+        font.pixelSize: Theme.fontSizeSmall + 1
+        text: Drivers.nvidiaAtStart
+            ? Tr.t("A monitor on the card's ports (HDMI on most laptops) works as soon as it's plugged in. Turned off, about 370 MB of memory stay free; games and prime-run start the driver themselves.")
+            : Tr.t("About 370 MB of memory stay free. Games and prime-run start the driver themselves; for a monitor on the card's ports (HDMI on most laptops), turn this on and restart.")
+    }
+
     SettingsSection { text: Tr.t("This computer") }
     Repeater {
         model: Drivers.devices

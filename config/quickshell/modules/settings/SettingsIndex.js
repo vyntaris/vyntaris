@@ -144,6 +144,7 @@ var rows = [
     { page: "time", title: "Formats" },
     { page: "lock", title: "Lock now" },
     { page: "lock", title: "Widgets" },
+    { page: "drivers", title: "Start its driver with the system" },
     { page: "access", title: "High contrast" },
     { page: "access", title: "Cursor size" },
     { page: "about", title: "System" },

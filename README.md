@@ -738,7 +738,13 @@ the firewall follow the new version (the firewall loaded again at once with `nft
   scanner is plugged in): graphics (NVIDIA, AMD, Intel, with Vulkan and video decoding), Wi-Fi, sound,
   printers and scanners, the processor's microcode, a virtual machine's guest tools, installed from the
   repositories with a notification. Settings → Drivers lists them. A hybrid laptop's NVIDIA card sleeps
-  when unused (`80-nvidia-pm.rules`), and `prime-run` starts an app on it. The desktop leaves it out:
+  when unused (`80-nvidia-pm.rules`), and `prime-run` starts an app on it. Its driver isn't even loaded
+  until something asks for the card: loaded, it holds some 370 MB of memory while the card sleeps. A game,
+  `prime-run` or any Vulkan app loads it by itself (`nvidia-modprobe`), and the card sleeps without it too.
+  The cost is a monitor on the card's own ports (HDMI on most laptops), which needs the driver from the
+  start: Settings → Drivers → *Start its driver with the system* (`/etc/modprobe.d/vyntaris-nvidia-on-demand.conf`,
+  `blacklist nvidia` or empty, written by `settings-admin nvidia-start`). `vyntaris-setup` turns it off on a
+  hybrid laptop, unless a screen is on the NVIDIA card already. The desktop leaves it out:
   its GL is Mesa's, and GTK 4 apps draw with GL rather than Vulkan (`GSK_RENDERER=gl`), whose loader
   woke NVIDIA for every app, some 2 s more to open one. Vulkan still sees it, for games.
 
