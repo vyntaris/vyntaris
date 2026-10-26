@@ -8,7 +8,7 @@ gets three tries to start, then the snapshot comes back by itself.
   update-guard pre        before an upgrade (pacman hook): the snapshot, and the way back to it
   update-guard post       after it (pacman hook): the new boot image is on trial
   update-guard boot       at every start: after a rollback, tidies up; writes the status
-  update-guard boot-ok    at a start on trial: succeeds once the desktop or the login screen is up
+  update-guard boot-ok    at a start on trial: succeeds once the desktop or the login screen is up, its shell too
   update-guard rebuilt UKI   after mkinitcpio made a boot image: one on trial stays so
   update-guard undo       the next start undoes the last update
   update-guard status     the status as JSON
@@ -176,20 +176,26 @@ at_boot() {
     write_status
 }
 
+up_for_20s() {
+    local pid up
+    for pid in $(pgrep -x "$1"); do
+        up="$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')"
+        [ "${up:-0}" -ge 20 ] && return 0
+    done
+    return 1
+}
+
 boot_ok() {
-    local t pid up
+    local t
     for ((t = 0; t < 600; t += 5)); do
-        for pid in $(pgrep -x Hyprland); do
-            up="$(ps -o etimes= -p "$pid" 2>/dev/null | tr -d ' ')"
-            if [ "${up:-0}" -ge 20 ]; then
-                install -d "$(dirname "$PROVEN")" && touch "$PROVEN"
-                write_status
-                return 0
-            fi
-        done
+        if up_for_20s Hyprland && up_for_20s 'qs|quickshell'; then
+            install -d "$(dirname "$PROVEN")" && touch "$PROVEN"
+            write_status
+            return 0
+        fi
         sleep 5
     done
-    log "neither the desktop nor the login screen came up: this start doesn't count"
+    log "neither the desktop nor the login screen came up whole: this start doesn't count"
     return 1
 }
 

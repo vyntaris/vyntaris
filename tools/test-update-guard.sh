@@ -44,7 +44,7 @@ case "$1" in
     --list) echo "Num     Name                 Tags  Description"
             i=0; for d in $(ls "$snaps" 2>/dev/null); do echo "$i    >  $d  D  before upgrade"; i=$((i + 1)); done ;;
 esac'
-stub pgrep 'echo 4242'
+stub pgrep 'case "$*" in *quickshell*) [ -z "${FAKE_NO_SHELL:-}" ] && echo 4343 ;; *) echo 4242 ;; esac'
 stub ps 'echo "${FAKE_UPTIME:-30}"'
 export VYNTARIS_JSON="${VYNTARIS_JSON:-$REPO/rust/target/release/vyntaris-json}"
 [ -x "$VYNTARIS_JSON" ] || (cd "$REPO/rust" && cargo build -q --release -p vyntaris-json) || exit 1
@@ -124,6 +124,8 @@ guard pre >/dev/null && guard post >/dev/null
 check "on trial"                            test -f "$ESP/EFI/Linux/vyntaris+3.efi"
 FAKE_UPTIME=5 timeout 8 "$GUARD" boot-ok >/dev/null 2>&1
 check "a desktop up for 5 s doesn't count yet" test ! -e "$T/run/vyntaris/boot-ok"
+FAKE_NO_SHELL=1 timeout 8 "$GUARD" boot-ok >/dev/null 2>&1
+check "Hyprland without its shell doesn't count" test ! -e "$T/run/vyntaris/boot-ok"
 guard boot-ok >/dev/null
 check "one up for 20 s does"                test -f "$T/run/vyntaris/boot-ok"
 check "status: not pending"                 test "$(status 's["pending"]')" = False

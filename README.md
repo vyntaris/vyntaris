@@ -612,8 +612,9 @@ the new boot image), the image goes on trial:
 
 **A start that counts.** `vyntaris-boot-ok.service` runs only when systemd-boot is counting
 (`LoaderBootCountPath`), and comes before `boot-complete.target`. It waits up to 10 minutes for a
-Hyprland process (the desktop's or the login screen's) that has been up for 20 seconds. Once it sees
-one, `systemd-bless-boot` drops the count from the file name, and the update is kept for good. A start
+Hyprland process (the desktop's or the login screen's) and a Quickshell process (the shell or the greeter)
+that have both been up for 20 seconds: an update that breaks only the shell leaves Hyprland running, and
+without the shell there's no bar or Settings to undo it from. Once it sees them, `systemd-bless-boot` drops the count from the file name, and the update is kept for good. A start
 that never gets there doesn't count.
 
 **Three failed starts.** The count reaches 0 and systemd-boot passes the update's image over for the
