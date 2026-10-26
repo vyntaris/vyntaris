@@ -60,7 +60,7 @@ memory_reserve() {
     kb="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
     wsf=$(( 65536 * 10000 / kb ))
     [ "$wsf" -gt 125 ] && wsf=125
-    [ "$wsf" -lt 10 ] && wsf=10
+    if [ "$kb" -ge 7500000 ] || [ "$wsf" -lt 10 ]; then wsf=10; fi
     printf 'vm.watermark_scale_factor = %s\n' "$wsf" > /etc/sysctl.d/99-vyntaris-watermark.conf
     [ "$in_chroot" = 1 ] || sysctl -q -w vm.watermark_scale_factor="$wsf" || true
 }
