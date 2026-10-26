@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Shortcuts
+GenericName=Keyboard shortcuts
+Comment=Every keyboard shortcut on the desktop (SUPER+F1)
+Icon=preferences-desktop-keyboard-shortcuts
+Exec=vyntaris-app help toggle
+Categories=Settings;
+Keywords=shortcuts;keybinds;keys;hotkeys;keyboard;help;cheatsheet;

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Store
+GenericName=App store
+Comment=Find apps from Arch (and the AUR) and install them with a click
+Icon=system-software-install
+Exec=vyntaris-app store
+Categories=System;PackageManager;
+Keywords=apps;install;software;store;aur;programs;packages;
+StartupWMClass=org.vyntaris.Store

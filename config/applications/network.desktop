@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Network
+GenericName=Wi-Fi and network
+Comment=Wi-Fi networks: connect, disconnect, turn Wi-Fi on or off
+Icon=network-wireless
+Exec=qs -c vyntaris ipc call network open
+Categories=Settings;Network;
+Keywords=wifi;wi-fi;network;internet;wireless;wlan;

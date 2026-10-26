@@ -1,0 +1,12 @@
+config/quickshell/settings.json
+config/hypr/hypridle.conf
+*.bak-*
+config/greeter/greeter.json
+iso/out/
+tools/vm-test/
+__pycache__/
+pkg/src/
+pkg/pkg/
+pkg/powerlevel10k/
+pkg/*.pkg.tar.*
+rust/target/

@@ -1,0 +1,20 @@
+[Unit]
+Description=Vyntaris shell (bar, island, notifications, lock; it picks the wallpaper vyntaris-wallpaper shows)
+PartOf=graphical-session.target
+After=graphical-session.target
+Conflicts=quickshell.service
+ConditionEnvironment=WAYLAND_DISPLAY
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/qs -c vyntaris
+Environment=QS_DISABLE_CRASH_HANDLER=1
+Environment=MALLOC_CONF=background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:0
+Restart=always
+RestartSec=1
+TimeoutStopSec=5
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session.target

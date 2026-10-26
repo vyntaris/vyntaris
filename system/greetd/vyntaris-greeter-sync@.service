@@ -1,0 +1,7 @@
+[Unit]
+Description=Copy %i's wallpaper and theme to the login screen
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/vyntaris/greeter-sync.sh %i

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Backup
+GenericName=Backup to Google Drive
+Comment=Your folders on your Google Drive: back up now, take files back, pick when and what
+Icon=org.gnome.DejaDup
+Exec=vyntaris-app backup
+Categories=System;Utility;
+Keywords=backup;google;drive;cloud;restore;sync;files;copy;
+StartupWMClass=org.vyntaris.Backup

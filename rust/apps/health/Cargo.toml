@@ -1,0 +1,17 @@
+[package]
+name = "vyntaris-health"
+description = "Dr. Help: the system looked over, what it found in plain words, fixes, and a problem reported"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+vyntaris-core.workspace = true
+vyntaris-ui.workspace = true
+gtk.workspace = true
+adw.workspace = true
+serde_json.workspace = true
+
+[[bin]]
+name = "vyntaris-health"
+path = "src/main.rs"

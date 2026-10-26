@@ -1,0 +1,9 @@
+[Unit]
+Description=Vyntaris: the documents' index, for the launcher to find them by what's in them
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/vyntaris/doc-index index
+Nice=19
+IOSchedulingClass=idle
+CPUSchedulingPolicy=idle

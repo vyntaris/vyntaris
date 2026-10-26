@@ -1,0 +1,5 @@
+#!/bin/bash
+for image in "$@"; do
+    [ "${image##*/}" = vyntaris.efi ] && exec /usr/lib/vyntaris/update-guard rebuilt "$image"
+done
+exit 0

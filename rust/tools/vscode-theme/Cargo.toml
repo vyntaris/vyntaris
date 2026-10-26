@@ -1,0 +1,10 @@
+[package]
+name = "vyntaris-vscode-theme"
+description = "The desktop's theme in VS Code's settings, the rest of them left as they are"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+regex.workspace = true

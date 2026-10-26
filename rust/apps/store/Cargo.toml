@@ -1,0 +1,14 @@
+[package]
+name = "vyntaris-store"
+description = "The Store: every app Arch's repositories (and the AUR) offer, searched, installed and removed with a click"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+vyntaris-core.workspace = true
+vyntaris-ui.workspace = true
+gtk.workspace = true
+adw.workspace = true
+serde_json.workspace = true
+regex.workspace = true

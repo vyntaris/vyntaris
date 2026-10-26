@@ -1,0 +1,12 @@
+[Unit]
+Description=Asks before accepting files sent over Bluetooth
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionPathIsDirectory=/sys/class/bluetooth
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/vyntaris-obex-agent
+Restart=on-failure
+RestartSec=3
+Slice=session.slice

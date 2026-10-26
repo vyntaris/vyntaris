@@ -1,0 +1,37 @@
+#!/bin/sh
+log="${XDG_STATE_HOME:-$HOME/.local/state}/vyntaris"
+mkdir -p "$log" 2>/dev/null && [ -w "$log" ] || log=/tmp
+[ -f "$log/session.log" ] && mv -f "$log/session.log" "$log/session.log.old"
+exec >"$log/session.log" 2>&1
+
+leaving="${XDG_RUNTIME_DIR:-/tmp}/vyntaris-leaving"
+rm -f "$leaving"
+child=""
+trap 'touch "$leaving"; [ -n "$child" ] && kill -TERM "$child" 2>/dev/null' TERM HUP INT
+
+crashes=""
+while :; do
+    Hyprland --config /usr/share/vyntaris/hypr/hyprland.lua "$@" &
+    child=$!
+    wait "$child"; code=$?
+    kill -0 "$child" 2>/dev/null && { wait "$child"; code=$?; }
+    child=""
+    [ "$code" -eq 0 ] && break
+    [ -e "$leaving" ] && break
+    case "$(systemctl is-system-running 2>/dev/null)" in stopping) break ;; esac
+    systemctl --user stop vyntaris-session.target graphical-session.target 2>/dev/null
+
+    now=$(date +%s)
+    recent=""
+    for t in $crashes; do [ $((now - t)) -lt 300 ] && recent="$recent $t"; done
+    crashes="$recent $now"
+    n=$(echo $crashes | wc -w)
+    if [ "$n" -ge 3 ]; then
+        echo "vyntaris-session: the desktop crashed $n times in five minutes (last: $code); back to the login screen"
+        exit 1
+    fi
+    echo "vyntaris-session: the desktop crashed ($code); starting it again"
+    export VYNTARIS_RECOVERED=1
+    sleep 1
+done
+rm -f "$leaving"

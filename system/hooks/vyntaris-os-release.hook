@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+Target = vyntaris
+
+[Action]
+Description = Keeping the Vyntaris name...
+When = PostTransaction
+Exec = /usr/bin/install -m644 /usr/share/vyntaris/os-release /etc/os-release

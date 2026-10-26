@@ -1,0 +1,159 @@
+pkgname=vyntaris
+pkgver=$(cat ../VERSION 2>/dev/null || echo 0)
+pkgrel=1
+pkgdesc="Vyntaris: a Hyprland and Quickshell desktop (shell, login screen, boot splash, system setup)"
+arch=(x86_64)
+url="https://vyntarisos.com/"
+license=(GPL-3.0-or-later)
+install=vyntaris.install
+depends=(
+    hyprland quickshell kitty zsh zsh-autosuggestions zsh-syntax-highlighting
+    pipewire pipewire-pulse wireplumber networkmanager networkmanager-openvpn bluez bluez-obex
+    xdg-desktop-portal-hyprland xdg-desktop-portal-gtk adw-gtk-theme papirus-icon-theme qt6ct
+    inter-font ttf-jetbrains-mono ttf-nerd-fonts-symbols-mono noto-fonts noto-fonts-emoji
+    ttf-carlito ttf-caladea ttf-liberation
+    awww hypridle hyprsunset hyprpicker wl-clipboard cliphist grim slurp swappy wf-recorder cava
+    libnotify gnome-keyring xdg-user-dirs xdg-utils power-profiles-daemon upower pacman-contrib
+    timeshift rsync rclone fuse3 zram-generator nftables fastfetch imagemagick librsvg eza greetd plymouth
+    archlinux-appstream-data fwupd
+    poppler ffmpegthumbnailer qt6-multimedia qt6-multimedia-ffmpeg ripgrep
+    wtype openssl
+    gtk4 libadwaita
+)
+optdepends=(
+    'thunar: files (SUPER+E)'
+    'firefox: web browser (SUPER+B)'
+    'code: code editor (SUPER+C)'
+    'mpv: videos and music'
+    'loupe: pictures'
+    'gnome-text-editor: text files'
+    'gnome-system-monitor: task manager (CTRL+SHIFT+ESC)'
+    'cups: printing'
+    'nvidia-prime: running apps on an NVIDIA GPU (vyntaris-setup installs it where there is one)'
+)
+conflicts=(bibata-cursor-theme bibata-cursor-theme-bin)
+backup=(etc/firefox/policies/policies.json etc/xdg/xdg-desktop-portal/hyprland-portals.conf etc/makepkg.conf.d/vyntaris.conf)
+makedepends=(git cargo)
+options=(!debug)
+source=("powerlevel10k::git+https://github.com/romkatv/powerlevel10k.git#tag=v1.20.0")
+sha256sums=('SKIP')
+
+build() {
+    cd "$startdir/../rust" || return 1
+    CARGO_TARGET_DIR="$srcdir/target" cargo build --release --locked
+}
+
+package() {
+    local r="$startdir/.." d="$pkgdir"
+    install -Dm755 -t "$d/usr/bin" "$srcdir/target/release/vyntaris-health" "$srcdir/target/release/vyntaris-store" \
+        "$srcdir/target/release/vyntaris-backup" \
+        "$srcdir/target/release/vyntaris-share-picker" \
+        "$srcdir/target/release/vyntaris-obex-agent" "$srcdir/target/release/vyntaris-bt-send"
+    install -Dm755 "$srcdir/target/release/vyntaris-laptop-switches" "$d/usr/lib/vyntaris/laptop-switches"
+    install -Dm755 "$srcdir/target/release/vyntaris-settings-admin" "$d/usr/lib/vyntaris/settings-admin"
+    install -Dm755 "$srcdir/target/release/vyntaris-power-users" "$d/usr/lib/vyntaris/power-users"
+    install -Dm755 "$srcdir/target/release/vyntaris-icon-theme" "$d/usr/lib/vyntaris/icon-theme"
+    install -Dm755 "$srcdir/target/release/vyntaris-store-index" "$d/usr/lib/vyntaris/store-index"
+    install -Dm755 "$srcdir/target/release/vyntaris-doc-index" "$d/usr/lib/vyntaris/doc-index"
+    install -Dm755 "$srcdir/target/release/vyntaris-vscode-theme" "$d/usr/lib/vyntaris/vscode-theme"
+    install -Dm755 "$srcdir/target/release/vyntaris-json" "$d/usr/lib/vyntaris/json"
+
+    install -d "$d/etc/xdg/quickshell"
+    cp -r "$r/config/quickshell" "$d/etc/xdg/quickshell/vyntaris"
+    rm -rf "$d/etc/xdg/quickshell/vyntaris/settings.json" "$d/etc/xdg/quickshell/vyntaris/assets/wallpapers"
+    find "$d/etc/xdg/quickshell/vyntaris" -name __pycache__ -prune -exec rm -rf {} +
+    install -Dm644 -t "$d/usr/share/backgrounds/vyntaris" "$r"/config/quickshell/assets/wallpapers/*
+
+    install -d "$d/usr/share/vyntaris/hypr"
+    cp -r "$r/config/hypr/hyprland.lua" "$r/config/hypr/lib" "$d/usr/share/vyntaris/hypr/"
+
+    install -d "$d/usr/share/vyntaris/greeter"
+    cp -r "$r/config/greeter/." "$d/usr/share/vyntaris/greeter/"
+    install -Dm644 -t "$d/usr/share/vyntaris/greetd" "$r/system/greetd/config.toml" "$r/system/greetd/hyprland.lua"
+
+    install -Dm644 -t "$d/usr/share/vyntaris/plymouth" "$r/system/plymouth/island.script.in"
+    install -Dm755 -t "$d/usr/share/vyntaris/plymouth" "$r/system/plymouth/make-theme.sh"
+    install -Dm755 "$srcdir/target/release/vyntaris-splash" "$d/usr/lib/vyntaris/splash-render"
+
+    install -Dm644 -t "$d/usr/share/vyntaris/zsh" "$r/home/zshrc" "$r/home/zprofile" "$r/home/p10k.zsh"
+    cp -r "$srcdir/powerlevel10k" "$d/usr/share/vyntaris/zsh/powerlevel10k"
+    rm -rf "$d"/usr/share/vyntaris/zsh/powerlevel10k/{.git,.gitattributes,.gitignore,Makefile,font.md,README.md,powerlevel10k.png}
+    rm -rf "$d"/usr/share/vyntaris/zsh/powerlevel10k/gitstatus/{.vscode,.gitignore,.clang-format,docs,src,deps,Makefile,build}
+    install -Dm644 "$r/home/skel-zshrc" "$d/etc/skel/.zshrc"
+    install -Dm644 "$r/home/skel-zprofile" "$d/etc/skel/.zprofile"
+    install -Dm644 "$r/config/kitty.conf" "$d/usr/share/vyntaris/kitty.conf"
+    install -Dm644 "$r/config/fastfetch/config.jsonc" "$d/etc/xdg/fastfetch/config.jsonc"
+    install -Dm644 "$r/config/fastfetch/pngs/logo.png" "$d/usr/share/vyntaris/fastfetch/logo.png"
+    install -Dm644 -t "$d/usr/share/vyntaris" "$r/config/vscode-settings.json" "$r/system/thunar-actions.xml" \
+        "$r/system/timeshift.json" "$r/system/nftables.conf" "$r/system/autologin.conf" "$r/packages.txt"
+    install -Dm644 "$r/system/firefox-policies.json" "$d/etc/firefox/policies/policies.json"
+    install -Dm644 "$r/system/makepkg-vyntaris.conf" "$d/etc/makepkg.conf.d/vyntaris.conf"
+    install -Dm755 "$srcdir/target/release/vyntaris-portal" "$d/usr/lib/vyntaris/portal"
+    install -Dm644 -t "$d/usr/share/xdg-desktop-portal/portals" "$r/system/portal/vyntaris.portal"
+    install -Dm644 -t "$d/usr/share/dbus-1/services" "$r/system/portal/org.freedesktop.impl.portal.desktop.vyntaris.service"
+    install -Dm644 -t "$d/etc/xdg/xdg-desktop-portal" "$r/system/portal/hyprland-portals.conf"
+    install -Dm644 "$r/system/fonts-office.conf" "$d/usr/share/fontconfig/conf.avail/60-vyntaris-office.conf"
+    install -d "$d/usr/share/fontconfig/conf.default"
+    ln -s ../conf.avail/60-vyntaris-office.conf "$d/usr/share/fontconfig/conf.default/60-vyntaris-office.conf"
+    { grep -v '^VERSION' "$r/system/os-release"; echo "VERSION_ID=$pkgver"; echo "VERSION=\"$pkgver\""; } \
+        > "$d/usr/share/vyntaris/os-release"
+
+    install -Dm755 -t "$d/usr/bin" "$r"/system/bin/*
+    install -Dm755 -t "$d/usr/lib/vyntaris" "$r/system/greeter-sync.sh" "$r/system/hypr-walls.sh" "$r/system/pacman-candy.sh" "$r/system/prime-run"
+    install -Dm755 "$r/system/snapshots.sh" "$d/usr/lib/vyntaris/snapshots"
+    ln -s /etc/xdg/quickshell/vyntaris/scripts/app.sh "$d/usr/bin/vyntaris-app"
+
+    install -Dm755 "$srcdir/target/release/vyntaris-doctor" "$d/usr/lib/vyntaris/doctor"
+
+    install -Dm755 "$srcdir/target/release/vyntaris-phoned" "$d/usr/lib/vyntaris/phoned"
+
+    install -Dm755 "$srcdir/target/release/vyntaris-drivers" "$d/usr/lib/vyntaris/drivers"
+    install -Dm644 -t "$d/usr/lib/systemd/system" "$r/system/drivers/vyntaris-drivers.service" \
+        "$r/system/drivers/vyntaris-drivers.timer"
+    install -Dm644 "$r/system/drivers/90-vyntaris-drivers.rules" "$d/usr/lib/udev/rules.d/90-vyntaris-drivers.rules"
+
+    install -Dm755 "$r/system/gaming/gaming.sh" "$d/usr/lib/vyntaris/gaming"
+    install -Dm755 "$r/system/gaming/game-stats.sh" "$d/usr/lib/vyntaris/game-stats"
+
+    install -Dm755 "$r/system/update-guard/update-guard.sh" "$d/usr/lib/vyntaris/update-guard"
+    install -Dm755 "$r/system/update-guard/initrd-rollback.sh" "$d/usr/lib/vyntaris/initrd-rollback"
+    install -Dm644 "$r/system/update-guard/initcpio-install" "$d/usr/lib/initcpio/install/vyntaris-rollback"
+    install -Dm755 "$r/system/update-guard/initcpio-post" "$d/usr/lib/initcpio/post/vyntaris-update-guard"
+    install -Dm644 -t "$d/usr/lib/systemd/system" "$r/system/update-guard/vyntaris-rollback.service" \
+        "$r/system/update-guard/vyntaris-boot-ok.service" "$r/system/update-guard/vyntaris-update-guard.service"
+
+    install -Dm644 -t "$d/usr/lib/systemd/user" "$r"/config/systemd/*
+    install -Dm644 "$r/system/laptop-switches/laptop-switches.service" "$d/usr/lib/systemd/system/vyntaris-laptop-switches.service"
+    install -Dm644 -t "$d/usr/lib/systemd/system" "$r/system/greetd/vyntaris-greeter-sync@.path" \
+        "$r/system/greetd/vyntaris-greeter-sync@.service"
+    install -Dm644 "$r/system/zram-generator.conf" "$d/usr/lib/systemd/zram-generator.conf"
+    install -Dm644 "$r/system/99-zram.conf" "$d/usr/lib/sysctl.d/99-vyntaris-zram.conf"
+    install -Dm644 "$r/system/thp.conf" "$d/usr/lib/tmpfiles.d/vyntaris-thp.conf"
+    install -Dm644 "$r/system/oomd-apps.conf" "$d/usr/lib/systemd/user/app.slice.d/10-vyntaris-oomd.conf"
+    for portal in xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk; do
+        install -Dm644 "$r/system/greetd/portal-not-for-greeter.conf" "$d/usr/lib/systemd/user/$portal.service.d/10-vyntaris-greeter.conf"
+    done
+    install -Dm644 "$r/system/udev/90-laptop-switches.rules" "$d/usr/lib/udev/rules.d/90-vyntaris-laptop-switches.rules"
+    install -Dm644 "$r/system/udev/80-nvidia-pm.rules" "$d/usr/lib/udev/rules.d/80-vyntaris-nvidia-pm.rules"
+    install -Dm644 "$r/system/polkit/50-vyntaris-fwupd.rules" "$d/usr/share/polkit-1/rules.d/50-vyntaris-fwupd.rules"
+
+    install -Dm644 -t "$d/usr/share/libalpm/hooks" "$r"/system/hooks/*.hook
+
+    install -Dm644 "$r/LICENSE" "$d/usr/share/licenses/vyntaris/LICENSE"
+    install -Dm644 "$r/THIRD-PARTY.md" "$d/usr/share/licenses/vyntaris/THIRD-PARTY.md"
+
+    install -Dm644 -t "$d/usr/share/pacman/keyrings" "$r"/system/keyring/vyntaris.gpg \
+        "$r"/system/keyring/vyntaris-trusted "$r"/system/keyring/vyntaris-revoked
+
+    install -Dm644 "$r/system/vyntaris.desktop" "$d/usr/share/wayland-sessions/vyntaris.desktop"
+    install -Dm644 -t "$d/usr/share/applications" "$r"/config/applications/*.desktop
+    install -d "$d/usr/share/icons"
+    cp -r "$r/config/icons/Bibata-Modern-Ice" "$d/usr/share/icons/"
+    install -Dm644 "$r/system/vyntaris-logo.svg" "$d/usr/share/icons/hicolor/scalable/apps/vyntaris.svg"
+    install -Dm644 "$r/system/vyntaris-logo.svg" "$d/usr/share/pixmaps/vyntaris.svg"
+    install -Dm644 "$r/system/vyntaris-logo-symbolic.svg" "$d/usr/share/icons/hicolor/symbolic/apps/vyntaris-symbolic.svg"
+    local size
+    for size in 16 22 24 32; do
+        install -Dm644 "$r/system/vyntaris-logo-symbolic.svg" "$d/usr/share/icons/hicolor/${size}x${size}/apps/vyntaris.svg"
+    done
+}

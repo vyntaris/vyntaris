@@ -1,0 +1,256 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+    inputs:
+      iso:
+        description: Build the ISO and test it in a VM
+        type: boolean
+        default: false
+      quick:
+        description: With the ISO, only install it, boot it and undo a bad update (no repair from the USB, no dual boot)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y lua5.4 python3 python3-venv
+          python3 -m venv /tmp/lint && /tmp/lint/bin/pip install -q shellcheck-py pyflakes
+          echo /tmp/lint/bin >> "$GITHUB_PATH"
+      - name: Scripts parse, and shellcheck (warnings too) and pyflakes find nothing
+        run: tools/lint.sh
+      - name: Paths the scripts use exist
+        run: tools/check-paths.sh
+      - name: Safe updates, on a stand-in system (an update undone, one that proves itself)
+        run: tools/test-update-guard.sh
+      - name: Games (multilib turned on; the island's FPS from MangoHud's log or the sensors)
+        run: tools/test-gaming.sh
+      - name: The session's watchdog (a crashed desktop comes back as itself, never Hyprland's safe mode)
+        run: tools/test-session.sh
+      - name: Hyprland's config comes up whole whatever settings.json and user.lua hold
+        run: tools/test-hypr-config.sh
+      - name: Updates and AUR apps without a terminal (the password asked in the shell, how each ends)
+        run: tools/test-upgrade.sh
+      - name: The accent is fitted alike in JavaScript, Lua and Python
+        run: tools/check-colours.sh
+      - name: The settings index has every setting on every page (the launcher searches it)
+        run: tools/settings-index.py
+      - name: The translations parse and hold no text the shell no longer has (and how much of each is done)
+        run: tools/i18n.py
+      - name: Lua parses
+        run: for f in config/hypr/hyprland.lua config/hypr/lib/*.lua; do luac5.4 -p "$f"; done
+      - name: JSON parses
+        run: python3 -c "import json,subprocess; [json.load(open(f)) for f in subprocess.check_output(['git','ls-files','*.json'],text=True).split() if 'vscode-settings' not in f]"
+
+  package:
+    needs: check
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Tools
+        run: pacman -Syu --noconfirm base-devel git rust gtk4 libadwaita
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: The version a push to main goes out as, in VERSION for the package (none when it's tagged already)
+        id: version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          v="$(tools/next-version.sh)"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          [ -z "$v" ] || echo "$v" > VERSION
+      - name: Vyntaris's own programs pass their tests (rust/)
+        run: cd rust && cargo test --locked --release
+      - name: Build the package (as a normal user; makepkg won't run as root)
+        run: |
+          useradd -m builder
+          chown -R builder: "$GITHUB_WORKSPACE"
+          su builder -c "git config --global --add safe.directory '$GITHUB_WORKSPACE' && cd '$GITHUB_WORKSPACE' && tools/package.sh"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vyntaris-package
+          path: pkg/vyntaris-*.pkg.tar.zst
+          retention-days: 3
+
+  smoke:
+    needs: package
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vyntaris-package
+          path: /tmp/package
+      - name: Install the package (with the newest of everything from Arch) and a headless compositor
+        run: |
+          pacman -Syu --noconfirm sway grim python
+          pacman-key --init
+          pacman -U --noconfirm /tmp/package/vyntaris-*.pkg.tar.zst
+          setcap -r /usr/bin/sway || true
+      - name: The launcher understands plain words and money (Qt's qml, no screen)
+        run: tools/test-search.sh
+      - name: The documents' index (PDF, Office, text) finds them by what's in them
+        run: pacman -S --noconfirm --needed poppler && DOC_INDEX=/usr/lib/vyntaris/doc-index tools/test-doc-index.py
+      - name: The phone link speaks KDE Connect, with a phone made up (pairing, TLS, every feature, what's kept out)
+        run: PHONED=/usr/lib/vyntaris/phoned tools/test-phone.py
+      - name: Start it for real
+        run: tools/smoke-test.sh /tmp/smoke
+      - name: Logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke
+          path: /tmp/smoke
+          retention-days: 7
+
+  publish:
+    needs: [package, smoke]
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/v') || needs.package.outputs.version != '')
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    concurrency: publish
+    permissions:
+      contents: write
+    steps:
+      - name: Tools
+        run: pacman -Syu --noconfirm git openssh gnupg rclone
+      - uses: actions/checkout@v4
+      - name: The tag names the version in VERSION (what pacman will see)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: '[ "${GITHUB_REF_NAME}" = "v$(cat VERSION)" ] || { echo "tag $GITHUB_REF_NAME, but VERSION says $(cat VERSION)" >&2; exit 1; }'
+      - name: A push to main is tagged with the version it goes out as
+        if: github.ref == 'refs/heads/main'
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "$VERSION"
+          git push origin "v$VERSION"
+      - uses: actions/download-artifact@v4
+        with:
+          name: vyntaris-package
+          path: pkg
+      - name: Sign and publish to the package repository (pkg.vyntarisos.com, on Cloudflare R2)
+        env:
+          SIGNING_KEY: ${{ secrets.PACKAGES_SIGNING_KEY }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          printf '%s\n' "$SIGNING_KEY" | gpg --batch --quiet --import
+          tools/publish-repo.sh pkg/vyntaris-*.pkg.tar.zst
+
+  iso:
+    needs: smoke
+    if: (startsWith(github.ref, 'refs/tags/v') && endsWith(github.ref, '.0')) || (github.event_name == 'workflow_dispatch' && inputs.iso)
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged -v /mnt:/mnt -v /:/host
+    permissions:
+      contents: write
+    steps:
+      - name: Room on the disk (the runner's toolchains, none of them used here)
+        run: |
+          df -h /mnt
+          rm -rf /host/usr/share/dotnet /host/usr/local/lib/android /host/opt/ghc /host/opt/hostedtoolcache \
+              /host/usr/local/share/boost /host/usr/local/.ghcup /host/usr/share/swift /host/usr/local/share/powershell
+          df -h /mnt
+      - name: Tools
+        run: pacman -Syu --noconfirm archiso git qemu-base qemu-hw-display-virtio-vga qemu-hw-display-virtio-gpu edk2-ovmf libarchive python imagemagick
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vyntaris-package
+          path: /tmp/package
+      - name: Build the ISO
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          df -h / /mnt
+          VYNTARIS_PKG="$(ls /tmp/package/vyntaris-*.pkg.tar.zst)" WORK=/mnt/archiso-work ./iso/build.sh
+          rm -rf /mnt/archiso-work
+          pacman -Scc --noconfirm >/dev/null
+          df -h /mnt
+          size="$(stat -c %s iso/out/*.iso)"
+          echo "the ISO: $size bytes"
+          [ "$size" -lt 2147483648 ] || { echo "the ISO is over 2 GiB, more than a GitHub release takes" >&2; exit 1; }
+      - name: Install it in a VM, boot the installed system, log in
+        timeout-minutes: 75
+        env:
+          VM_NO_REPAIR: ${{ inputs.quick && '1' || '' }}
+        run: ISO_ONLY=1 VM_OUT=/mnt/vm-test tools/vm-test.sh iso/out/*.iso
+      - name: The same next to another system (dual boot, into the free space)
+        if: ${{ !inputs.quick }}
+        timeout-minutes: 75
+        run: |
+          rm -f /mnt/vm-test/disk.qcow2
+          df -h /mnt
+          ISO_ONLY=1 VM_DUAL=1 VM_OUT=/mnt/vm-dual tools/vm-test.sh iso/out/*.iso
+      - name: The VM test's logs and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vm-test
+          path: |
+            /mnt/vm-test/*.png
+            /mnt/vm-test/*.log
+            /mnt/vm-dual/*.png
+            /mnt/vm-dual/*.log
+          retention-days: 7
+      - name: Checksum
+        if: startsWith(github.ref, 'refs/tags/v') || !inputs.quick
+        run: cd iso/out && sha256sum *.iso > SHA256SUMS
+      - name: Publish the ISO to dl.vyntarisos.com (Cloudflare R2)
+        if: startsWith(github.ref, 'refs/tags/v') || !inputs.quick
+        env:
+          SIGNING_KEY: ${{ secrets.PACKAGES_SIGNING_KEY }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          pacman -S --noconfirm --needed rclone gnupg
+          export RCLONE_CONFIG_R2_TYPE=s3 RCLONE_CONFIG_R2_PROVIDER=Cloudflare RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true \
+              RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+              RCLONE_CONFIG_R2_ENDPOINT="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          cd iso/out
+          iso="$(ls *.iso | head -n 1)"
+          rclone copyto "$iso" "r2:vyntaris-downloads/$iso"
+          rclone copyto "r2:vyntaris-downloads/$iso" r2:vyntaris-downloads/vyntaris-x86_64.iso
+          { cat SHA256SUMS; sed "s|  $iso\$|  vyntaris-x86_64.iso|" SHA256SUMS; } > SHA256SUMS.all
+          printf '%s\n' "$SIGNING_KEY" | gpg --batch --quiet --import
+          gpg --batch --yes --local-user 567CCD912301A261B06DAFFFC0905C46984D9F8B --detach-sign \
+              --output SHA256SUMS.sig SHA256SUMS.all
+          gpg --batch --no-default-keyring --keyring "$PWD/check.kbx" --quiet --import "$GITHUB_WORKSPACE/system/keyring/vyntaris.gpg"
+          gpg --batch --no-default-keyring --keyring "$PWD/check.kbx" --verify SHA256SUMS.sig SHA256SUMS.all
+          rclone copyto SHA256SUMS.all r2:vyntaris-downloads/SHA256SUMS --header-upload 'Cache-Control: no-cache'
+          rclone copyto SHA256SUMS.sig r2:vyntaris-downloads/SHA256SUMS.sig --header-upload 'Cache-Control: no-cache'
+          echo "published $iso to https://dl.vyntarisos.com/"
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            iso/out/*.iso
+            iso/out/SHA256SUMS
+          generate_release_notes: true

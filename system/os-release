@@ -1,0 +1,9 @@
+NAME="Vyntaris"
+PRETTY_NAME="Vyntaris"
+ID=vyntaris
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;203;166;247"
+LOGO=vyntaris
+HOME_URL="https://vyntarisos.com/"
+BUG_REPORT_URL="https://github.com/vyntaris/vyntaris/issues"

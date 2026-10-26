@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Dr. Help
+GenericName=System health
+Comment=Look the system over: disk, services, crashes, updates; and fix what can be fixed
+Icon=utilities-system-monitor
+Exec=vyntaris-app doctor
+Categories=System;Monitor;
+Keywords=doctor;health;check;problems;errors;fix;repair;diagnose;
+StartupWMClass=org.vyntaris.Doctor

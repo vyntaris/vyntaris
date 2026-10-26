@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Taking a snapshot before the upgrade...
+When = PreTransaction
+Exec = /usr/lib/vyntaris/update-guard pre
+Depends = timeshift

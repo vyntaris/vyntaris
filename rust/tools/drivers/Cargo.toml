@@ -1,0 +1,12 @@
+[package]
+name = "vyntaris-drivers"
+description = "Drivers without thinking about them: what the computer has, what each part needs from the repositories, and that installed"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+libc.workspace = true

@@ -1,0 +1,9 @@
+[package]
+name = "vyntaris-laptop-switches"
+description = "Laptop switches that only send an anonymous key (the camera's privacy switch, the Fn lock), as state files the desktop watches"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+libc.workspace = true

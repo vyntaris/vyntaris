@@ -1,0 +1,9 @@
+[Unit]
+Description=Vyntaris: the documents' index, brought up to date now and then
+
+[Timer]
+OnStartupSec=3min
+OnUnitInactiveSec=30min
+
+[Install]
+WantedBy=timers.target

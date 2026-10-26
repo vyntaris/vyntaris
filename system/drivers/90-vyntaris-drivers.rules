@@ -1,0 +1,2 @@
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_interface", ATTR{bInterfaceClass}=="07", TAG+="systemd", ENV{SYSTEMD_WANTS}+="vyntaris-drivers.service"
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="03f0|04b8|04a9|04f9|0924|055f", TAG+="systemd", ENV{SYSTEMD_WANTS}+="vyntaris-drivers.service"

@@ -1,0 +1,9 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = vyntaris
+
+[Action]
+Description = Updating the Vyntaris login screen...
+When = PostTransaction
+Exec = /usr/bin/vyntaris-setup --refresh

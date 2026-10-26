@@ -1,0 +1,17 @@
+[package]
+name = "vyntaris-backup"
+description = "Backup: your folders on your Google Drive, backed up now or when picked, and taken back"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+vyntaris-core.workspace = true
+vyntaris-ui.workspace = true
+gtk.workspace = true
+adw.workspace = true
+serde_json.workspace = true
+
+[[bin]]
+name = "vyntaris-backup"
+path = "src/main.rs"

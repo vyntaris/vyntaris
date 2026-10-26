@@ -1,0 +1,8 @@
+[package]
+name = "vyntaris-icon-theme"
+description = "The Vyntaris icon theme: the chosen one, its folders in the accent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]

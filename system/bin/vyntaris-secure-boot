@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+T() { /usr/lib/vyntaris/json tr "$@" 2>/dev/null || printf '%s' "$1"; }
+sudo pacman -S --needed --noconfirm sbctl
+if ! sudo sbctl status | grep -q "Setup Mode:.*Enabled"; then
+    T "The firmware is not in Setup Mode: reset the Secure Boot keys in the firmware setup first." >&2
+    sudo sbctl status
+    exit 1
+fi
+sudo sbctl create-keys
+sudo sbctl enroll-keys --microsoft
+esp="$(sudo bootctl -p)"
+boot="$(sudo bootctl -x)"
+for f in "$esp"/EFI/systemd/systemd-bootx64.efi "$esp"/EFI/BOOT/BOOTX64.EFI "$boot"/EFI/Linux/*.efi; do
+    [ -e "$f" ] && sudo sbctl sign -s "$f"
+done
+sudo sbctl verify
+T "Done. Turn Secure Boot on in the firmware setup."

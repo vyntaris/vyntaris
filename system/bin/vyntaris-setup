@@ -1,0 +1,433 @@
+#!/usr/bin/env bash
+set -euo pipefail
+usage() {
+    cat <<'USAGE'
+Sets the system up for Vyntaris: services, the login screen, the boot splash, drivers, the firewall,
+snapshots, the Vyntaris package repository. Runs as root; running it again is harmless.
+
+  vyntaris-setup --user NAME [--autologin] [--no-boot] [--no-aur]
+      --user NAME   the person this computer is for: the login screen follows their settings, the boot
+                    splash takes their colours, zsh becomes their shell
+      --autologin   log NAME in on tty1 without a login screen
+      --no-boot     leave the boot as it is (no quiet boot, no splash)
+      --no-aur      no AUR helper (yay)
+  vyntaris-setup --refresh    after an update: the copies (login screen, os-release) follow the package
+  vyntaris-setup --splash     the boot splash again, in the user's current colours
+USAGE
+}
+
+SHARE=/usr/share/vyntaris
+LIB=/usr/lib/vyntaris
+REPO_URL="https://pkg.vyntarisos.com"
+REPO_OLD="https://vyntaris.github.io/vyntaris-packages"
+SIGNING_KEY="$(cut -d: -f1 /usr/share/pacman/keyrings/vyntaris-trusted)"
+GREETER=/etc/greetd/greeter
+
+user=""; autologin=0; boot=1; aur=1; mode=full
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --user) user="$2"; shift ;;
+        --autologin) autologin=1 ;;
+        --no-boot) boot=0 ;;
+        --no-aur) aur=0 ;;
+        --refresh) mode=refresh ;;
+        --splash) mode=splash ;;
+        -h|--help) usage; exit 0 ;;
+        *) echo "unknown option: $1" >&2; exit 1 ;;
+    esac
+    shift
+done
+[ "$(id -u)" -eq 0 ] || { echo "vyntaris-setup changes the system: run it with sudo." >&2; exit 1; }
+user="${user:-${SUDO_USER:-}}"
+if [ -z "$user" ] && [ "$mode" != refresh ]; then
+    user="$(awk -F: '$3 >= 1000 && $3 < 60000 { print $1; exit }' /etc/passwd)"
+fi
+home=""; [ -n "$user" ] && home="$(getent passwd "$user" | cut -d: -f6)"
+settings="$home/.config/quickshell/settings.json"
+
+in_chroot=0
+systemd-detect-virt -q --chroot 2>/dev/null && in_chroot=1
+step() { printf '\n\033[1;35m::\033[0m \033[1m%s\033[0m\n' "$*"; }
+note() { printf '   %s\n' "$*"; }
+firewall() {
+    cmp -s "$SHARE/nftables.conf" /etc/nftables.conf && return 0
+    install -m644 "$SHARE/nftables.conf" /etc/nftables.conf
+    [ "$in_chroot" = 1 ] || nft -f /etc/nftables.conf 2>/dev/null || true
+}
+
+upkeep_timers() {
+    enable fstrim.timer
+    [ "$(findmnt -no FSTYPE /)" = btrfs ] && enable btrfs-scrub@-.timer
+    return 0
+}
+
+enable() {
+    local u
+    for u in "$@"; do
+        systemctl cat "$u" >/dev/null 2>&1 || [ -e "/usr/lib/systemd/system/$u" ] || continue
+        if [ "$in_chroot" = 1 ]; then systemctl enable "$u" 2>/dev/null || true
+        else systemctl enable --now "$u" 2>/dev/null || true; fi
+    done
+}
+repo_servers() {
+    grep -q '^\[vyntaris\]' /etc/pacman.conf || return 0
+    grep -qxF "Server = $REPO_URL" /etc/pacman.conf ||
+        sed -i "/^\[vyntaris\]/,/^\[/ s|^Server = $REPO_OLD\$|Server = $REPO_URL|" /etc/pacman.conf
+    sed -i "\|^Server = $REPO_OLD\$|d" /etc/pacman.conf
+}
+setting() {
+    "$LIB/json" get "$settings" "$1.$2" 2>/dev/null || echo "$3"
+}
+pick() { local v; v="$(setting "$1" "$2")"; echo "${v:-$3}"; }
+
+greeter_files() {
+    local keep
+    keep="$(mktemp -d)"
+    cp -a "$GREETER"/greeter.json "$GREETER"/wallpaper.* "$GREETER"/face "$keep/" 2>/dev/null || true
+    rm -rf "$GREETER"
+    install -d "$GREETER/config" "$GREETER/components"
+    install -m644 "$SHARE/greeter/shell.qml" "$GREETER/"
+    install -m644 "$SHARE/greeter/config/Config.qml" /etc/xdg/quickshell/vyntaris/config/Theme.qml \
+        /etc/xdg/quickshell/vyntaris/config/Tr.qml /etc/xdg/quickshell/vyntaris/config/Palettes.js "$GREETER/config/"
+    install -m644 /etc/xdg/quickshell/vyntaris/components/* "$GREETER/components/"
+    install -d "$GREETER/i18n" && install -m644 /etc/xdg/quickshell/vyntaris/i18n/*.json "$GREETER/i18n/" 2>/dev/null || true
+    for f in "$keep"/*; do
+        if [ -e "$f" ]; then cp -p "$f" "$GREETER/"; fi
+    done
+    rm -rf "$keep"
+    chmod 755 "$GREETER" "$GREETER/config" "$GREETER/components" "$GREETER/i18n"
+}
+
+greetd_config() {
+    install -m644 "$SHARE/greetd/config.toml" /etc/greetd/config.toml
+    local scale; scale="$(pick display scale 1)"; [[ "$scale" =~ ^[0-9.]+$ ]] || scale=1
+    xkb() { pick input "$1" "$2" | tr -cd 'A-Za-z0-9_,:+()-'; }
+    sed -e "s/@KB_LAYOUT@/$(xkb kbLayout us)/" -e "s/@KB_VARIANT@/$(xkb kbVariant "")/" \
+        -e "s/@KB_OPTIONS@/$(xkb kbOptions "")/" -e "s/@SCALE@/$scale/" \
+        "$SHARE/greetd/hyprland.lua" > /etc/greetd/hyprland.lua.new && mv -f /etc/greetd/hyprland.lua.new /etc/greetd/hyprland.lua
+}
+
+login_screen() {
+    step "Login screen (greetd and the shell's greeter)"
+    greeter_files
+    greetd_config
+    if ! grep -q pam_gnome_keyring /etc/pam.d/greetd; then
+        sed -i -e '/^auth.*system-local-login/a auth       optional     pam_gnome_keyring.so' \
+            -e '/^session.*system-local-login/a session    optional     pam_gnome_keyring.so auto_start' /etc/pam.d/greetd
+    fi
+    rm -f /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    [ "$in_chroot" = 1 ] || systemctl daemon-reload
+    systemctl enable greetd.service >/dev/null 2>&1
+    if [ -n "$user" ]; then
+        enable "vyntaris-greeter-sync@$user.path"
+        "$LIB/greeter-sync.sh" "$user" || true
+    fi
+    ls "$GREETER"/wallpaper.* >/dev/null 2>&1 || install -m644 /usr/share/backgrounds/vyntaris/default.png "$GREETER/wallpaper.png"
+    [ -n "$user" ] && "$LIB/greeter-sync.sh" "$user" || true
+}
+
+autologin_tty() {
+    step "Autologin on tty1 (the desktop starts from ~/.zprofile)"
+    systemctl disable greetd.service >/dev/null 2>&1 || true
+    install -d /etc/systemd/system/getty@tty1.service.d
+    sed "s/@USER@/$user/" "$SHARE/autologin.conf" > /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    [ "$in_chroot" = 1 ] || systemctl daemon-reload
+    if [ -n "$home" ]; then touch "$home/.hushlogin"; chown "$user:" "$home/.hushlogin"; fi
+}
+
+shutdown_quick() {
+    systemctl mask mkinitcpio-generate-shutdown-ramfs.service >/dev/null 2>&1 || true
+}
+
+early_kms() {
+    local conn card drv screens="" boot="" early="" m before
+    for conn in /sys/class/drm/card*-*; do
+        [ "$(cat "$conn/status" 2>/dev/null)" = connected ] || continue
+        card="${conn##*/}"; card="${card%%-*}"
+        drv="$(basename "$(readlink -f "/sys/class/drm/$card/device/driver")" 2>/dev/null)"
+        [[ " $screens " == *" $drv "* ]] || screens="$screens $drv"
+    done
+    for card in /sys/class/drm/card*/device; do
+        [ "$(cat "$card/boot_vga" 2>/dev/null)" = 1 ] && boot="$(basename "$(readlink -f "$card/driver")" 2>/dev/null)"
+    done
+    [ -n "${screens// }" ] || screens="$boot"
+    for drv in $screens; do
+        case "$drv" in
+            amdgpu|radeon|i915|xe|nouveau) early="$early $drv" ;;
+            nvidia) early="$early nvidia nvidia_modeset nvidia_uvm nvidia_drm" ;;
+        esac
+    done
+    [ -n "${early// }" ] || return 0
+    before="$(grep '^MODULES=' /etc/mkinitcpio.conf)"
+    if [[ " $early " != *" nvidia "* ]]; then
+        for m in nvidia_drm nvidia_uvm nvidia_modeset nvidia; do
+            sed -i "/^MODULES=/ { s/\(([^)]*\)\b$m\b/\1/; s/  */ /g; s/( /(/; s/ )/)/ }" /etc/mkinitcpio.conf
+        done
+    fi
+    for m in $early; do
+        grep -qE "^MODULES=\(.*\b$m\b" /etc/mkinitcpio.conf ||
+            sed -i "s/^MODULES=(\(.*\))/MODULES=(\1 $m)/; s/^MODULES=( /MODULES=(/" /etc/mkinitcpio.conf
+    done
+    [ "$(grep '^MODULES=' /etc/mkinitcpio.conf)" = "$before" ] || echo changed
+}
+
+splash() {
+    shutdown_quick
+    step "Boot splash"
+    if ! grep -q '^HOOKS=.*\bplymouth\b' /etc/mkinitcpio.conf; then
+        sed -i '/^HOOKS=/ s/\bsystemd\b/systemd plymouth/' /etc/mkinitcpio.conf
+    fi
+    early_kms >/dev/null
+    if [ -f /etc/kernel/cmdline ]; then
+        local cmdline; cmdline="$(tr -s ' \n' ' ' < /etc/kernel/cmdline | sed 's/ *$//')"
+        [[ " $cmdline " == *" splash "* ]] || echo "$cmdline splash" > /etc/kernel/cmdline
+    fi
+    sed -i 's|^default_options="--splash [^"]*"|default_options=""|' /etc/mkinitcpio.d/*.preset 2>/dev/null || true
+    install -d /etc/systemd/system/plymouth-quit.service.d
+    printf '[Service]\nExecStart=\nExecStart=-/usr/bin/plymouth quit --retain-splash\n' \
+        > /etc/systemd/system/plymouth-quit.service.d/retain-splash.conf
+    local flavor accent theme
+    flavor="$(pick theme flavor mocha)"; [ "$flavor" = latte ] && flavor=mocha
+    accent="$(pick theme accent blue)"
+    [[ "$flavor" =~ ^[a-z]+$ ]] || flavor=mocha
+    [[ "$accent" =~ ^([a-z]+|#[0-9a-fA-F]{6})$ ]] || accent=blue
+    theme="$(mktemp -d)"
+    "$SHARE/plymouth/make-theme.sh" "$theme" "$flavor" "$accent"
+    echo "$flavor $accent" > "$theme/colours"
+    rm -rf /usr/share/plymouth/themes/island
+    install -d /usr/share/plymouth/themes/island
+    install -m644 "$theme"/* /usr/share/plymouth/themes/island/
+    rm -rf "$theme"
+    plymouth-set-default-theme island
+    note "$flavor / $accent"
+}
+
+boot_menu() {
+    local esp conf others=0 d
+    esp="$(bootctl -p 2>/dev/null || true)"; conf="$esp/loader/loader.conf"
+    [ -n "$esp" ] && [ -f "$conf" ] || return 0
+    for d in "$esp"/EFI/*/; do
+        case "$(basename "$d" | tr '[:upper:]' '[:lower:]')" in boot|systemd|linux) ;; *) others=1 ;; esac
+    done
+    if [ "$others" = 1 ]; then
+        grep -q '^timeout *[1-9]' "$conf" && return 0
+        if grep -q '^timeout' "$conf"; then sed -i 's/^timeout.*/timeout 5/' "$conf"; else echo "timeout 5" >> "$conf"; fi
+        note "boot menu: shown for 5 seconds (another system is installed)"
+    elif grep -q '^timeout' "$conf"; then sed -i 's/^timeout.*/timeout 0/' "$conf"
+    else echo "timeout 0" >> "$conf"; fi
+}
+
+uki_name() {
+    local preset esp old new
+    for preset in /etc/mkinitcpio.d/*.preset; do
+        old="$(sed -n 's/^default_uki="\(.*\)"/\1/p' "$preset")"
+        [ -n "$old" ] || continue
+        new="$(dirname "$old")/vyntaris.efi"
+        [ "$(basename "$preset")" = linux.preset ] || new="$(dirname "$old")/vyntaris-$(basename "$preset" .preset).efi"
+        [ "$old" = "$new" ] && continue
+        sed -i "s|^default_uki=.*|default_uki=\"$new\"|" "$preset"
+        echo "$old" >> /var/tmp/vyntaris-old-uki
+    done
+}
+rebuild_boot() {
+    mkinitcpio -P
+    if [ -f /var/tmp/vyntaris-old-uki ]; then
+        local f
+        while read -r f; do rm -f "$f"; done < /var/tmp/vyntaris-old-uki
+        rm -f /var/tmp/vyntaris-old-uki
+    fi
+}
+
+safe_updates() {
+    enable vyntaris-update-guard.service vyntaris-boot-ok.service
+    [ "$(findmnt -no FSTYPE /)" = btrfs ] && [ -f /etc/kernel/cmdline ] || return 1
+    grep -qs '^default_uki' /etc/mkinitcpio.d/*.preset || return 1
+    local esp; esp="$(bootctl -p 2>/dev/null || true)"
+    [ -n "$esp" ] && [ -f "$esp/loader/loader.conf" ] &&
+        sed -i 's/^default vyntaris\.efi$/default vyntaris*/' "$esp/loader/loader.conf"
+    grep -qE '^HOOKS=.*\bvyntaris-rollback\b' /etc/mkinitcpio.conf && return 1
+    grep -qE '^HOOKS=.*\bsystemd\b' /etc/mkinitcpio.conf || return 1
+    sed -i '/^HOOKS=/ s/ *)/ vyntaris-rollback)/' /etc/mkinitcpio.conf
+    note "safe updates: an update that keeps Vyntaris from starting undoes itself"
+}
+
+live_sessions() {
+    [ "$in_chroot" = 1 ] && return 0
+    local dir uid name
+    for dir in /run/user/*/hypr/*/; do
+        [ -S "$dir.socket.sock" ] || continue
+        uid="$(stat -c %u "$dir")"; name="$(id -nu "$uid" 2>/dev/null)" || continue
+        runuser -u "$name" -- env XDG_RUNTIME_DIR="/run/user/$uid" HYPRLAND_INSTANCE_SIGNATURE="$(basename "$dir")" \
+            hyprctl reload config-only >/dev/null 2>&1 || true
+    done
+    for dir in /run/user/*/; do
+        uid="$(basename "$dir")"; name="$(id -nu "$uid" 2>/dev/null)" || continue
+        systemctl --user -M "$name@" is-active -q vyntaris-shell.service 2>/dev/null || continue
+        systemd-run --user -M "$name@" --quiet --collect --unit="vyntaris-shell-update-$(date +%s)" \
+            sh -c 'while [ -e /var/lib/pacman/db.lck ]; do sleep 1; done
+                   systemctl --user daemon-reload
+                   systemctl --user start vyntaris-user-setup.service
+                   systemctl --user restart vyntaris-shell.service vyntaris-wallpaper.service' \
+            >/dev/null 2>&1 || true
+    done
+}
+
+signed_only() {
+    grep -q '^\[vyntaris\]' /etc/pacman.conf || return 0
+    pacman-key --list-keys "$SIGNING_KEY" >/dev/null 2>&1 || return 0
+    sed -i '/^\[vyntaris\]/,/^\[/ s/^SigLevel *=.*/SigLevel = Required DatabaseOptional/' /etc/pacman.conf
+}
+
+if [ "$mode" = refresh ]; then
+    install -m644 "$SHARE/os-release" /etc/os-release
+    signed_only
+    if [ -d "$GREETER" ]; then
+        greeter_files
+        if [ -z "$user" ]; then
+            for w in /etc/systemd/system/*.wants/vyntaris-greeter-sync@*.path; do
+                [ -e "$w" ] || continue
+                user="${w##*vyntaris-greeter-sync@}"; user="${user%.path}"
+            done
+            [ -n "$user" ] && home="$(getent passwd "$user" | cut -d: -f6)" && settings="$home/.config/quickshell/settings.json"
+        fi
+        greetd_config
+    fi
+    [ -f /etc/kernel/cmdline ] && boot_menu
+    shutdown_quick
+    "$LIB/snapshots" >/dev/null 2>&1 || true
+    enable vyntaris-drivers.timer paccache.timer
+    upkeep_timers
+    firewall
+    kms="$(early_kms)"
+    if { safe_updates || [ "$kms" = changed ]; } && [ "$in_chroot" = 0 ]; then
+        systemd-run --quiet --collect --on-active=15 --unit="vyntaris-initramfs-$(date +%s)" \
+            --description="The initramfs, able to undo an update" \
+            sh -c 'while [ -e /var/lib/pacman/db.lck ]; do sleep 5; done
+                   exec nice -n 19 ionice -c 3 mkinitcpio -P' >/dev/null 2>&1 || true
+    fi
+    theme=/usr/share/plymouth/themes/island
+    want="$("$LIB/splash-render" --version)"
+    if [ "$in_chroot" = 0 ] && [ "$(plymouth-set-default-theme 2>/dev/null)" = island ] &&
+       [ "$(cat "$theme/version" 2>/dev/null)" != "$want" ]; then
+        systemd-run --quiet --collect --on-active=20 --unit="vyntaris-splash-new-$(date +%s)" \
+            --description="The boot splash, as this version draws it" \
+            sh -c 'while [ -e /var/lib/pacman/db.lck ]; do sleep 5; done
+                   exec nice -n 19 ionice -c 3 /usr/bin/vyntaris-setup --splash' >/dev/null 2>&1 || true
+    fi
+    repo_servers
+    live_sessions
+    exit 0
+fi
+if [ "$mode" = splash ]; then
+    splash
+    rebuild_boot
+    echo "Restart to see it."
+    exit 0
+fi
+
+step "Vyntaris"
+install -m644 "$SHARE/os-release" /etc/os-release
+"$LIB/pacman-candy.sh" /etc/pacman.conf
+if ! grep -q '^\[vyntaris\]' /etc/pacman.conf; then
+    printf '\n# Vyntaris: the desktop and its updates\n[vyntaris]\nSigLevel = Required DatabaseOptional\nServer = %s\n' "$REPO_URL" >> /etc/pacman.conf
+    note "package repository added"
+fi
+repo_servers
+signed_only
+grep -q '^NoExtract.*thunar-wallpaper-plugin' /etc/pacman.conf ||
+    sed -i '/^\[options\]/a NoExtract = usr/lib/thunarx-3/thunar-wallpaper-plugin.so' /etc/pacman.conf
+rm -f /usr/lib/thunarx-3/thunar-wallpaper-plugin.so
+useradd -D -s /usr/bin/zsh >/dev/null
+if [ -n "$user" ] && [ "$(getent passwd "$user" | cut -d: -f7)" != /usr/bin/zsh ]; then
+    chsh -s /usr/bin/zsh "$user" >/dev/null
+fi
+
+step "Services"
+enable NetworkManager.service bluetooth.service power-profiles-daemon.service reflector.timer \
+    nftables.service vyntaris-laptop-switches.service cups.socket avahi-daemon.service \
+    fwupd-refresh.timer paccache.timer systemd-oomd.service
+upkeep_timers
+systemctl mask systemd-tpm2-setup-early.service systemd-pcrproduct.service systemd-pcrlogin@.service >/dev/null 2>&1 || true
+if pacman -Q nss-mdns >/dev/null 2>&1 && ! grep -q mdns_minimal /etc/nsswitch.conf; then
+    sed -i '/^hosts:/ s/\(resolve\|dns\)/mdns_minimal [NOTFOUND=return] \1/' /etc/nsswitch.conf
+fi
+if [ "$in_chroot" = 0 ]; then
+    systemctl restart systemd-zram-setup@zram0.service 2>/dev/null || true
+    sysctl -q --system || true
+    udevadm control --reload 2>/dev/null || true
+    udevadm trigger --subsystem-match=power_supply --subsystem-match=platform --action=change 2>/dev/null || true
+fi
+
+step "Firewall (nothing comes in unasked; printers, .local names and the phone link still work)"
+firewall
+
+step "Hyprland's own wallpaper (shown for a moment before the shell's): the theme's background"
+"$LIB/hypr-walls.sh" "$settings" || true
+
+step "Drivers (graphics, Wi-Fi, sound, printers: what this computer has)"
+"$LIB/drivers" --install | sed 's/^/   /' || note "not all drivers could be installed: Settings → Drivers tries again"
+enable vyntaris-drivers.timer
+
+if [ -n "$user" ]; then
+    step "Timeshift (a snapshot before every upgrade)"
+    if [ ! -f /etc/timeshift/timeshift.json ]; then
+        btrfs=false; [ "$(findmnt -no FSTYPE /)" = btrfs ] && btrfs=true
+        install -d /etc/timeshift
+        sed -e "s/@ROOT_UUID@/$(findmnt -no UUID /)/" -e "s/@BTRFS@/$btrfs/" -e "s/@USER@/$user/" \
+            "$SHARE/timeshift.json" > /etc/timeshift/timeshift.json
+    fi
+    step "Apps run as administrator (Timeshift) in $user's theme"
+    install -d -m700 /root/.config
+    for v in gtk-3.0 gtk-4.0 dconf; do
+        install -d -o "$user" -g "$user" "$home/.config/$v"
+        dst="/root/.config/$v"
+        [ -e "$dst" ] && [ ! -L "$dst" ] && mv "$dst" "$dst.bak"
+        ln -sfn "$home/.config/$v" "$dst"
+    done
+fi
+
+if [ "$autologin" = 1 ] && [ -n "$user" ]; then autologin_tty; else login_screen; fi
+
+if [ "$aur" = 1 ] && [ -n "$user" ] && ! command -v yay >/dev/null; then
+    step "AUR helper (yay)"
+    build="$(runuser -u "$user" -- mktemp -d)"
+    if runuser -u "$user" -- git clone -q --depth 1 https://aur.archlinux.org/yay-bin.git "$build/yay-bin" &&
+       runuser -u "$user" -- sh -c "cd '$build/yay-bin' && makepkg --noconfirm >/dev/null"; then
+        pacman -U --noconfirm "$build"/yay-bin/yay-bin-[0-9]*.pkg.tar.* >/dev/null
+    else
+        note "could not build yay (no network?): skipped"
+    fi
+    rm -rf "$build"
+fi
+
+if [ "$boot" = 1 ]; then
+    if [ -f /etc/kernel/cmdline ] && grep -qs 'default_uki' /etc/mkinitcpio.d/*.preset && command -v bootctl >/dev/null; then
+        step "Quiet boot (kernel command line, systemd initramfs, no boot menu)"
+        cmdline="$(tr -s ' \n' ' ' < /etc/kernel/cmdline | sed 's/ *$//')"
+        for p in quiet loglevel=3 systemd.show_status=auto rd.udev.log_level=3 vt.global_cursor_default=0 \
+                 rd.systemd.mask=systemd-tpm2-setup-early.service; do
+            [[ " $cmdline " == *" $p "* ]] || cmdline+=" $p"
+        done
+        echo "$cmdline" > /etc/kernel/cmdline
+        sed -i -e '/^HOOKS=/ s/\budev\b/systemd/' -e '/^HOOKS=/ s/\bkeymap consolefont\b/sd-vconsole/' /etc/mkinitcpio.conf
+        boot_menu
+        safe_updates || true
+        uki_name
+        splash
+        step "Boot images"
+        rebuild_boot
+    else
+        note "boot left as it is: not systemd-boot with unified kernel images"
+    fi
+fi
+
+step "First Timeshift snapshot"
+if [ "$in_chroot" = 1 ]; then
+    note "taken before the first upgrade"
+elif ! timeshift --list --scripted 2>/dev/null | grep -q 'installed'; then
+    timeshift --create --scripted --comments "installed" --tags O >/dev/null || true
+    "$LIB/snapshots" >/dev/null 2>&1 || true
+fi
+
+step "Done"
+note "Vyntaris is set up. Restart to see it all."

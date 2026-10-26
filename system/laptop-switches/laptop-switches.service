@@ -1,0 +1,18 @@
+[Unit]
+Description=Laptop switches (camera privacy switch, Fn lock) as state files for the desktop
+After=systemd-udev-settle.service
+
+[Service]
+ExecStart=/usr/lib/vyntaris/laptop-switches
+Restart=on-failure
+RestartSec=2
+ProtectSystem=strict
+ReadWritePaths=/run/laptop-switches /var/lib/laptop-switches
+RuntimeDirectory=laptop-switches
+RuntimeDirectoryPreserve=yes
+StateDirectory=laptop-switches
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

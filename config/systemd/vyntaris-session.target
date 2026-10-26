@@ -1,0 +1,5 @@
+[Unit]
+Description=Vyntaris session (started and stopped by Hyprland)
+BindsTo=graphical-session.target
+Wants=graphical-session-pre.target
+After=graphical-session-pre.target

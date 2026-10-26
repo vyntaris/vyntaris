@@ -1,0 +1,9 @@
+[Unit]
+Description=Vyntaris: your folders backed up to your Google Drive
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vyntaris-cloud-backup run
+Nice=19
+IOSchedulingClass=idle

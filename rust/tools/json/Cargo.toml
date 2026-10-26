@@ -1,0 +1,11 @@
+[package]
+name = "vyntaris-json"
+description = "What the system's shell scripts ask of JSON and the palettes: one setting, a palette's colours, the snapshots, the login screen's settings, safe updates' status"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+regex.workspace = true
+vyntaris-core.workspace = true

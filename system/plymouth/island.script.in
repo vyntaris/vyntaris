@@ -1,0 +1,171 @@
+Window.SetBackgroundTopColor(@BASE@);
+Window.SetBackgroundBottomColor(@CRUST@);
+
+L = @L@;
+LOOP = @LOOP@;
+INTRO = @INTRO@;
+IGNITE = @IGNITE@;
+WORD = @WORD@;
+SW = Window.GetWidth();
+SH = Window.GetHeight();
+x0 = Window.GetX() + SW / 2 - L / 2;
+y0 = Window.GetY() + SH / 2 - L / 2 - 20;
+cx = x0 + @CX@;
+cy = y0 + @CY@;
+RX = @RX@;
+RY = @RY@;
+CT = Math.Cos(@TILT@);
+ST = Math.Sin(@TILT@);
+
+mode = Plymouth.GetMode();
+leaving = (mode == "shutdown" || mode == "reboot");
+
+@PLANET@
+
+for (i = 0; i < LOOP; i++) loop[i] = Image("loop-" + i + ".png");
+if (!leaving) {
+    for (i = 0; i < INTRO; i++) intro[i] = Image("intro-" + i + ".png");
+    for (i = 0; i < WORD; i++) word[i] = Image("word-" + i + ".png");
+}
+for (i = 1; i <= 3; i++) dot_image[i] = Image("dot-" + i + ".png");
+
+fun orbit_x(a, s) { return cx + RX * s * Math.Cos(a) * CT - RY * s * Math.Sin(a) * ST; }
+fun orbit_y(a, s) { return cy + RX * s * Math.Cos(a) * ST + RY * s * Math.Sin(a) * CT; }
+
+halo = Sprite(Image("halo.png"));
+halo.SetPosition(x0 + L / 2 - @HALO@ / 2, y0 + L / 2 - @HALO@ / 2, 1);
+halo.SetOpacity(0);
+
+mark = Sprite();
+mark.SetPosition(x0 + @FX@, y0 + @FY@, 10);
+if (leaving) mark.SetImage(loop[0]); else mark.SetImage(intro[0]);
+
+flare = Sprite(Image("flare.png"));
+flare.SetOpacity(0);
+
+@PATHLIST@
+PATHS = @PATHS@;
+for (p = 0; p < PATHS; p++) {
+    for (j = 0; j < path[p].dots; j++) {
+        path[p].dot[j] = Sprite(dot_image[1]);
+        path[p].dot[j].SetOpacity(0);
+    }
+    path[p].sat = Sprite(dot_image[3]);
+    path[p].sat.SetOpacity(0);
+}
+fun paths_step(f, shown) {
+    for (local.p = 0; local.p < PATHS; local.p++) {
+        local.s = path[local.p].scale;
+        local.n = path[local.p].dots;
+        for (local.j = 0; local.j < local.n; local.j++) {
+            local.a = f * path[local.p].spin + local.j * 2 * Math.Pi / local.n;
+            local.u = local.j / local.n * path[local.p].dashes;
+            local.u = local.u - Math.Int(local.u);
+            local.on = Math.Clamp(Math.Min(local.u, path[local.p].duty - local.u) * 12, 0, 1);
+            local.front = (Math.Sin(local.a) > 0);
+            local.z = 4;
+            local.dim = 0.4;
+            if (local.front) { local.z = 30; local.dim = 1; }
+            path[local.p].dot[local.j].SetPosition(orbit_x(local.a, local.s) - 2, orbit_y(local.a, local.s) - 2, local.z);
+            path[local.p].dot[local.j].SetOpacity(shown * path[local.p].alpha * local.on * local.dim);
+        }
+        local.a = f * path[local.p].spin * 3.2 + local.p * 2.2;
+        local.front = (Math.Sin(local.a) > 0);
+        local.z = 4;
+        if (local.front) local.z = 31;
+        path[local.p].sat.SetPosition(orbit_x(local.a, local.s) - 4, orbit_y(local.a, local.s) - 4, local.z);
+        path[local.p].sat.SetOpacity(shown * (0.45 + 0.4 * local.front));
+    }
+}
+
+PULSEDOTS = @PULSEDOTS@;
+PULSEFRAMES = @PULSEFRAMES@;
+pulse_start = -1000;
+pulse_on = 0;
+for (j = 0; j < PULSEDOTS; j++) {
+    pulse[j] = Sprite(dot_image[2]);
+    pulse[j].SetOpacity(0);
+}
+fun pulse_step(f) {
+    local.u = (f - pulse_start) / PULSEFRAMES;
+    if (local.u < 0 || local.u > 1) {
+        if (pulse_on) for (local.j = 0; local.j < PULSEDOTS; local.j++) pulse[local.j].SetOpacity(0);
+        pulse_on = 0;
+        return;
+    }
+    pulse_on = 1;
+    local.s = 1.05 + 2.4 * (1 - (1 - local.u) * (1 - local.u) * (1 - local.u));
+    local.alpha = (1 - local.u) * (1 - local.u) * 0.85;
+    for (local.j = 0; local.j < PULSEDOTS; local.j++) {
+        local.a = local.j * 2 * Math.Pi / PULSEDOTS;
+        pulse[local.j].SetPosition(orbit_x(local.a, local.s) - 3, orbit_y(local.a, local.s) - 3, 32);
+        pulse[local.j].SetOpacity(local.alpha * (0.6 + 0.4 * (Math.Sin(local.a) > 0)));
+    }
+}
+
+if (leaving) {
+    if (mode == "reboot") caption = "R E S T A R T I N G"; else caption = "S H U T T I N G   D O W N";
+    cap.image = Image.Text(caption, @TEXT@, 0.55);
+    cap.sprite = Sprite(cap.image);
+    cap.sprite.SetPosition(Window.GetX() + SW / 2 - cap.image.GetWidth() / 2, y0 + L + 36, 20);
+} else {
+    name = Sprite();
+    name.SetPosition(Window.GetX() + SW / 2 - @WORDW@ / 2, y0 + L + 22, 20);
+}
+WORD_AT = 74;
+
+frame = 0;
+fun refresh() {
+    if (!leaving && frame < INTRO) {
+        mark.SetImage(intro[frame]);
+        local.px = intro_px[frame];
+        local.py = intro_py[frame];
+        local.front = intro_pf[frame];
+        local.lit = (frame >= IGNITE);
+        if (frame == IGNITE) pulse_start = frame;
+    } else {
+        local.f = frame;
+        if (!leaving) local.f = frame - INTRO;
+        local.turn = Math.Int(local.f / LOOP);
+        local.i = local.f - local.turn * LOOP;
+        mark.SetImage(loop[local.i]);
+        local.px = loop_px[local.i];
+        local.py = loop_py[local.i];
+        local.front = loop_pf[local.i];
+        local.lit = 1;
+        if (local.i == 0 && local.turn - Math.Int(local.turn / 2) * 2 == 1) pulse_start = frame;
+        if (leaving && frame == 0) pulse_start = frame;
+    }
+
+    shown = 1;
+    if (!leaving) shown = Math.Min(1, frame / 40);
+    halo.SetOpacity(shown * (0.75 + 0.25 * Math.Sin(frame * 2 * Math.Pi / LOOP)));
+
+    local.paths = 1;
+    if (!leaving) local.paths = Math.Clamp((frame - 70) / 40, 0, 1);
+    paths_step(frame, local.paths);
+    pulse_step(frame);
+
+    if (local.lit) {
+        local.boost = 0;
+        if (!leaving) local.boost = Math.Max(0, 1 - (frame - IGNITE) / 22) * 1.3;
+        local.glow = 0.12;
+        if (local.front) local.glow = 0.55;
+        flare.SetPosition(x0 + local.px - @FLAREW@ / 2, y0 + local.py - @FLAREH@ / 2, 35);
+        flare.SetOpacity(Math.Min(1, local.glow + local.boost));
+    }
+
+    if (!leaving && frame >= WORD_AT) name.SetImage(word[Math.Min(WORD - 1, frame - WORD_AT)]);
+    frame++;
+}
+Plymouth.SetRefreshFunction(refresh);
+
+fun show_text(str) {
+    msg.image = Image.Text(str, @TEXT@);
+    msg.sprite = Sprite(msg.image);
+    msg.sprite.SetPosition(Window.GetX() + SW / 2 - msg.image.GetWidth() / 2, y0 + L + 72, 20);
+}
+fun display_normal() { msg.sprite = NULL; }
+Plymouth.SetDisplayNormalFunction(display_normal);
+fun display_message(str) { show_text(str); }
+Plymouth.SetMessageFunction(display_message);

@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -uo pipefail
+SHARE=/usr/share/vyntaris
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}"
+version="$(pacman -Q vyntaris 2>/dev/null | cut -d' ' -f2)"
+[ -n "$version" ] || version="$(sed -n 's/^VERSION_ID=//p' "$SHARE/os-release" 2>/dev/null)"
+stamp="$STATE/vyntaris/user-setup"
+if [ "${1:-}" = --session ] && [ "$(cat "$stamp" 2>/dev/null)" = "$version" ]; then exit 0; fi
+[ "$(id -u)" -ne 0 ] || { echo "vyntaris-user-setup is for your own account, not root." >&2; exit 1; }
+
+say() { printf '\033[1;35m::\033[0m %s\n' "$*"; }
+
+[ -e "$HOME/.zshrc" ] || cp /etc/skel/.zshrc "$HOME/.zshrc"
+[ -e "$HOME/.zprofile" ] || cp /etc/skel/.zprofile "$HOME/.zprofile"
+systemctl --user daemon-reload 2>/dev/null || true
+
+xdg-user-dirs-update 2>/dev/null || true
+pictures="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")"
+mkdir -p "$pictures/Wallpapers" "$pictures/Screenshots"
+
+mime() { local app="$1"; shift; xdg-mime default "$app" "$@" 2>/dev/null || true; }
+mime thunar.desktop inode/directory
+mime org.gnome.Loupe.desktop image/png image/jpeg image/gif image/webp image/bmp image/tiff image/svg+xml image/avif image/heic
+mime mpv.desktop video/mp4 video/x-matroska video/webm video/quicktime video/x-msvideo video/mpeg video/ogg \
+    audio/mpeg audio/flac audio/ogg audio/x-wav audio/wav audio/mp4 audio/aac audio/opus
+mime org.gnome.TextEditor.desktop text/plain
+mime code-oss.desktop text/markdown text/x-csrc text/x-chdr text/x-python application/x-shellscript application/json application/xml
+mime firefox.desktop application/pdf text/html x-scheme-handler/http x-scheme-handler/https
+mime xarchiver.desktop application/zip application/x-7z-compressed application/x-tar application/gzip application/x-xz application/zstd application/vnd.rar
+mkdir -p "$HOME/.local/share/applications"
+for id in avahi-discover bssh bvnc lstopo qv4l2 qvidcap xfce4-about thunar-bulk-rename thunar-settings cups qt6ct; do
+    [ -e "/usr/share/applications/$id.desktop" ] || continue
+    printf '[Desktop Entry]\nType=Application\nName=%s\nNoDisplay=true\n' "$id" > "$HOME/.local/share/applications/$id.desktop"
+done
+
+xdph="$CONFIG/hypr/xdph.conf"
+if [ ! -e "$xdph" ]; then
+    mkdir -p "$(dirname "$xdph")"
+    printf '# The screen sharing portal (xdg-desktop-portal-hyprland): what to share is picked in Vyntaris'"'"'s window\nscreencopy {\n    custom_picker_binary = /usr/bin/vyntaris-share-picker\n}\n' > "$xdph"
+fi
+
+for d in "$CONFIG/Code - OSS/User" "$CONFIG/Code/User"; do
+    mkdir -p "$d"
+    [ -e "$d/settings.json" ] || cp "$SHARE/vscode-settings.json" "$d/settings.json"
+    grep -q '"window.dialogStyle"' "$d/settings.json" ||
+        sed -i '0,/^{/s//{\n    "window.dialogStyle": "custom",/' "$d/settings.json"
+    sed -i -e "s|\"'CaskaydiaCove Nerd Font Mono', 'JetBrains Mono', monospace\"|\"'JetBrains Mono', 'Symbols Nerd Font Mono', monospace\"|" \
+           -e "s|\"terminal.integrated.fontFamily\": \"'CaskaydiaCove Nerd Font Mono'\"|\"terminal.integrated.fontFamily\": \"'JetBrains Mono', 'Symbols Nerd Font Mono'\"|" \
+        "$d/settings.json"
+done
+if command -v yay >/dev/null && ! grep -qs '"removemake": *"yes"' "$HOME/.config/yay/config.json"; then
+    yay --save --removemake >/dev/null 2>&1 || true
+fi
+f="$HOME/.vscode-oss/argv.json"
+if [ ! -e "$f" ]; then
+    mkdir -p "$(dirname "$f")"; printf '{\n\t"password-store": "gnome-libsecret"\n}\n' > "$f"
+elif ! grep -q '"password-store"' "$f"; then
+    sed -i '0,/^{/s//{\n\t"password-store": "gnome-libsecret",/' "$f"
+fi
+if command -v code >/dev/null; then
+    for ext in Catppuccin.catppuccin-vsc Catppuccin.catppuccin-vsc-icons; do
+        code --list-extensions 2>/dev/null | grep -qix "$ext" || timeout 120 code --install-extension "$ext" >/dev/null 2>&1 || true
+    done
+fi
+
+if command -v thunar >/dev/null; then
+    uca="$CONFIG/Thunar/uca.xml"
+    [ -e "$uca" ] || install -Dm644 /etc/xdg/Thunar/uca.xml "$uca"
+    sed -i -e 's|<command>exo-open --working-directory %f --launch TerminalEmulator</command>|<command>kitty --directory %f</command>|' \
+        -e 's|<command>qs ipc call|<command>qs -c vyntaris ipc call|' "$uca"
+    /usr/lib/vyntaris/json merge-actions "$uca" "$SHARE/thunar-actions.xml"
+    thunar_xml="$CONFIG/xfce4/xfconf/xfce-perchannel-xml/thunar.xml"
+    thunar_pref() {
+        xfconf-query -c thunar -p "/$1" >/dev/null 2>&1 && return
+        xfconf-query -c thunar -p "/$1" -n -t "$2" -s "$3" 2>/dev/null && return
+        [ -e "$thunar_xml" ] || { install -d "$(dirname "$thunar_xml")"
+            printf '%s\n' '<?xml version="1.1" encoding="UTF-8"?>' '' '<channel name="thunar" version="1.0">' '</channel>' > "$thunar_xml"; }
+        grep -q "name=\"$1\"" "$thunar_xml" ||
+            sed -i "s|</channel>|  <property name=\"$1\" type=\"$2\" value=\"$3\"/>\n</channel>|" "$thunar_xml"
+    }
+    accels="$CONFIG/Thunar/accels.scm"
+    if ! grep -q '^(gtk_accel_path "[^"]*" "space")' "$accels" 2>/dev/null; then
+        install -d "$(dirname "$accels")"
+        sed -i '/uca-action-shell-quick-look/d' "$accels" 2>/dev/null || true
+        echo '(gtk_accel_path "<Actions>/ThunarActions/uca-action-shell-quick-look" "space")' >> "$accels"
+    fi
+    thunar_pref last-menubar-visible bool false
+    thunar_pref last-icon-view-zoom-level string THUNAR_ZOOM_LEVEL_150_PERCENT
+    if ! xfconf-query -c thunar -p /hidden-bookmarks >/dev/null 2>&1 && ! grep -q 'name="hidden-bookmarks"' "$thunar_xml" 2>/dev/null; then
+        desktop="$(xdg-user-dir DESKTOP)"
+        [ "$desktop" != "$HOME" ] && xfconf-query -c thunar -p /hidden-bookmarks -n -a -t string -s "file://$desktop" 2>/dev/null
+    fi
+fi
+bookmarks="$CONFIG/gtk-3.0/bookmarks"
+mkdir -p "$(dirname "$bookmarks")"; touch "$bookmarks"
+pinned="$STATE/vyntaris/bookmarks-offered"
+folders=("$(xdg-user-dir DOWNLOAD)" "$(xdg-user-dir DOCUMENTS)" "$(xdg-user-dir PICTURES)" \
+         "$(xdg-user-dir MUSIC)" "$(xdg-user-dir VIDEOS)" "$HOME/Projects")
+if [ ! -e "$pinned" ]; then
+    mkdir -p "$(dirname "$pinned")"
+    if [ -e "$stamp" ]; then printf 'file://%s\n' "${folders[@]}" > "$pinned"; else : > "$pinned"; fi
+fi
+for dir in "${folders[@]}"; do
+    [ -d "$dir" ] && [ "$dir" != "$HOME" ] || continue
+    grep -qxF "file://$dir" "$pinned" && continue
+    grep -qxF "file://$dir" "$bookmarks" || echo "file://$dir" >> "$bookmarks"
+    echo "file://$dir" >> "$pinned"
+done
+
+mkdir -p "$(dirname "$stamp")"
+echo "$version" > "$stamp"
+say "Your part of Vyntaris $version is set up"

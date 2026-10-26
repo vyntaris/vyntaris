@@ -1,0 +1,14 @@
+[Unit]
+Description=The phone link (KDE Connect's protocol, the shell's own: the phone in the bar)
+PartOf=graphical-session.target
+After=graphical-session.target network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/vyntaris/phoned
+Restart=on-failure
+RestartSec=10
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session.target

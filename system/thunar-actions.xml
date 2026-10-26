@@ -1,0 +1,90 @@
+<action>
+	<icon>view-preview</icon>
+	<name>Quick Look</name>
+	<submenu></submenu>
+	<unique-id>shell-quick-look</unique-id>
+	<command>qs -c vyntaris ipc call quicklook open %f</command>
+	<description>See it without opening it (Space)</description>
+	<range>1-1</range>
+	<patterns>*</patterns>
+	<directories/>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+</action>
+<action>
+	<icon>preferences-desktop-wallpaper</icon>
+	<name>Set as Wallpaper</name>
+	<submenu></submenu>
+	<unique-id>shell-set-wallpaper</unique-id>
+	<command>qs -c vyntaris ipc call wallpaper set %f</command>
+	<description>Use this picture as the desktop wallpaper</description>
+	<range>1-1</range>
+	<patterns>*.png;*.jpg;*.jpeg;*.webp;*.PNG;*.JPG;*.JPEG;*.WEBP</patterns>
+	<image-files/>
+</action>
+<action>
+	<icon>smartphone</icon>
+	<name>Send to Phone</name>
+	<submenu></submenu>
+	<unique-id>shell-send-to-phone</unique-id>
+	<command>/usr/lib/vyntaris/phoned send %F</command>
+	<description>Send these to the phone connected (the phone in the bar)</description>
+	<range>*</range>
+	<patterns>*</patterns>
+	<other-files/>
+	<text-files/>
+	<image-files/>
+	<video-files/>
+	<audio-files/>
+</action>
+<action>
+	<icon>object-rotate-right</icon>
+	<name>Rotate Right</name>
+	<submenu>Rotate</submenu>
+	<unique-id>shell-rotate-right</unique-id>
+	<command>magick mogrify -auto-orient -rotate 90 %F</command>
+	<description>Turn the picture 90° clockwise (the file is changed)</description>
+	<range>*</range>
+	<patterns>*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.tif;*.tiff;*.PNG;*.JPG;*.JPEG;*.WEBP</patterns>
+	<image-files/>
+</action>
+<action>
+	<icon>object-rotate-left</icon>
+	<name>Rotate Left</name>
+	<submenu>Rotate</submenu>
+	<unique-id>shell-rotate-left</unique-id>
+	<command>magick mogrify -auto-orient -rotate -90 %F</command>
+	<description>Turn the picture 90° counter-clockwise (the file is changed)</description>
+	<range>*</range>
+	<patterns>*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.tif;*.tiff;*.PNG;*.JPG;*.JPEG;*.WEBP</patterns>
+	<image-files/>
+</action>
+<action>
+	<icon>object-flip-horizontal</icon>
+	<name>Flip Horizontally</name>
+	<submenu>Rotate</submenu>
+	<unique-id>shell-flip</unique-id>
+	<command>magick mogrify -auto-orient -flop %F</command>
+	<description>Mirror the picture left to right (the file is changed)</description>
+	<range>*</range>
+	<patterns>*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.tif;*.tiff;*.PNG;*.JPG;*.JPEG;*.WEBP</patterns>
+	<image-files/>
+</action>
+<action>
+	<icon>bluetooth</icon>
+	<name>Send via Bluetooth</name>
+	<submenu></submenu>
+	<unique-id>shell-bluetooth-send</unique-id>
+	<command>vyntaris-bt-send %F</command>
+	<description>Send to the phone or computer connected over Bluetooth</description>
+	<range>*</range>
+	<patterns>*</patterns>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+</action>

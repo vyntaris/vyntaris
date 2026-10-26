@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Vyntaris
+Comment=The Vyntaris desktop (Hyprland and Quickshell)
+Exec=vyntaris-session
+TryExec=vyntaris-session
+Type=Application
+DesktopNames=Hyprland;Vyntaris

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+T() { /usr/lib/vyntaris/json tr "$@" 2>/dev/null || printf '%s' "$1"; }
+
+case "${1:-}" in
+    on)
+        [ -d /sys/kernel/sched_ext ] || { T "This kernel can't change its scheduler (no sched_ext)." >&2; exit 1; }
+        sudo pacman -S --needed --noconfirm scx-scheds scx-tools
+        sudo install -d /etc/scx_loader
+        printf 'default_sched = "scx_lavd"\ndefault_mode = "Auto"\n' | sudo tee /etc/scx_loader/config.toml >/dev/null
+        sudo systemctl enable scx_loader.service
+        sudo systemctl restart scx_loader.service
+        sleep 2
+        if grep -q '^enabled' /sys/kernel/sched_ext/state; then
+            T "Responsive under load is on: scx_lavd is scheduling, and will from every boot."
+        else
+            T "scx_lavd didn't start: the kernel's own scheduler stays. See: journalctl -u scx_loader" >&2
+            exit 1
+        fi
+        ;;
+    off)
+        sudo systemctl disable --now scx_loader.service 2>/dev/null || true
+        T "Responsive under load is off: the kernel's own scheduler is back."
+        ;;
+    *)
+        echo "vyntaris-scheduler on|off" >&2
+        exit 2
+        ;;
+esac

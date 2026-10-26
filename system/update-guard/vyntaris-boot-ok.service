@@ -1,0 +1,14 @@
+[Unit]
+Description=The update starts the desktop
+After=graphical.target
+Before=boot-complete.target
+ConditionPathExistsGlob=/sys/firmware/efi/efivars/LoaderBootCountPath-*
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/vyntaris/update-guard boot-ok
+TimeoutStartSec=11min
+
+[Install]
+RequiredBy=boot-complete.target

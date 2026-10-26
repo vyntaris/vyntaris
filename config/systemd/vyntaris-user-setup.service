@@ -1,0 +1,11 @@
+[Unit]
+Description=Vyntaris: your part of the setup (folders, wallpapers, defaults), once for each version
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/vyntaris-user-setup --session
+
+[Install]
+WantedBy=graphical-session.target

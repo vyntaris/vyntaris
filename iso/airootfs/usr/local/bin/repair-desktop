@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+set -euo pipefail
+usage() {
+    cat <<'USAGE'
+Repairs an installed Vyntaris from the live USB.
+
+  repair-desktop list                   the installed Vyntaris systems:  DEVICE  FS  NAME  HOST  SNAPSHOTS
+  repair-desktop snapshots DEVICE       its Timeshift snapshots, newest first:  NAME  WHEN  COMMENT
+  repair-desktop restore DEVICE NAME    back to that snapshot (the system as it is now is kept aside),
+                                        then the boot images from it
+  repair-desktop boot DEVICE            the boot images made again, systemd-boot updated
+  repair-desktop packages DEVICE        an interrupted update finished, the kernel and the desktop reinstalled
+  repair-desktop shell DEVICE           a shell inside it
+USAGE
+}
+MNT=/mnt/vyntaris-repair
+TOP=/run/vyntaris-repair-top
+step() { printf '\n:: %s\n' "$*"; }
+note() { printf '   %s\n' "$*"; }
+die()  { printf '\nerror: %s\n' "$*" >&2; exit 1; }
+[ "$(id -u)" -eq 0 ] || die "run this as root (the live USB logs you in as root)"
+
+probe() {
+    local dev="$1" t fs out=1
+    fs="$(lsblk -no FSTYPE "$dev" 2>/dev/null | head -n1)"
+    t="$(mktemp -d)"
+    case "$fs" in
+        btrfs) mount -o ro,subvol=@ "$dev" "$t" 2>/dev/null || { rmdir "$t"; return 1; } ;;
+        ext4)  mount -o ro "$dev" "$t" 2>/dev/null || { rmdir "$t"; return 1; } ;;
+        *)     rmdir "$t"; return 1 ;;
+    esac
+    if grep -q '^NAME="Vyntaris"' "$t/etc/os-release" 2>/dev/null; then
+        printf '%s\t%s\n' "$(. "$t/etc/os-release"; echo "$PRETTY_NAME${VERSION_ID:+ $VERSION_ID}")" "$(cat "$t/etc/hostname" 2>/dev/null)"
+        out=0
+    fi
+    umount "$t"; rmdir "$t"
+    return $out
+}
+
+top() {
+    mkdir -p "$TOP"
+    mountpoint -q "$TOP" || mount -o subvolid=5 "$1" "$TOP"
+}
+untop() { mountpoint -q "$TOP" && umount "$TOP" || true; }
+
+snapshots() {
+    [ "$(lsblk -no FSTYPE "$1")" = btrfs ] || return 0
+    top "$1"
+    local d name day clock when comment
+    for d in $(ls -1d "$TOP"/timeshift-btrfs/snapshots/*/ 2>/dev/null | sort -r); do
+        [ -d "$d/@" ] || continue
+        name="$(basename "$d")" day="${name%%_*}" clock="${name#*_}"
+        when="$name"
+        [ "$clock" != "$name" ] && when="$day $(echo "${clock:0:5}" | tr - :)"
+        comment="$(sed -n 's/^[[:space:]]*"comments"[[:space:]]*:[[:space:]]*"\(.*\)"[[:space:]]*,\{0,1\}[[:space:]]*$/\1/p' "$d/info.json" 2>/dev/null | head -n1)"
+        printf '%s\t%s\t%s\n' "$name" "$when" "$comment"
+    done
+}
+
+mount_system() {
+    local root="$1" fs
+    fs="$(lsblk -no FSTYPE "$root")"
+    umount -R "$MNT" 2>/dev/null || true
+    mkdir -p "$MNT"
+    if [ "$fs" = btrfs ]; then mount -o subvol=@ "$root" "$MNT"; else mount "$root" "$MNT"; fi
+    local spec target type opts rest
+    while read -r spec target type opts rest; do
+        case "$spec" in ''|\#*) continue ;; esac
+        case "$target" in /home|/boot|/efi) mount --mkdir -t "$type" -o "$opts" "$spec" "$MNT$target" ;; esac
+    done < "$MNT/etc/fstab"
+    note "$root on $MNT$(findmnt -rn -o TARGET -R "$MNT" | tail -n +2 | sed "s|$MNT||" | tr '\n' ' ' | sed 's/ $//; s/^/, with /')"
+}
+release() { umount -R "$MNT" 2>/dev/null || true; untop; }
+trap release EXIT
+
+boot_images() {
+    step "Boot images"
+    arch-chroot "$MNT" mkinitcpio -P
+    arch-chroot "$MNT" bootctl update --graceful >/dev/null 2>&1 || true
+    note "made again"
+}
+
+cmd="${1:-}"; dev="${2:-}"
+case "$cmd" in
+    list)
+        trap - EXIT
+        live="$(lsblk -no PKNAME "$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null || echo /dev/null)" 2>/dev/null || true)"
+        while read -r path type; do
+            [ "$type" = part ] || continue
+            [ -n "$live" ] && [ "$(lsblk -no PKNAME "$path")" = "$live" ] && continue
+            if info="$(probe "$path")"; then
+                count=0
+                [ "$(lsblk -no FSTYPE "$path")" = btrfs ] && count="$(snapshots "$path" | wc -l)" && untop
+                printf '%s\t%s\t%s\t%s\n' "$path" "$(lsblk -no FSTYPE "$path")" "$info" "$count"
+            fi
+        done < <(lsblk -lnpo PATH,TYPE)
+        ;;
+    snapshots)
+        [ -b "$dev" ] || die "no such device: $dev"
+        snapshots "$dev"
+        ;;
+    restore)
+        [ -b "$dev" ] || die "no such device: $dev"
+        name="${3:-}"; [ -n "$name" ] || die "which snapshot?"
+        [ "$(lsblk -no FSTYPE "$dev")" = btrfs ] || die "going back to a snapshot needs Btrfs; this system is on $(lsblk -no FSTYPE "$dev")"
+        top "$dev"
+        snap="$TOP/timeshift-btrfs/snapshots/$name/@"
+        [ -d "$snap" ] || die "no snapshot called $name"
+        step "Back to the snapshot of $name"
+        aside="@.before-$(date +%Y%m%d-%H%M%S)"
+        mv "$TOP/@" "$TOP/$aside"
+        btrfs -q subvolume snapshot "$snap" "$TOP/@"
+        note "the system as it was is kept as $aside (delete it once all is well: btrfs subvolume delete)"
+        untop
+        step "The restored system"
+        mount_system "$dev"
+        boot_images
+        step "Done"
+        note "restart, and you're back on $name"
+        ;;
+    boot)
+        [ -b "$dev" ] || die "no such device: $dev"
+        step "The installed system"
+        mount_system "$dev"
+        boot_images
+        step "Done"
+        ;;
+    packages)
+        [ -b "$dev" ] || die "no such device: $dev"
+        curl -fsI --max-time 8 https://archlinux.org >/dev/null 2>&1 || die "this needs the internet: connect first (Wi-Fi in the installer)"
+        step "The installed system"
+        mount_system "$dev"
+        rm -f "$MNT/var/lib/pacman/db.lck"
+        step "Updates"
+        arch-chroot "$MNT" pacman -Syu --noconfirm
+        step "The kernel and the desktop, again"
+        arch-chroot "$MNT" pacman -S --noconfirm linux vyntaris
+        boot_images
+        step "Done"
+        ;;
+    shell)
+        [ -b "$dev" ] || die "no such device: $dev"
+        mount_system "$dev"
+        echo "   Inside the installed system. exit to leave."
+        arch-chroot "$MNT"
+        ;;
+    *)
+        usage; exit 1 ;;
+esac

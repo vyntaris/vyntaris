@@ -1,0 +1,9 @@
+[package]
+name = "vyntaris-settings-admin"
+description = "What Settings changes that needs root (through pkexec): the users and the language, each checked"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+libc.workspace = true

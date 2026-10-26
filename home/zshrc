@@ -1,0 +1,54 @@
+if [[ $TERM != linux && -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_ALL_DUPS SHARE_HISTORY INC_APPEND_HISTORY HIST_REDUCE_BLANKS
+setopt AUTO_CD INTERACTIVE_COMMENTS
+
+autoload -Uz compinit && compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zcompdump-$ZSH_VERSION"
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+bindkey -e
+bindkey '^[[H' beginning-of-line '^[[F' end-of-line '^[[3~' delete-char
+bindkey '^[[1;5C' forward-word '^[[1;5D' backward-word
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search; zle -N down-line-or-beginning-search
+bindkey '^[[A' up-line-or-beginning-search '^[[B' down-line-or-beginning-search
+_vyntaris_sudo() {
+    [[ -z $BUFFER ]] && LBUFFER="$(fc -ln -1)"
+    if [[ $BUFFER == sudo\ * ]]; then LBUFFER="${LBUFFER#sudo }"; else LBUFFER="sudo $LBUFFER"; fi
+}
+zle -N _vyntaris_sudo
+bindkey '\e\e' _vyntaris_sudo
+
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6c7086"
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
+
+if [[ $TERM == linux ]]; then
+    PROMPT='%F{magenta}%n@%m%f %F{blue}%~%f %# '
+else
+    source /usr/share/vyntaris/zsh/powerlevel10k/powerlevel10k.zsh-theme
+    if [[ -f ~/.p10k.zsh ]]; then source ~/.p10k.zsh; else source /usr/share/vyntaris/zsh/p10k.zsh; fi
+fi
+
+if command -v eza >/dev/null; then
+    alias ls="eza --icons=auto"
+    alias ll="eza --icons=auto -l --git"
+    alias la="eza --icons=auto -la --git"
+    alias tree="eza --icons=auto --tree"
+else
+    alias ls='ls --color=auto'
+fi
+alias grep='grep --color=auto'
+alias ff="fastfetch"
+alias activate="source venv/bin/activate"
+alias g=git gst="git status" ga="git add" gaa="git add --all" gc="git commit" gcm="git commit -m" \
+    gco="git checkout" gsw="git switch" gd="git diff" gl="git pull" gp="git push" glog="git log --oneline --graph --decorate"
+
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null

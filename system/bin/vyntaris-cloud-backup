@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+set -uo pipefail
+remote=vyntaris-google
+client_id="572258717153-ght72raljempmmv12cfgqh0vvspsvi6q.apps.googleusercontent.com"
+client_secret="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"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/vyntaris"
+settings="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/settings.json"
+run_dir="${XDG_RUNTIME_DIR:-/tmp}/vyntaris-cloud-backup"
+json=/usr/lib/vyntaris/json
+T() { "$json" tr "$@" 2>/dev/null || printf '%s' "$1"; }
+sign_in_page() {
+    local ok bad close
+    ok="$(T "Signed in to Google Drive")"; bad="$(T "Signing in didn't finish.")"
+    close="$(T "You can close this tab: Vyntaris backs up your folders now.")"
+    cat <<EOF
+<!doctype html><html><head><meta charset="utf-8"><title>Vyntaris</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1e1e2e;color:#cdd6f4;
+font:16px/1.6 Inter,system-ui,sans-serif}main{text-align:center;padding:2em}h1{font-size:26px;margin:.4em 0;
+color:#cba6f7}p{color:#a6adc8;margin:0}.mark{font-size:42px}</style></head><body><main>
+{{ if .OK }}<div class="mark">✓</div><h1>$ok</h1><p>$close</p>
+{{ else }}<div class="mark">!</div><h1>$bad</h1><p>{{ .Name }} {{ .Description }}</p>{{ end }}
+</main></body></html>
+EOF
+}
+connected() { command -v rclone >/dev/null && rclone listremotes 2>/dev/null | grep -qx "$remote:"; }
+own() { [ -z "$client_id" ] || rclone config show "$remote" 2>/dev/null | grep -qxF "client_id = $client_id"; }
+setting() { "$json" get "$settings" "cloudBackup.$1" "$2" 2>/dev/null || echo "$2"; }
+now() { printf '%s\n' "$*" > "$run_dir/now"; }
+mkdir -p "$state" "$run_dir"
+
+case "${1:-}" in
+    connect)
+        command -v rclone >/dev/null || { now "done failed $(T "rclone isn't installed.")"; exit 3; }
+        connected && ! own && rclone config delete "$remote" >/dev/null 2>&1
+        if ! connected; then
+            now connecting
+            page="$run_dir/signed-in.html"
+            sign_in_page > "$page"
+            blob="$(printf '{"client_id":"%s","client_secret":"%s","scope":"drive.file"}' "$client_id" "$client_secret" \
+                | base64 -w0 | tr '+/' '-_' | tr -d '=')"
+            token="$(timeout 300 rclone authorize drive "$blob" --template "$page" 2>/dev/null | grep -m1 '^{')"
+            rm -f "$page"
+            [ -n "$token" ] && rclone config create "$remote" drive scope=drive.file client_id="$client_id" \
+                client_secret="$client_secret" token="$token" --non-interactive >/dev/null 2>&1 \
+                || { rclone config delete "$remote" >/dev/null 2>&1; now "done failed $(T "Signing in didn't finish.")"; exit 1; }
+        fi
+        systemctl --user enable --now vyntaris-cloud-backup.timer >/dev/null 2>&1
+        exec "$0" run --now
+        ;;
+    run)
+        connected || exit 0
+        exec 9> "$state/cloud-backup.lock"
+        flock -n 9 || exit 0
+        last=0 boot=""
+        [ -f "$state/cloud-backup" ] && while IFS='=' read -r k v; do
+            case "$k" in last) last="$v" ;; boot) boot="$v" ;; esac
+        done < "$state/cloud-backup"
+        this_boot="$(cat /proc/sys/kernel/random/boot_id)"
+        if [ "${2:-}" != --now ]; then
+            case "$(setting when startup)" in
+                shutdown|manual) exit 0 ;;
+                *) [ "$boot" != "$this_boot" ] || exit 0 ;;
+            esac
+        fi
+        host="$(cat /etc/hostname 2>/dev/null || hostname)"
+        base="$remote:Vyntaris backup/${host:-computer}"
+        day="$(date +%F)"
+        dirs=()
+        IFS=, read -ra picked <<< "$(setting folders "documents,pictures,desktop")"
+        for f in "${picked[@]}"; do
+            case "$f" in
+                \~/*) dir="$HOME/${f#\~/}" ;;
+                ?*) dir="$(xdg-user-dir "${f^^}" 2>/dev/null)" ;;
+                *) continue ;;
+            esac
+            [ -n "$dir" ] && [ "$dir" != "$HOME" ] && [ -d "$dir" ] && dirs+=("$dir")
+        done
+        error=""
+        for dir in "${dirs[@]}"; do
+            name="$(basename "$dir")"
+            now "backing-up 0 $name"
+            rclone sync "$dir" "$base/$name" --backup-dir "$base/Older/$day/$name" \
+                --exclude-if-present .nobackup --exclude-if-present CACHEDIR.TAG \
+                --exclude '.cache/**' --exclude 'node_modules/**' --exclude '.venv/**' --exclude '*.tmp' \
+                --transfers 4 --stats 2s --stats-one-line --stats-log-level NOTICE --log-level NOTICE 2>&1 \
+                | while IFS= read -r line; do
+                    case "$line" in
+                        *ERROR*) [ -s "$run_dir/error" ] || printf '%s\n' "${line#*ERROR : }" > "$run_dir/error" ;;
+                        *%*) pct="$(printf '%s' "$line" | grep -o '[0-9]*%' | head -n 1)"; [ -n "$pct" ] && now "backing-up ${pct%\%} $name" ;;
+                    esac
+                done
+            code="${PIPESTATUS[0]}"
+            if [ "$code" -ne 0 ]; then
+                why="$(cat "$run_dir/error" 2>/dev/null)"
+                error="${error:-${why:-$(T "It didn't work.")}}"
+            fi
+            rm -f "$run_dir/error"
+        done
+        { echo "last=$(date +%s)"; echo "boot=$this_boot"; echo "result=$([ -z "$error" ] && echo ok || echo failed)"; echo "error=$error"; } > "$state/cloud-backup"
+        if [ -z "$error" ]; then now "done ok"; else now "done failed $error"; fi
+        [ -z "$error" ]
+        ;;
+    stop)
+        stopped=false
+        for unit in vyntaris-cloud-backup.service vyntaris-cloud-backup-now.service vyntaris-cloud-connect.service; do
+            systemctl --user -q is-active "$unit" && { systemctl --user stop "$unit"; stopped=true; }
+        done
+        "$stopped" && now "done stopped"
+        ;;
+    browse)
+        connected || exit 0
+        host="$(cat /etc/hostname 2>/dev/null || hostname)"
+        at="$run_dir/drive"
+        mkdir -p "$at"
+        if ! mountpoint -q "$at"; then
+            systemctl --user stop vyntaris-cloud-browse.service 2>/dev/null
+            systemd-run --user --quiet --collect --unit=vyntaris-cloud-browse -p RuntimeMaxSec=3h \
+                rclone mount "$remote:Vyntaris backup" "$at" --read-only --dir-cache-time 1m
+            for _ in $(seq 300); do mountpoint -q "$at" && break; sleep 0.2; done
+        fi
+        mountpoint -q "$at" || { T "The backup couldn't be opened." >&2; exit 1; }
+        dir="$at/${host:-computer}"
+        [ -d "$dir" ] || dir="$at"
+        xdg-open "$dir"
+        ;;
+    status)
+        last="" result="" error="" used=-1 total=-1 running=false
+        if [ -f "$state/cloud-backup" ]; then
+            while IFS='=' read -r k v; do
+                case "$k" in last) last="$v" ;; result) result="$v" ;; error) error="$v" ;; esac
+            done < "$state/cloud-backup"
+        fi
+        exec 9>> "$state/cloud-backup.lock"
+        flock -n 9 || running=true
+        exec 9>&-
+        reconnect=false
+        if connected; then
+            own || reconnect=true
+            about="$(timeout 20 rclone about "$remote:" --json 2>/dev/null)"
+            used="$(printf '%s' "$about" | grep -o '"used": *[0-9]*' | grep -o '[0-9]*$')"
+            total="$(printf '%s' "$about" | grep -o '"total": *[0-9]*' | grep -o '[0-9]*$')"
+            c=true
+        else
+            c=false
+        fi
+        error="${error//\\/\\\\}"
+        printf '{"connected": %s, "reconnect": %s, "running": %s, "last": %s, "result": "%s", "error": "%s", "used": %s, "total": %s}\n' \
+            "$c" "$reconnect" "$running" "${last:-0}" "$result" "${error//\"/\\\"}" "${used:--1}" "${total:--1}"
+        ;;
+    disconnect)
+        systemctl --user disable --now vyntaris-cloud-backup.timer >/dev/null 2>&1
+        systemctl --user stop vyntaris-cloud-browse.service 2>/dev/null
+        command -v rclone >/dev/null && rclone config delete "$remote" 2>/dev/null
+        rm -f "$state/cloud-backup"
+        : > "$run_dir/now"
+        ;;
+    *)
+        echo "vyntaris-cloud-backup connect | run [--now] | stop | browse | status | disconnect" >&2
+        exit 2
+        ;;
+esac

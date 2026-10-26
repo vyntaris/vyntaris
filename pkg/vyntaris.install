@@ -1,0 +1,31 @@
+_units="vyntaris-shell.service vyntaris-wallpaper.service vyntaris-cliphist-text.service vyntaris-cliphist-image.service
+    vyntaris-user-setup.service vyntaris-doc-index.timer hypridle.service hyprsunset.service
+    gnome-keyring-daemon.socket"
+
+_keyring() {
+    [ -d /etc/pacman.d/gnupg ] && pacman-key --populate vyntaris >/dev/null 2>&1 || true
+}
+
+post_install() {
+    _keyring
+    systemctl --global enable $_units >/dev/null 2>&1
+    echo ":: Set the system up once (login screen, boot splash, services, drivers):"
+    echo "     sudo vyntaris-setup --user <your user name>"
+}
+
+post_upgrade() {
+    _keyring
+    if grep -qxE 'command = "(start-hyprland -- --config /etc/greetd/hyprland.lua|sh -c '"'"'exec start-hyprland -- --config /etc/greetd/hyprland.lua >/dev/null 2>&1'"'"')"' /etc/greetd/config.toml 2>/dev/null; then
+        install -m644 /usr/share/vyntaris/greetd/config.toml /etc/greetd/config.toml
+    fi
+    systemctl --global enable $_units >/dev/null 2>&1
+    rm -f /etc/systemd/user/graphical-session.target.wants/vyntaris-hyprbars.service
+    rm -f /etc/systemd/user/graphical-session.target.wants/vyntaris-obex-agent.service
+    rm -f /etc/udev/rules.d/80-vyntaris-nvidia-pm.rules
+    udevadm control --reload >/dev/null 2>&1
+    udevadm trigger --action=add --subsystem-match=pci --attr-match=vendor=0x10de >/dev/null 2>&1 || true
+}
+
+pre_remove() {
+    systemctl --global disable $_units >/dev/null 2>&1
+}

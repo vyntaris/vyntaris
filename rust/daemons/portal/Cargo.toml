@@ -1,0 +1,11 @@
+[package]
+name = "vyntaris-portal"
+description = "The desktop's settings for every app (the XDG Settings portal): its accent and whether it's dark, as they change"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+vyntaris-core.workspace = true
+tokio = { version = "1", features = ["rt", "time", "macros"] }
+zbus = { version = "5", default-features = false, features = ["tokio"] }

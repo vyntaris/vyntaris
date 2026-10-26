@@ -1,0 +1,13 @@
+[package]
+name = "vyntaris-share-picker"
+description = "What an app that asks to see the screen may see: a screen, a window or a part of the screen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+vyntaris-core.workspace = true
+vyntaris-ui.workspace = true
+gtk.workspace = true
+adw.workspace = true
+regex.workspace = true

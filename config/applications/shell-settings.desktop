@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Settings
+GenericName=Desktop settings
+Comment=Appearance, wallpaper, keyboard, displays, power and more (SUPER+I)
+Icon=preferences-system
+Exec=vyntaris-app settings toggle
+Categories=Settings;System;
+Keywords=settings;preferences;control;theme;wallpaper;

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Camera
+GenericName=Camera
+Comment=See the webcam; press S to save a picture to Pictures
+Icon=camera-web
+Exec=sh -c "if [ -e /dev/video0 ]; then exec mpv --title=Camera --profile=low-latency --untimed --no-osc --screenshot-dir=~/Pictures --screenshot-template=Camera_%%tY-%%tm-%%td_%%tH%%tM%%tS av://v4l2:/dev/video0; else notify-send -a Camera -i camera-off 'No camera' 'The camera is off or not connected (on some laptops there is a switch for it).'; fi"
+Categories=AudioVideo;Video;
+Keywords=webcam;camera;photo;

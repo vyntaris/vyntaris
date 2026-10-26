@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+b=$'\033[1m'; d=$'\033[2m'; a=$'\033[1;35m'; o=$'\033[0m'
+if [ "${1:-}" = --text ]; then
+    install-desktop || true
+    printf '\n   %sEnter%s goes back to the graphical installer… ' "$b" "$o"
+    read -r _
+    exit 0
+fi
+cat /etc/motd
+printf '  %sBack to the graphical installer:%s %sexit%s  %s(or Ctrl+D, Super+Q)%s\n\n' "$a" "$o" "$b" "$o" "$d" "$o"
+exec zsh

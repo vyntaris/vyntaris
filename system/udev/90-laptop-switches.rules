@@ -1,0 +1,3 @@
+ACTION=="bind", SUBSYSTEM=="platform", DRIVER=="ideapad_acpi", RUN+="/bin/sh -c 'chgrp wheel /sys%p/camera_power && chmod 0664 /sys%p/camera_power'"
+
+ACTION=="add|change", SUBSYSTEM=="power_supply", KERNEL=="BAT*", RUN+="/bin/sh -c 'for f in charge_types charge_control_end_threshold charge_behaviour; do [ -e /sys%p/$$f ] && chgrp wheel /sys%p/$$f && chmod 0664 /sys%p/$$f; done; true'"

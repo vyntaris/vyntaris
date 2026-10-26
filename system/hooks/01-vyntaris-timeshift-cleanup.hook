@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Removing old Timeshift snapshots...
+When = PostTransaction
+Exec = /usr/lib/vyntaris/snapshots --cleanup
+Depends = timeshift

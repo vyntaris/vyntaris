@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+T() { /usr/lib/vyntaris/json tr "$@" 2>/dev/null || printf '%s' "$1"; }
+swap=/swapfile
+[ "$(findmnt -no FSTYPE /)" = btrfs ] && swap=/swap/swapfile
+
+if [ "${1:-}" = off ]; then
+    sudo swapoff "$swap" 2>/dev/null || true
+    sudo sed -i "\\|^$swap |d" /etc/fstab
+    sudo sed -i -E 's/ ?resume=[^ ]+//; s/ ?resume_offset=[^ ]+//' /etc/kernel/cmdline
+    sudo rm -f "$swap"
+    sudo mkinitcpio -P
+    T "Hibernation is off."
+    exit 0
+fi
+
+ram_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+size_mb=$(( ram_kb / 1024 / 2 )); [ "$size_mb" -gt 8192 ] && size_mb=8192
+free_mb=$(df -m --output=avail / | tail -n1 | tr -d ' ')
+if [ "$free_mb" -lt $(( size_mb + 4096 )) ]; then
+    T "Not enough free space: needs {0} MB plus 4 GB to spare, {1} MB free." "$size_mb" "$free_mb" >&2
+    exit 1
+fi
+
+if [ ! -f "$swap" ]; then
+    T "Creating a {0} MB swap file at {1}…" "$size_mb" "$swap"
+    if [ "$(findmnt -no FSTYPE /)" = btrfs ]; then
+        sudo btrfs subvolume create /swap 2>/dev/null || true
+        sudo btrfs filesystem mkswapfile --size "${size_mb}m" "$swap"
+    else
+        sudo dd if=/dev/zero of="$swap" bs=1M count="$size_mb" status=progress
+        sudo chmod 600 "$swap"
+        sudo mkswap "$swap" >/dev/null
+    fi
+fi
+grep -q "^$swap " /etc/fstab || echo "$swap none swap defaults,pri=1 0 0" | sudo tee -a /etc/fstab >/dev/null
+sudo swapon -p 1 "$swap" 2>/dev/null || true
+
+uuid=$(findmnt -no UUID -T "$swap")
+if [ "$(findmnt -no FSTYPE /)" = btrfs ]; then
+    offset=$(sudo btrfs inspect-internal map-swapfile -r "$swap")
+else
+    offset=$(sudo filefrag -v "$swap" | awk '$1 == "0:" {gsub(/\./, "", $4); print $4; exit}')
+fi
+cmdline="$(tr -s ' \n' ' ' < /etc/kernel/cmdline | sed -E 's/ ?resume=[^ ]+//; s/ ?resume_offset=[^ ]+//; s/ *$//')"
+echo "$cmdline resume=UUID=$uuid resume_offset=$offset" | sudo tee /etc/kernel/cmdline >/dev/null
+sudo mkinitcpio -P
+T "Hibernation is ready (after a reboot): the power menu has Hibernate."

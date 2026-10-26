@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+c_acc=$'\033[1;35m'; c_dim=$'\033[2m'; c_bold=$'\033[1m'; c_off=$'\033[0m'
+step() { printf '%s::%s %s%s%s\n' "$c_acc" "$c_off" "$c_bold" "$*" "$c_off"; }
+note() { printf '   %s%s%s\n' "$c_dim" "$*" "$c_off"; }
+
+[ "$(id -u)" -eq 0 ] || { echo "run this as root" >&2; exit 1; }
+
+step "Clock"
+timedatectl set-ntp true 2>/dev/null || true
+for _ in $(seq 30); do
+    [ "$(timedatectl show -p NTPSynchronized --value 2>/dev/null)" = yes ] && break
+    sleep 1
+done
+note "$(date)"
+
+step "Keyring"
+systemctl start pacman-init.service 2>/dev/null || true
+if [ "${1:-}" = --reset ]; then
+    note "rebuilding it from scratch"
+    rm -rf /etc/pacman.d/gnupg
+    pacman-key --init >/dev/null 2>&1
+    pacman-key --populate archlinux >/dev/null 2>&1
+fi
+if pacman -Sy --noconfirm archlinux-keyring; then
+    note "up to date"
+else
+    note "could not update archlinux-keyring; check the internet, or run: fix-keyring --reset"
+    exit 1
+fi

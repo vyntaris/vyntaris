@@ -1,0 +1,7 @@
+  [1;36mVyntaris[0m  ·  built on Arch Linux
+
+  Install it:          [1minstall-desktop[0m   (the graphical installer: [1minstaller[0m)
+  Key / signature errors: [1mfix-keyring[0m   (still failing: [1mfix-keyring --reset[0m)
+  Wi-Fi by hand:       nmcli device wifi connect NAME password …
+  Mirrors:             reflector --latest 20 --sort rate --save /etc/pacman.d/mirrorlist
+  Arch install guide:  Installation_guide

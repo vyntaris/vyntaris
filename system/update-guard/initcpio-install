@@ -1,0 +1,19 @@
+#!/bin/bash
+
+build() {
+    local b
+    for b in bash btrfs tail tr sed date mv mkdir rm sync mount umount; do
+        add_binary "$b"
+    done
+    add_file /usr/lib/vyntaris/initrd-rollback /usr/lib/vyntaris/initrd-rollback 755
+    add_systemd_unit vyntaris-rollback.service
+    add_symlink /usr/lib/systemd/system/initrd.target.wants/vyntaris-rollback.service \
+        /usr/lib/systemd/system/vyntaris-rollback.service
+}
+
+help() {
+    cat <<HELP
+Vyntaris's safe updates: started from the boot menu's entry that undoes the last update, the snapshot
+taken before it takes the system's place. Needs the systemd hook and a Btrfs system.
+HELP
+}

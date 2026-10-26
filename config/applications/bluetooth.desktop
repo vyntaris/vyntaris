@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Bluetooth
+GenericName=Bluetooth devices
+Comment=Turn Bluetooth on or off, pair and connect headphones, keyboards, phones
+Icon=bluetooth
+Exec=qs -c vyntaris ipc call bluetooth_menu open
+Categories=Settings;HardwareSettings;
+Keywords=bluetooth;headphones;earbuds;pair;devices;

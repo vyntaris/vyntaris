@@ -1,0 +1,11 @@
+[Unit]
+Description=Undo the last update
+DefaultDependencies=no
+ConditionPathExists=/etc/initrd-release
+After=initrd-root-device.target plymouth-start.service
+Before=sysroot.mount
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/vyntaris/initrd-rollback

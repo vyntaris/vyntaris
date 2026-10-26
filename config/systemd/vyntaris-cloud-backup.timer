@@ -1,0 +1,9 @@
+[Unit]
+Description=Vyntaris: your folders backed up to your Google Drive at every start, when that's what's picked
+
+[Timer]
+OnStartupSec=2min
+OnUnitInactiveSec=15min
+
+[Install]
+WantedBy=timers.target

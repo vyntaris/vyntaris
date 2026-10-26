@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Screenshot
+GenericName=Screenshot and screen recording
+Comment=Take a picture or a video of the screen or part of it
+Icon=applets-screenshooter
+Exec=qs -c vyntaris ipc call capture open
+Categories=Utility;Graphics;
+Keywords=screenshot;screen;capture;record;video;snip;

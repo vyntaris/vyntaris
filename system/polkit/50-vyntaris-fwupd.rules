@@ -1,0 +1,4 @@
+polkit.addRule(function (action, subject) {
+    if (action.id === "org.freedesktop.fwupd.quit" && subject.local && subject.active)
+        return polkit.Result.YES;
+});

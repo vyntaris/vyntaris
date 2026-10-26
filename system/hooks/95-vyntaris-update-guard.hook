@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Putting the update on trial...
+When = PostTransaction
+Exec = /usr/lib/vyntaris/update-guard post
+Depends = timeshift

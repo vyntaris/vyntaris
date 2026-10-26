@@ -1,0 +1,12 @@
+[Unit]
+Description=Safe updates
+After=local-fs.target
+RequiresMountsFor=/boot /var/lib
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/lib/vyntaris/update-guard boot
+
+[Install]
+WantedBy=multi-user.target

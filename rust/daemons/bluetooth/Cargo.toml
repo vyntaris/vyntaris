@@ -1,0 +1,18 @@
+[package]
+name = "vyntaris-bluetooth"
+description = "Files over Bluetooth: the agent that asks before accepting one (and saves it to Downloads), and sending them"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+gio.workspace = true
+glib.workspace = true
+
+[[bin]]
+name = "vyntaris-obex-agent"
+path = "src/bin/obex-agent.rs"
+
+[[bin]]
+name = "vyntaris-bt-send"
+path = "src/bin/bt-send.rs"

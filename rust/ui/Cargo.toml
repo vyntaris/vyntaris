@@ -1,0 +1,11 @@
+[package]
+name = "vyntaris-ui"
+description = "What Vyntaris's apps share: starting as one (a second start shows or toggles the first), the desktop's colours kept as they change, the look"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+vyntaris-core.workspace = true
+gtk.workspace = true
+adw.workspace = true

@@ -1,0 +1,13 @@
+[package]
+name = "vyntaris-doctor"
+description = "Dr. Help, the system doctor: looks the system over, says what it found in plain words, and fixes what it can"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+regex.workspace = true
+roxmltree.workspace = true
+libc.workspace = true
+vyntaris-core.workspace = true

@@ -1,0 +1,8 @@
+[Unit]
+Description=Drivers for the hardware found, after the start
+
+[Timer]
+OnBootSec=90s
+
+[Install]
+WantedBy=timers.target

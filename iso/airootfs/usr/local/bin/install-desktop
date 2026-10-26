@@ -1,0 +1,309 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+APPS=/usr/share/desktop-installer/packages.txt
+MNT=/mnt
+
+c_acc=$'\033[1;35m'; c_dim=$'\033[2m'; c_bold=$'\033[1m'; c_err=$'\033[1;31m'; c_off=$'\033[0m'
+step() { printf '\n%s::%s %s%s%s\n' "$c_acc" "$c_off" "$c_bold" "$*" "$c_off"; }
+note() { printf '   %s%s%s\n' "$c_dim" "$*" "$c_off"; }
+die()  { printf '\n%serror:%s %s\n' "$c_err" "$c_off" "$*" >&2; exit 1; }
+
+ask() {
+    local var="$1" question="$2" default="${3:-}" answer
+    if [ -n "${!var:-}" ]; then return; fi
+    if [ -n "${INSTALL_YES:-}" ]; then printf -v "$var" '%s' "$default"; return; fi
+    read -rp "   $question${default:+ [$default]}: " answer
+    printf -v "$var" '%s' "${answer:-$default}"
+}
+
+[ "$(id -u)" -eq 0 ] || die "run this as root (the live ISO logs you in as root)"
+[ -d /sys/firmware/efi ] || die "this machine booted in legacy BIOS mode; boot the USB in UEFI mode"
+[ -f "$APPS" ] || die "$APPS is missing: this script is meant for the Vyntaris ISO"
+
+clear 2>/dev/null || true
+cat <<EOF
+${c_acc}
+   Vyntaris  ·  installer${c_off}
+   ${c_dim}Hyprland + Quickshell, Catppuccin. Ctrl+C at any question to get a shell instead.${c_off}
+EOF
+
+step "Internet"
+online() { curl -fsI --max-time 6 https://archlinux.org >/dev/null 2>&1; }
+until online; do
+    note "not connected."
+    if ! nmcli -t -f TYPE device 2>/dev/null | grep -qx wifi; then
+        read -rp "   Plug in a network cable and press Enter to try again… " _
+        continue
+    fi
+    nmcli device wifi rescan >/dev/null 2>&1 || true
+    sleep 3
+    nmcli -f IN-USE,SSID,SIGNAL,SECURITY device wifi list 2>/dev/null | head -n 16 || true
+    ssid=""; ask ssid "Wi-Fi network name"
+    read -rsp "   Password (empty for an open network): " pass; echo
+    nmcli device wifi connect "$ssid" ${pass:+password "$pass"} >/dev/null || true
+    sleep 5
+done
+note "connected."
+timedatectl set-ntp true 2>/dev/null || true
+
+step "Keyboard, language, time"
+ask INSTALL_KEYMAP "Keyboard layout (us, de, fr, rs, …)" "us"
+loadkeys "$INSTALL_KEYMAP" 2>/dev/null || note "no console keymap called '$INSTALL_KEYMAP' (the desktop will still use it)"
+ask INSTALL_LOCALE "Language / formats" "en_US.UTF-8"
+grep -q "^#\?$INSTALL_LOCALE " /etc/locale.gen || die "unknown locale $INSTALL_LOCALE (see /etc/locale.gen)"
+
+while :; do
+    ask INSTALL_TIMEZONE "Time zone (city or Region/City)" "UTC"
+    if [ -f "/usr/share/zoneinfo/$INSTALL_TIMEZONE" ]; then break; fi
+    mapfile -t hits < <(timedatectl list-timezones | grep -i -- "$INSTALL_TIMEZONE" || true)
+    if [ "${#hits[@]}" -eq 1 ]; then INSTALL_TIMEZONE="${hits[0]}"; note "$INSTALL_TIMEZONE"; break; fi
+    [ "${#hits[@]}" -gt 1 ] && note "matches: ${hits[*]:0:12}" || note "no time zone matches that"
+    [ -n "${INSTALL_YES:-}" ] && die "time zone not found"
+    INSTALL_TIMEZONE=""
+done
+
+step "You"
+taken_user() {
+    getent passwd "$1" >/dev/null || getent group "$1" >/dev/null && return 0
+    case "$1" in root|bin|daemon|mail|ftp|http|nobody|dbus|polkitd|rtkit|avahi|colord|git|greeter|uuidd|dhcpcd|tss|alpm|\
+        usbmux|geoclue|flatpak|cups|nm-openconnect|nm-openvpn|brltty|saned|sddm|gdm|live|systemd-*) return 0 ;; esac
+    return 1
+}
+while :; do
+    ask INSTALL_USER "User name (lowercase)" ""
+    if ! printf '%s' "$INSTALL_USER" | LC_ALL=C grep -qxE '[a-z_][a-z0-9_-]{0,31}'; then why="user names are lowercase letters, digits, - and _"
+    elif taken_user "$INSTALL_USER"; then why="the system has a user called $INSTALL_USER: another name"
+    else break; fi
+    [ -n "${INSTALL_YES:-}" ] && die "$why"
+    note "$why"; INSTALL_USER=""
+done
+INSTALL_FULLNAME="$(printf '%s' "${INSTALL_FULLNAME:-}" | tr ':\n\r' '   ' | sed 's/^ *//; s/ *$//')"
+while [ -z "${INSTALL_PASSWORD:-}" ]; do
+    read -rsp "   Password: " p1; echo
+    read -rsp "   Again: " p2; echo
+    if [ -n "$p1" ] && [ "$p1" = "$p2" ]; then INSTALL_PASSWORD="$p1"; else note "they don't match (or it's empty), again"; fi
+done
+while :; do
+    ask INSTALL_HOSTNAME "Computer name" "vyntaris"
+    printf '%s' "$INSTALL_HOSTNAME" | LC_ALL=C grep -qxE '[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?' && break
+    why="a computer name is letters, digits and - (not at either end), without spaces"
+    [ -n "${INSTALL_YES:-}" ] && die "$why"
+    note "$why"; INSTALL_HOSTNAME=""
+done
+
+INSTALL_FS="${INSTALL_FS:-btrfs}"
+
+step "Disk"
+live="$(lsblk -no PKNAME "$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null || echo /dev/null)" 2>/dev/null || true)"
+lsblk -dpno NAME,SIZE,MODEL -e 7,11 | grep -v "${live:-^$}" | sed 's/^/   /'
+ask INSTALL_DISK "Install on (the disk; how much of it comes next)" ""
+[ -b "$INSTALL_DISK" ] || die "$INSTALL_DISK is not a disk"
+[ "$(lsblk -dno TYPE "$INSTALL_DISK")" = disk ] || die "$INSTALL_DISK is a partition; pick the whole disk"
+
+ESP_TYPE=c12a7328-f81f-11d2-ba4b-00a0c93ec93b
+if [ -z "${INSTALL_MODE:-}" ]; then
+    lsblk -pno NAME,SIZE,FSTYPE,LABEL "$INSTALL_DISK" | sed 's/^/   /'
+    note "erase: the whole disk · free: only its free space · partition: only one partition (the rest stays)"
+fi
+ask INSTALL_MODE "How (erase, free, partition)" "erase"
+case "$INSTALL_MODE" in erase|free|partition) ;; *) die "how: erase, free or partition" ;; esac
+sector="$(blockdev --getss "$INSTALL_DISK")"
+if [ "$INSTALL_MODE" != erase ]; then
+    other_esp="$(lsblk -lnpo NAME,PARTTYPE "$INSTALL_DISK" | awk -v t="$ESP_TYPE" 'tolower($2) == t {print $1; exit}')"
+    [ -n "$other_esp" ] || die "next to another system needs the EFI partition it starts from, and $INSTALL_DISK has none: install on the whole disk, or on the disk that has it"
+    if [ "$INSTALL_MODE" = partition ]; then
+        ask INSTALL_PART "Which partition (only it is erased)" ""
+        [ -b "$INSTALL_PART" ] && [ "$(lsblk -no PKNAME "$INSTALL_PART")" = "$(basename "$INSTALL_DISK")" ] ||
+            die "$INSTALL_PART isn't a partition of $INSTALL_DISK"
+        [ "$INSTALL_PART" != "$other_esp" ] || die "$INSTALL_PART is the EFI partition other systems start from"
+        partnum="$(cat "/sys/class/block/$(basename "$INSTALL_PART")/partition")"
+        first="$(sgdisk -i "$partnum" "$INSTALL_DISK" | awk '/^First sector/ {print $3}')"
+        last="$(sgdisk -i "$partnum" "$INSTALL_DISK" | awk '/^Last sector/ {print $3}')"
+    else
+        first="$(sgdisk -F "$INSTALL_DISK")"; last="$(sgdisk -E "$INSTALL_DISK")"
+    fi
+    room=$(( (last - first + 1) * sector ))
+    [ "$room" -ge 30000000000 ] || die "that's $((room / 1000000000)) GB; Vyntaris needs at least 30"
+fi
+
+cat <<EOF
+
+   ${c_bold}About to install${c_off}
+     disk       $(case "$INSTALL_MODE" in
+                    erase) echo "$INSTALL_DISK ($(lsblk -dno SIZE "$INSTALL_DISK")) — ${c_err}all of it erased${c_off}" ;;
+                    free) echo "$((room / 1000000000)) GB of free space on $INSTALL_DISK — nothing on it is touched" ;;
+                    partition) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) — ${c_err}erased${c_off}, the rest stays" ;;
+                 esac)
+     user       $INSTALL_USER on $INSTALL_HOSTNAME
+     language   $INSTALL_LOCALE, keyboard $INSTALL_KEYMAP, $INSTALL_TIMEZONE
+     disk       $INSTALL_FS
+EOF
+if [ -z "${INSTALL_YES:-}" ]; then
+    read -rp "   Type ERASE to continue: " confirm
+    [ "$confirm" = ERASE ] || die "cancelled, nothing was changed"
+fi
+
+step "Partitions"
+umount -R "$MNT" 2>/dev/null || true
+settle() { partprobe "$INSTALL_DISK" 2>/dev/null || true; udevadm settle; }
+if [ "$INSTALL_MODE" = erase ]; then
+    wipefs -af "$INSTALL_DISK" >/dev/null
+    sgdisk -Z "$INSTALL_DISK" >/dev/null
+    sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:root "$INSTALL_DISK" >/dev/null
+    settle
+    mapfile -t parts < <(lsblk -lnpo NAME,TYPE "$INSTALL_DISK" | awk '$2 == "part" {print $1}')
+    esp="${parts[0]}"; root="${parts[1]}"
+    mkfs.fat -F 32 -n EFI "$esp" >/dev/null
+else
+    if [ "$INSTALL_MODE" = partition ]; then
+        umount "$INSTALL_PART" 2>/dev/null || true
+        wipefs -af "$INSTALL_PART" >/dev/null
+        sgdisk -d "$partnum" "$INSTALL_DISK" >/dev/null
+        settle
+    fi
+    newpart() {
+        local before; before="$(lsblk -lnpo NAME "$INSTALL_DISK" | sort)"
+        sgdisk -n "0:$1:$2" -t "0:$3" -c "0:$4" "$INSTALL_DISK" >/dev/null
+        settle
+        comm -13 <(echo "$before") <(lsblk -lnpo NAME "$INSTALL_DISK" | sort) | head -n1
+    }
+    gib=$((1073741824 / sector))
+    esp="$(newpart "$first" "$((first + gib - 1))" ea00 "Vyntaris boot")"
+    root="$(newpart "$((first + gib))" "$last" 8304 Vyntaris)"
+    [ -b "$esp" ] && [ -b "$root" ] || die "the new partitions didn't show up"
+    wipefs -af "$esp" "$root" >/dev/null
+    mkfs.fat -F 32 -n VYNTARIS "$esp" >/dev/null
+fi
+if [ "$INSTALL_FS" = btrfs ]; then
+    mkfs.btrfs -qf -L root "$root"
+    mount "$root" "$MNT"
+    btrfs -q subvolume create "$MNT/@"
+    btrfs -q subvolume create "$MNT/@home"
+    umount "$MNT"
+    opts=noatime,compress=zstd:1
+    mount -o "$opts,subvol=@" "$root" "$MNT"
+    mount --mkdir -o "$opts,subvol=@home" "$root" "$MNT/home"
+else
+    mkfs.ext4 -qF -L root "$root"
+    mount "$root" "$MNT"
+fi
+mount --mkdir -o fmask=0077,dmask=0077 "$esp" "$MNT/boot"
+if [ "$INSTALL_MODE" = erase ]; then
+    note "$esp → /boot, $root → / ($INSTALL_FS)"
+else
+    mount --mkdir -o fmask=0077,dmask=0077 "$other_esp" "$MNT/efi"
+    note "$other_esp → /efi (the other system's, it keeps it), $esp → /boot, $root → / ($INSTALL_FS)"
+fi
+
+step "Base system"
+ucode=""
+grep -q GenuineIntel /proc/cpuinfo && ucode=intel-ucode
+grep -q AuthenticAMD /proc/cpuinfo && ucode=amd-ucode
+note "choosing fast mirrors…"
+fast="$(timeout 120 reflector --protocol https --age 12 --latest 25 --fastest 8 2>/dev/null | grep '^Server' || true)"
+printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\nServer = https://fastly.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' \
+    "$fast" > /etc/pacman.d/mirrorlist
+note "refreshing the package signing keys…"
+fix-keyring >/dev/null 2>&1 || note "could not refresh them, trying anyway"
+mapfile -t apps < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$APPS" | grep -v '^$')
+firmware=(linux-firmware-intel linux-firmware-atheros linux-firmware-broadcom linux-firmware-mediatek
+          linux-firmware-realtek linux-firmware-other linux-firmware-amd linux-firmware-cirrus linux-firmware-ti)
+for dev in /sys/bus/pci/devices/*; do
+    case "$(cat "$dev/class" 2>/dev/null)" in 0x03*) ;; *) continue ;; esac
+    case "$(cat "$dev/vendor" 2>/dev/null)" in
+        0x10de) firmware+=(linux-firmware-nvidia) ;;
+        0x1002) firmware+=(linux-firmware-amdgpu linux-firmware-radeon) ;;
+    esac
+done
+note "firmware: ${firmware[*]#linux-firmware-}"
+for try in 1 2 3 4; do
+    if pacstrap -K "$MNT" base linux "${firmware[@]}" $ucode sudo zsh git nano networkmanager \
+        man-db btrfs-progs vyntaris "${apps[@]}" 2>&1 | tee /tmp/pacstrap.log; then
+        break
+    fi
+    [ "$try" = 4 ] && die "could not download the base system (log: /tmp/pacstrap.log). Open a terminal, run fix-keyring --reset, then try again"
+    if grep -qiE 'signature|keyring|unknown trust|could not be looked up|corrupted package' /tmp/pacstrap.log; then
+        note "package signatures failed, rebuilding the keyring ($try)"
+        fix-keyring --reset >/dev/null 2>&1 || true
+        rm -rf "$MNT/etc/pacman.d/gnupg"
+    else
+        note "download failed, trying again ($try)"
+    fi
+    sleep 5
+done
+genfstab -U "$MNT" >> "$MNT/etc/fstab"
+
+step "Settings"
+inside() { arch-chroot "$MNT" "$@"; }
+ln -sf "/usr/share/zoneinfo/$INSTALL_TIMEZONE" "$MNT/etc/localtime"
+inside hwclock --systohc
+sed -i "s/^#\(en_US.UTF-8 \)/\1/; s/^#\($INSTALL_LOCALE \)/\1/" "$MNT/etc/locale.gen"
+inside locale-gen >/dev/null
+echo "LANG=$INSTALL_LOCALE" > "$MNT/etc/locale.conf"
+if [ -n "$(find /usr/share/kbd/keymaps -name "$INSTALL_KEYMAP.map.gz" -print -quit)" ]; then
+    echo "KEYMAP=$INSTALL_KEYMAP" > "$MNT/etc/vconsole.conf"
+else
+    echo "KEYMAP=us" > "$MNT/etc/vconsole.conf"
+fi
+echo "$INSTALL_HOSTNAME" > "$MNT/etc/hostname"
+printf '127.0.0.1 localhost\n::1 localhost\n127.0.1.1 %s\n' "$INSTALL_HOSTNAME" >> "$MNT/etc/hosts"
+inside systemctl enable NetworkManager.service systemd-timesyncd.service >/dev/null
+
+step "User $INSTALL_USER"
+inside useradd -m -G wheel -s /usr/bin/zsh ${INSTALL_FULLNAME:+-c "$INSTALL_FULLNAME"} "$INSTALL_USER"
+printf '%s:%s\n' "$INSTALL_USER" "$INSTALL_PASSWORD" | inside chpasswd
+inside passwd -l root >/dev/null
+echo '%wheel ALL=(ALL:ALL) ALL' > "$MNT/etc/sudoers.d/10-wheel"
+chmod 440 "$MNT/etc/sudoers.d/10-wheel"
+
+step "Boot loader (systemd-boot, unified kernel image)"
+root_uuid="$(blkid -s UUID -o value "$root")"
+cmdline="root=UUID=$root_uuid rw rootfstype=$INSTALL_FS"
+[ "$INSTALL_FS" = btrfs ] && cmdline+=" rootflags=subvol=@"
+mkdir -p "$MNT/etc/kernel"
+echo "$cmdline" > "$MNT/etc/kernel/cmdline"
+cat > "$MNT/etc/mkinitcpio.d/linux.preset" <<'PRESET'
+ALL_kver="/boot/vmlinuz-linux"
+PRESETS=('default')
+default_uki="/boot/EFI/Linux/vyntaris.efi"
+default_options=""
+PRESET
+mkdir -p "$MNT/boot/EFI/Linux"
+if [ "$INSTALL_MODE" = erase ]; then
+    inside bootctl install >/dev/null
+    printf 'timeout 3\nconsole-mode max\n' > "$MNT/boot/loader/loader.conf"
+else
+    inside bootctl install --esp-path=/efi --boot-path=/boot >/dev/null
+    printf 'timeout 5\nconsole-mode max\ndefault vyntaris*\n' > "$MNT/efi/loader/loader.conf"
+fi
+inside mkinitcpio -P >/dev/null
+rm -f "$MNT"/boot/initramfs-*.img
+
+mkdir -p "$MNT/home/$INSTALL_USER/.config/quickshell"
+printf '{\n  "input": { "kbLayout": "%s", "kbVariant": "%s" }\n}\n' \
+    "$INSTALL_KEYMAP" "${INSTALL_KBVARIANT:-}" > "$MNT/home/$INSTALL_USER/.config/quickshell/settings.json"
+inside chown -R "$INSTALL_USER:$INSTALL_USER" "/home/$INSTALL_USER/.config"
+
+inside vyntaris-setup --user "$INSTALL_USER" ${INSTALL_AUTOLOGIN:+--autologin}
+inside runuser -u "$INSTALL_USER" -- env HOME="/home/$INSTALL_USER" LANG=C.UTF-8 vyntaris-user-setup
+
+step "Cleaning up"
+rm -rf "$MNT/home/$INSTALL_USER/.cache" "$MNT/root/.cache"
+find "$MNT/var/cache/pacman/pkg" -mindepth 1 -delete 2>/dev/null || true
+note "package downloads and caches removed"
+
+step "Done"
+sync
+for p in /proc/[0-9]*; do
+    [ "$(readlink "$p/root" 2>/dev/null)" = "$MNT" ] && kill "${p#/proc/}" 2>/dev/null
+done
+sleep 1
+umount -R "$MNT" 2>/dev/null || { fuser -km "$MNT" >/dev/null 2>&1; sleep 2; umount -R "$MNT"; }
+cat <<EOF
+   Vyntaris is installed on $INSTALL_DISK. Remove the USB stick and reboot:
+
+     ${c_bold}reboot${c_off}
+
+   You'll get the login screen; after logging in, the welcome page walks you through the rest.
+EOF
