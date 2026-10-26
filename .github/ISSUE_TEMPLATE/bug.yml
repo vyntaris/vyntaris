@@ -1,0 +1,42 @@
+name: Something doesn't work
+description: A part of Vyntaris does the wrong thing, crashes or looks broken.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The quickest way is Dr. Help: open it, pick **Report a problem**, and it fills this in with what the system says (your names and addresses taken out, shown to you first).
+  - type: textarea
+    id: what
+    attributes:
+      label: What went wrong
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen again
+      placeholder: |
+        1. Open …
+        2. Click …
+  - type: input
+    id: version
+    attributes:
+      label: Vyntaris version
+      description: Settings → About, or `pacman -Q vyntaris`.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Computer
+      description: The model, or the processor and graphics card.
+      placeholder: "ThinkPad T14 Gen 3, Intel with NVIDIA"
+  - type: textarea
+    id: report
+    attributes:
+      label: Dr. Help's report or logs
+      description: Optional. Paste what Dr. Help made, or `journalctl --user -u vyntaris-shell -b`.
+      render: text

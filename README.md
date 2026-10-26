@@ -7,7 +7,7 @@ the wallpaper picker, the window switcher and more. One accent colour and one li
 (Catppuccin) run through all of it: the shell, GTK and Qt apps, Firefox, VS Code, the terminal, the icons,
 the login screen and the boot splash.
 
-Vyntaris is at 0.0.1: its first public version, for early testers. Problems and ideas go to
+Vyntaris is at 0.1.0: its first beta, for early testers. Problems and ideas go to
 [the issue tracker](https://github.com/vyntaris/vyntaris/issues).
 
 Underneath it stays plain Arch: a rolling release from Arch's own repositories, updated with
@@ -998,3 +998,4 @@ global shortcuts, without a process started in between, so the first letter type
 
 Vyntaris is free software under the GNU General Public License, version 3 or any later version (`LICENSE`).
 `THIRD-PARTY.md` lists what comes from others and under which licences.
+How to report a problem or send a change is in `CONTRIBUTING.md`; a security problem goes privately, as `SECURITY.md` says.

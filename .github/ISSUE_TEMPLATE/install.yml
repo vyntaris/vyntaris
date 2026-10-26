@@ -1,0 +1,50 @@
+name: The installation doesn't work
+description: The ISO doesn't start, the installer stops, or the installed system doesn't boot.
+labels: [install]
+body:
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where it stopped
+      options:
+        - The USB stick doesn't start
+        - The installer doesn't appear (black screen, text only)
+        - The installer shows an error
+        - The installed system doesn't start
+        - The installed system starts, but something is missing
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you saw
+      description: The message on the screen, word for word, or a photo of it.
+    validations:
+      required: true
+  - type: dropdown
+    id: disk
+    attributes:
+      label: How you installed
+      options:
+        - The whole disk
+        - Next to Windows or another system (free space)
+        - Next to Windows or another system (one partition)
+        - On an existing Arch Linux (install.sh)
+  - type: input
+    id: iso
+    attributes:
+      label: The ISO's file name
+      placeholder: "vyntaris-0.1.0-x86_64.iso"
+  - type: input
+    id: hardware
+    attributes:
+      label: Computer
+      description: The model, or the processor and graphics card. Secure Boot on or off, if you know.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: The installer's last lines
+      description: Optional. What the progress screen showed last, or a photo of it. If the download failed, `cat /tmp/pacstrap.log` in the installer's terminal.
+      render: text

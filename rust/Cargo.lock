@@ -1403,7 +1403,7 @@ checksum = "03c2856837ef78f57382f06b2b8563a2f512f7185d732608fd9176cb3b8edf0e"
 
 [[package]]
 name = "vyntaris-backup"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "gtk4",
  "libadwaita",
@@ -1414,7 +1414,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-bluetooth"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "gio",
  "glib",
@@ -1422,7 +1422,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-core"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -1430,7 +1430,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-doc-index"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "csv",
  "libc",
@@ -1442,7 +1442,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-doctor"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "libc",
  "regex",
@@ -1453,7 +1453,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-drivers"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "libc",
  "regex",
@@ -1463,7 +1463,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-health"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "gtk4",
  "libadwaita",
@@ -1474,11 +1474,11 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-icon-theme"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "vyntaris-json"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "regex",
  "serde_json",
@@ -1487,14 +1487,14 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-laptop-switches"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "libc",
 ]
 
 [[package]]
 name = "vyntaris-phone"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "base64",
  "futures-util",
@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-portal"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "tokio",
  "vyntaris-core",
@@ -1520,21 +1520,21 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-procinfo"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "libc",
 ]
 
 [[package]]
 name = "vyntaris-settings-admin"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "libc",
 ]
 
 [[package]]
 name = "vyntaris-share-picker"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "gtk4",
  "libadwaita",
@@ -1545,7 +1545,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-splash"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "cairo-rs",
  "regex",
@@ -1555,7 +1555,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-store"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "gtk4",
  "libadwaita",
@@ -1567,7 +1567,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-store-index"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "flate2",
  "roxmltree",
@@ -1577,7 +1577,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-ui"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "gtk4",
  "libadwaita",
@@ -1586,7 +1586,7 @@ dependencies = [
 
 [[package]]
 name = "vyntaris-vscode-theme"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "regex",
  "serde_json",
