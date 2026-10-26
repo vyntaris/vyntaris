@@ -55,6 +55,16 @@ firewall() {
     [ "$in_chroot" = 1 ] || nft -f /etc/nftables.conf 2>/dev/null || true
 }
 
+memory_reserve() {
+    local kb wsf
+    kb="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+    wsf=$(( 65536 * 10000 / kb ))
+    [ "$wsf" -gt 125 ] && wsf=125
+    [ "$wsf" -lt 10 ] && wsf=10
+    printf 'vm.watermark_scale_factor = %s\n' "$wsf" > /etc/sysctl.d/99-vyntaris-watermark.conf
+    [ "$in_chroot" = 1 ] || sysctl -q -w vm.watermark_scale_factor="$wsf" || true
+}
+
 upkeep_timers() {
     enable fstrim.timer
     [ "$(findmnt -no FSTYPE /)" = btrfs ] && enable btrfs-scrub@-.timer
@@ -297,6 +307,7 @@ if [ "$mode" = refresh ]; then
     "$LIB/snapshots" >/dev/null 2>&1 || true
     enable vyntaris-drivers.timer paccache.timer
     upkeep_timers
+    memory_reserve
     firewall
     kms="$(early_kms)"
     if { safe_updates || [ "$kms" = changed ]; } && [ "$in_chroot" = 0 ]; then
@@ -347,6 +358,7 @@ enable NetworkManager.service bluetooth.service power-profiles-daemon.service re
     nftables.service vyntaris-laptop-switches.service cups.socket avahi-daemon.service \
     fwupd-refresh.timer paccache.timer systemd-oomd.service
 upkeep_timers
+memory_reserve
 systemctl mask systemd-tpm2-setup-early.service systemd-pcrproduct.service systemd-pcrlogin@.service >/dev/null 2>&1 || true
 if pacman -Q nss-mdns >/dev/null 2>&1 && ! grep -q mdns_minimal /etc/nsswitch.conf; then
     sed -i '/^hosts:/ s/\(resolve\|dns\)/mdns_minimal [NOTFOUND=return] \1/' /etc/nsswitch.conf

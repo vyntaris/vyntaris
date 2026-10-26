@@ -520,7 +520,9 @@ goes once it's built. pacman runs with `Color` and `ILoveCandy` (`system/pacman-
 
 **Memory.** Swap is compressed memory (zram, `systemd-zram-generator`): half the RAM, at most 8 GB,
 zstd. The kernel is tuned for it in `/etc/sysctl.d/99-zram.conf`: `vm.swappiness=180`,
-`page-cluster=0`, `watermark_boost_factor=0`, `watermark_scale_factor=125`.
+`page-cluster=0`, `watermark_boost_factor=0`. The memory the kernel keeps free for it
+(`watermark_scale_factor`, set by `vyntaris-setup` from the RAM) is 1.25 % of it up to 64 MB: on 4 GB that's
+the 125 zram guides recommend, on 16 GB it stays 64 MB instead of the 400 MB a fixed 125 would hold back.
 Transparent huge pages are given only to programs that ask for them (`madvise`, as on Debian and
 Ubuntu; `system/thp.conf`): with Arch's `always`, the shell's memory came in 2 MB pieces it mostly
 didn't fill, and the session held 136 MB more for nothing.
