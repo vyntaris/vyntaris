@@ -11,6 +11,7 @@ Item {
     readonly property real hang: Math.min(list.contentHeight, 260)
         + (deskColumn.visible ? deskColumn.implicitHeight + 14 : 0)
         + (fwColumn.visible ? fwColumn.implicitHeight + 14 : 0)
+        + (heldColumn.visible ? heldColumn.implicitHeight + 14 : 0)
         + (Updates.packages.length > 0 ? 104 : Updates.checking || Updates.failed ? 56 : 12)
     function out(y) { return Theme.slanted ? Slant.out(height, Theme.barHeight, y) : 0; }
     readonly property bool active: Panels.updatesOpen
@@ -74,7 +75,7 @@ Item {
             Layout.fillWidth: true
             Icon { name: "vyntaris"; size: 16; color: Theme.accent }
             Label { Layout.fillWidth: true; caps: true; color: Theme.accent; text: Tr.t("Vyntaris ") + (Updates.desktop?.to ?? "") }
-            ChipButton { text: Updates.upgrading ? Tr.t("Updating…") : Tr.t("Update"); onClicked: { Panels.updatesOpen = false; Updates.upgrade(); } }
+            ChipButton { visible: Updates.held.length === 0; text: Updates.upgrading ? Tr.t("Updating…") : Tr.t("Update"); onClicked: { Panels.updatesOpen = false; Updates.upgrade(); } }
         }
         Label {
             Layout.fillWidth: true
@@ -114,6 +115,31 @@ Item {
         }
     }
 
+    ColumnLayout {
+        id: heldColumn
+        x: 20 - root.out(y + implicitHeight)
+        y: list.y + list.height + (deskColumn.visible ? deskColumn.implicitHeight + 10 : 0)
+            + (fwColumn.visible ? fwColumn.implicitHeight + 10 : 0) + 10
+        width: parent.width - 40 + 2 * root.out(y + implicitHeight)
+        visible: Updates.held.length > 0
+        spacing: 6
+        RowLayout {
+            Layout.fillWidth: true
+            Icon { name: "schedule"; size: 16; color: Theme.peach }
+            Label { Layout.fillWidth: true; caps: true; color: Theme.peach; text: Tr.t("Waiting for Vyntaris") }
+        }
+        Label {
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            maximumLineCount: 4
+            elide: Text.ElideRight
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.subtext0
+            text: Tr.f("{0} isn't tested with Vyntaris yet. The update waits until it is, usually a day.",
+                Updates.held.map(p => p.name + " " + p.to).join(", "))
+        }
+    }
+
     Label {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.barHeight + 30
@@ -136,9 +162,9 @@ Item {
 
         Button {
             visible: Updates.packages.length > 0
-            primary: true
+            primary: Updates.held.length === 0
             icon: "arrow-down"
-            text: Updates.upgrading ? Tr.t("Updating…") : Tr.t("Update now")
+            text: Updates.upgrading ? Tr.t("Updating…") : Updates.held.length > 0 ? Tr.t("Update anyway") : Tr.t("Update now")
             active: !Updates.upgrading
             onClicked: { Panels.updatesOpen = false; Updates.upgrade(); }
         }

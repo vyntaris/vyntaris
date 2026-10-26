@@ -114,6 +114,16 @@ jobs:
         run: PHONED=/usr/lib/vyntaris/phoned tools/test-phone.py
       - name: Start it for real
         run: tools/smoke-test.sh /tmp/smoke
+      - name: What it was tested with
+        run: |
+          pacman -Q hyprland quickshell qt6-base qt6-declarative qt6-wayland aquamarine hyprutils hyprlang hyprgraphics \
+              hyprcursor hyprwire > /tmp/tested
+          cat /tmp/tested
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tested
+          path: /tmp/tested
+          retention-days: 3
       - name: Logs and screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -121,6 +131,32 @@ jobs:
           name: smoke
           path: /tmp/smoke
           retention-days: 7
+
+  tested:
+    needs: smoke
+    if: github.repository == 'vyntaris/vyntaris' && (github.event_name == 'schedule' || github.event_name == 'push')
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    concurrency: tested
+    steps:
+      - name: Tools
+        run: pacman -Syu --noconfirm rclone
+      - uses: actions/download-artifact@v4
+        with:
+          name: tested
+          path: /tmp/new
+      - name: Let installed systems take these versions (pkg.vyntarisos.com/tested)
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          export RCLONE_CONFIG_R2_TYPE=s3 RCLONE_CONFIG_R2_PROVIDER=Cloudflare RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true \
+              RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY" \
+              RCLONE_CONFIG_R2_ENDPOINT="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
+          rclone cat r2:vyntaris-packages/tested > /tmp/old 2>/dev/null || : > /tmp/old
+          sort -u /tmp/old /tmp/new/tested > /tmp/tested
+          rclone copyto /tmp/tested r2:vyntaris-packages/tested --header-upload 'Cache-Control: no-cache'
 
   publish:
     needs: [package, smoke]

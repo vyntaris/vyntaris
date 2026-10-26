@@ -674,6 +674,13 @@ doesn't sit in memory: a polkit rule lets the local, active user do that without
 
 When the mirrors can't be reached, the panel says it doesn't know, rather than "none".
 
+**Waiting for what's tested.** Hyprland, Quickshell, Qt and the Hypr libraries come straight from Arch, the day
+Arch releases them. CI starts the desktop with the newest of them every day and on every push; the versions it
+passed with go to `pkg.vyntarisos.com/tested`. When an update would bring one of them in a version not on that
+list, the panel holds the whole update ("Waiting for Vyntaris", usually a day) rather than part of it, which
+would leave the system half updated. **Update anyway** is still there, and `pacman -Syu` in a terminal is never
+held. Without the list (no connection to it), nothing is held.
+
 **Updating** (the Updates panel's Update, `scripts/upgrade.sh`):
 
 1. It runs as a user service of its own, `vyntaris-upgrade`, not as the shell's child: the shell

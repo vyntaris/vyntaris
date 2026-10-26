@@ -11,6 +11,8 @@ Singleton {
     readonly property int count: packages.length
     readonly property int total: count + firmware.length
     readonly property var desktop: packages.find(p => p.name === "vyntaris") ?? null
+    property var tested: ({})
+    readonly property var held: packages.filter(p => !p.aur && tested[p.name] && !tested[p.name].includes(p.to))
     property bool checking: false
     property bool failed: false
     property string aurHelper: ""
@@ -87,12 +89,21 @@ Singleton {
 
     Process {
         id: repo
-        command: ["sh", "-c", "if command -v checkupdates >/dev/null; then checkupdates 2>/dev/null; echo \"::$?\"; else echo ::2; fi"]
+        command: ["sh", "-c", "if command -v checkupdates >/dev/null; then checkupdates 2>/dev/null; echo \"::$?\"; else echo ::2; fi; "
+            + "curl -fsS --max-time 10 https://pkg.vyntarisos.com/tested 2>/dev/null | sed 's/^/@@ /'"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const code = (text.match(/::(\d+)\s*$/) ?? [])[1];
+                const lines = text.split("\n");
+                const status = /^::\d+$/;
+                const code = (lines.find(l => status.test(l)) ?? "::2").slice(2);
+                const tested = {};
+                for (const l of lines.filter(l => l.startsWith("@@ "))) {
+                    const [name, version] = l.slice(3).trim().split(/\s+/);
+                    if (version) (tested[name] = tested[name] ?? []).push(version);
+                }
+                root.tested = tested;
                 root.failed = code !== "0" && code !== "2";
-                root.repoList = root.parsePackages(text.replace(/::\d+\s*$/, ""), false);
+                root.repoList = root.parsePackages(lines.filter(l => !l.startsWith("@@ ") && !status.test(l)).join("\n"), false);
                 if (root.aurHelper) aur.running = true;
                 else root.finish([]);
             }
