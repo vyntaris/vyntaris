@@ -14,6 +14,17 @@ Underneath it stays plain Arch: a rolling release from Arch's own repositories, 
 `pacman -Syu` or one click in the island. Vyntaris itself is one package, `vyntaris`, from its own
 signed repository.
 
+![The Vyntaris desktop: the bar with the island in its middle, Firefox, the terminal and the Store](docs/screenshots/desk.webp)
+
+| | |
+|---|---|
+| ![The launcher, searching apps, windows and settings](docs/screenshots/island-launcher.webp) | ![The control center](docs/screenshots/control.webp) |
+| The launcher: apps, windows, settings and files | The control center: tap SUPER |
+| ![The lock screen](docs/screenshots/gallery-lock.webp) | ![Dr. Help](docs/screenshots/app-doctor.webp) |
+| The lock screen | Dr. Help, which looks the system over and fixes it |
+| ![The Store](docs/screenshots/app-store.webp) | ![Settings](docs/screenshots/app-settings.webp) |
+| The Store | Settings, every one of them searchable |
+
 This README goes through the whole system, from the moment the computer starts to the last setting:
 what each part does, how it works and where it lives.
 
@@ -1004,6 +1015,7 @@ global shortcuts, without a process started in between, so the first letter type
 | `pkg/` | the package (`PKGBUILD`, `vyntaris.install`) |
 | `iso/` | the ISO (`build.sh`, on Arch's releng profile) and its console installer and repair |
 | `tools/` | packaging and publishing, the tests named above, the VM tests, and what makes the logo, icons, sounds and wallpapers |
+| `docs/screenshots/` | the pictures in this README, from `tools/site-shots.sh` |
 | `packages.txt` | the apps every install comes with |
 
 Vyntaris is free software under the GNU General Public License, version 3 or any later version (`LICENSE`).

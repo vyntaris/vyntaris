@@ -99,4 +99,7 @@ magick "$O/control.png" -crop 483x749+719+0 +repage -quality 90 "$D/xp-island.we
 magick "$O/tiling.png" -crop 948x1026+8+47 +repage -quality 90 "$D/xp-term.webp"
 magick "$O/tiling.png" -crop 948x1026+965+47 +repage -quality 90 "$D/xp-doc.webp"
 for n in lock doctor store office settings; do magick "$O/$n.png" -quality 88 "$D/xp-$n.webp"; done
-echo "screenshots in $SITE/shots"
+for n in desk island-launcher control gallery-lock app-doctor app-store app-settings; do
+    cp "$SITE/shots/$n.webp" "$R/docs/screenshots/" 2>/dev/null || true
+done
+echo "screenshots in $SITE/shots and docs/screenshots"
