@@ -73,5 +73,5 @@ fi
 rclone copy . "$bucket" --exclude 'vyntaris.db*' --exclude 'vyntaris.files*' --exclude 'index.html'
 rclone copy . "$bucket" --include 'vyntaris.db*' --include 'vyntaris.files*' --include 'index.html' \
     --header-upload 'Cache-Control: no-cache'
-rclone sync . "$bucket"
+rclone sync . "$bucket" --exclude tested
 echo "published ${published[*]} to $server"
