@@ -863,6 +863,8 @@ itself (`vyntaris-refresh.hook`).
    - pacman gets Color and ILoveCandy, and the `[vyntaris]` repository with `SigLevel = Required
      DatabaseOptional`. Only packages signed by Vyntaris's key are taken from it.
    - Thunar's wallpaper plugin is kept out (`NoExtract`): the desktop has its own picker.
+   - Hyprland's own login sessions are kept out too (`NoExtract`): a login screen like GDM offers Vyntaris,
+     not a bare Hyprland without the shell.
    - zsh becomes the default shell for new users, and for you.
 2. **Services.**
    - These are turned on: NetworkManager, Bluetooth, power-profiles-daemon, `reflector.timer`,

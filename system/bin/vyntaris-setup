@@ -81,6 +81,13 @@ nvidia_on_demand() {
     printf 'blacklist nvidia\n' > "$f"
 }
 
+own_sessions() {
+    local w=usr/share/wayland-sessions
+    grep -q "^NoExtract.*$w/hyprland" /etc/pacman.conf ||
+        sed -i "/^\[options\]/a NoExtract = $w/hyprland.desktop $w/hyprland-uwsm.desktop" /etc/pacman.conf
+    rm -f "/$w/hyprland.desktop" "/$w/hyprland-uwsm.desktop"
+}
+
 upkeep_timers() {
     enable fstrim.timer
     [ "$(findmnt -no FSTYPE /)" = btrfs ] && enable btrfs-scrub@-.timer
@@ -325,6 +332,7 @@ if [ "$mode" = refresh ]; then
     upkeep_timers
     memory_reserve
     nvidia_on_demand
+    own_sessions
     firewall
     kms="$(early_kms)"
     if { safe_updates || [ "$kms" = changed ]; } && [ "$in_chroot" = 0 ]; then
@@ -365,6 +373,7 @@ signed_only
 grep -q '^NoExtract.*thunar-wallpaper-plugin' /etc/pacman.conf ||
     sed -i '/^\[options\]/a NoExtract = usr/lib/thunarx-3/thunar-wallpaper-plugin.so' /etc/pacman.conf
 rm -f /usr/lib/thunarx-3/thunar-wallpaper-plugin.so
+own_sessions
 useradd -D -s /usr/bin/zsh >/dev/null
 if [ -n "$user" ] && [ "$(getent passwd "$user" | cut -d: -f7)" != /usr/bin/zsh ]; then
     chsh -s /usr/bin/zsh "$user" >/dev/null
