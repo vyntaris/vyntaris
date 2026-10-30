@@ -91,13 +91,13 @@ Item {
                 level: root.connected?.batteryAvailable ? root.connected.battery : -1
                 details: root.connected ? root.connected.address : root.paired.length > 0 ? root.paired.length + " paired" : ""
                 showDetails: root.connected !== null || root.paired.length > 0
-            }
-            QuietAction {
-                Layout.fillWidth: true
-                visible: root.connected !== null
-                icon: "close"
-                text: Tr.t("Disconnect")
-                onClicked: root.connected.disconnect()
+
+                QuietAction {
+                    visible: root.connected !== null
+                    icon: "close"
+                    text: Tr.t("Disconnect")
+                    onClicked: root.connected.disconnect()
+                }
             }
             Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; implicitHeight: 1; color: Theme.hairline }
         }

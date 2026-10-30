@@ -38,7 +38,7 @@ cp "$REPO/config/installer/config/Config.qml" "$REPO/config/quickshell/config/Th
     "$REPO/config/quickshell/config/Tr.qml" "$REPO/config/quickshell/config/Palettes.js" "$inst/config/"
 cp "$REPO"/config/quickshell/components/* "$inst/components/"
 cp -r "$REPO/config/quickshell/i18n" "$inst/"
-cp "$REPO/config/quickshell/assets/wallpapers/default.png" "$inst/wallpaper.png"
+cp "$REPO/config/quickshell/assets/wallpapers/default.jpg" "$inst/wallpaper.jpg"
 cp "$REPO/packages.txt" "$inst/"
 mkdir -p "$profile/airootfs/usr/share/icons"
 cp -a "$REPO/config/icons/Bibata-Modern-Ice" "$profile/airootfs/usr/share/icons/"

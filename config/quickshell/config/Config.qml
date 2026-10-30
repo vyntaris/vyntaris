@@ -115,11 +115,12 @@ Singleton {
         return Quickshell.shellPath("assets/sounds/notification" + (n === "ding" ? "" : "-" + n) + ".wav");
     }
 
-    readonly property string defaultWallpaper: "/usr/share/backgrounds/vyntaris/default.png"
+    readonly property string defaultWallpaper: "/usr/share/backgrounds/vyntaris/default.jpg"
     SystemClock { id: wallpaperClock; precision: SystemClock.Minutes }
     readonly property int minuteOfDay: wallpaperClock.date.getHours() * 60 + wallpaperClock.date.getMinutes()
-    readonly property string wallpaperPath: !wallpaper.path || wallpaper.path.startsWith("vyntaris:") ? defaultWallpaper : expandHome(wallpaper.path)
+    readonly property string wallpaperPath: !wallpaper.path || wallpaper.path.startsWith("vyntaris:") || wallpaper.path.startsWith("/usr/share/backgrounds/vyntaris/default.") ? defaultWallpaper : expandHome(wallpaper.path)
     function wallpaperFileOf(path) {
+        if (path === defaultWallpaper) return AccentWallpaper.file;
         return path.startsWith("heic:") ? (DynamicWallpaper.fileAt(path, minuteOfDay) || defaultWallpaper) : Walls.fileAt(path, minuteOfDay);
     }
     function wallpaperFile() {

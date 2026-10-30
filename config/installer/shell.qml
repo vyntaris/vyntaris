@@ -457,7 +457,7 @@ ShellRoot {
 
             BlurredWallpaper {
                 anchors.fill: parent
-                source: Quickshell.shellPath("wallpaper.png")
+                source: Quickshell.shellPath("wallpaper.jpg")
             }
 
             Loader {

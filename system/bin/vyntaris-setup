@@ -155,7 +155,7 @@ login_screen() {
         enable "vyntaris-greeter-sync@$user.path"
         "$LIB/greeter-sync.sh" "$user" || true
     fi
-    ls "$GREETER"/wallpaper.* >/dev/null 2>&1 || install -m644 /usr/share/backgrounds/vyntaris/default.png "$GREETER/wallpaper.png"
+    ls "$GREETER"/wallpaper.* >/dev/null 2>&1 || install -m644 /usr/share/backgrounds/vyntaris/default.jpg "$GREETER/wallpaper.jpg"
     [ -n "$user" ] && "$LIB/greeter-sync.sh" "$user" || true
 }
 

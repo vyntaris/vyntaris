@@ -277,7 +277,7 @@ every place that needs them:
   whether it's dark, and tells apps when either changes;
 - **Hyprland's** window borders (an accent gradient), the **login screen** and the **boot splash**.
 
-The wallpaper is Mauve Crystal Shards (`default.png`). Your own pictures go in `~/Pictures/Wallpapers`. A
+The wallpaper is Floating Cubes (`default.jpg`), its lights painted in your accent (`config/AccentWallpaper.qml`, from `default-base.jpg` and `default-lights.png`, made by `tools/make-default-wallpaper.sh`). Your own pictures go in `~/Pictures/Wallpapers`. A
 dynamic HEIC there is unpacked once to `~/.cache/vyntaris/dynamic` and shown on the schedule written in the
 file (`config/DynamicWallpaper.qml`; `h24` and `solar`, the sun's position taken as an ordinary day). Pictures named `name_morning`,
 `name_day`, `name_evening` and `name_night` (two or more of them) show as one wallpaper that follows the time

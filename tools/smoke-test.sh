@@ -73,9 +73,9 @@ cp /usr/share/vyntaris/greeter/shell.qml "$g/"
 cp /usr/share/vyntaris/greeter/config/Config.qml /etc/xdg/quickshell/vyntaris/config/Theme.qml \
     /etc/xdg/quickshell/vyntaris/config/Tr.qml /etc/xdg/quickshell/vyntaris/config/Palettes.js "$g/config/"
 cp /etc/xdg/quickshell/vyntaris/components/* "$g/components/"
-cp /usr/share/backgrounds/vyntaris/default.png "$g/wallpaper.png"
+cp /usr/share/backgrounds/vyntaris/default.jpg "$g/wallpaper.jpg"
 printf '{"user":"%s","session":["vyntaris-session"],"wallpaper":"%s","flavor":"mocha","accent":"#655b94"}\n' \
-    "$user" "$g/wallpaper.png" > "$g/greeter.json"
+    "$user" "$g/wallpaper.jpg" > "$g/greeter.json"
 chown -R "$user:$user" "$g"
 shell_run greeter 10 qs -p "$g"
 

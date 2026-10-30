@@ -92,7 +92,7 @@ for spec in control:540x900+690+0 sound:540x560+690+0 launcher:680x720+620+0 wal
     magick "$O/${spec%%:*}.png" -crop "${spec#*:}" +repage -quality 88 "$SITE/shots/${spec%%:*}-panel.webp"
 done
 D="$SITE/shots"
-magick "$R/config/quickshell/assets/wallpapers/default.png" -resize 1920x1080^ -gravity center -extent 1920x1080 -quality 86 "$D/xp-wall.webp"
+magick "$R/config/quickshell/assets/wallpapers/default.jpg" -resize 1920x1080^ -gravity center -extent 1920x1080 -quality 86 "$D/xp-wall.webp"
 magick "$O/control.png" -crop 1920x30+0+0 +repage -alpha set \( -size 1920x30 xc:white -fill black -draw "rectangle 719,0 1201,29" \) \
     -alpha off -compose CopyOpacity -composite -quality 92 "$D/xp-bar.webp"
 magick "$O/control.png" -crop 483x749+719+0 +repage -quality 90 "$D/xp-island.webp"

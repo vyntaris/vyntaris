@@ -9,7 +9,9 @@ g=/etc/greetd/greeter
 
 wp="$(runuser -u "$user" -- /usr/lib/vyntaris/json get "$settings" wallpaper.path "" 2>/dev/null || true)"
 case "$wp" in
-    ""|vyntaris:*) wp="/usr/share/backgrounds/vyntaris/default.png" ;;
+    ""|vyntaris:*|/usr/share/backgrounds/vyntaris/default.*)
+        wp="$home/.cache/vyntaris/accent-wallpaper/current.jpg"
+        runuser -u "$user" -- test -r "$wp" || wp="/usr/share/backgrounds/vyntaris/default.jpg" ;;
     heic:*) wp="${wp#heic:}" ;;
     times:*)
         have="${wp#times:}"; have="${have%%:*}"; wp="${wp#times:"$have":}"
