@@ -96,14 +96,14 @@
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_LAST_SEGMENT_END_SYMBOL='\uE0B4'
   typeset -g POWERLEVEL9K_EMPTY_LINE_LEFT_PROMPT_LAST_SEGMENT_END_SYMBOL=
 
-  local accent=4 accent_ok=76 ink=254 ink_shortened=250 ink_anchor=255
-  if [[ -n $KITTY_WINDOW_ID ]]; then
-    accent=17 accent_ok=17 ink=19 ink_shortened=19 ink_anchor=19
-  fi
+  local accent=4 accent_ok=76
+  [[ -n $KITTY_WINDOW_ID ]] && accent=17 accent_ok=17
 
   typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND=232
   typeset -g POWERLEVEL9K_OS_ICON_BACKGROUND=231
   typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION=''
+
+  [[ -n $KITTY_WINDOW_ID ]] && typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION=$'\U0010F000'
 
   typeset -g POWERLEVEL9K_PROMPT_CHAR_BACKGROUND=
   typeset -g POWERLEVEL9K_PROMPT_CHAR_OK_{VIINS,VICMD,VIVIS,VIOWR}_FOREGROUND=$accent_ok
@@ -118,11 +118,11 @@
   typeset -g POWERLEVEL9K_PROMPT_CHAR_LEFT_{LEFT,RIGHT}_WHITESPACE=
 
   typeset -g POWERLEVEL9K_DIR_BACKGROUND=$accent
-  typeset -g POWERLEVEL9K_DIR_FOREGROUND=$ink
+  typeset -g POWERLEVEL9K_DIR_FOREGROUND=231
   typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
   typeset -g POWERLEVEL9K_SHORTEN_DELIMITER=
-  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=$ink_shortened
-  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=$ink_anchor
+  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=231
+  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=231
   typeset -g POWERLEVEL9K_DIR_ANCHOR_BOLD=true
   local anchor_files=(
     .bzr

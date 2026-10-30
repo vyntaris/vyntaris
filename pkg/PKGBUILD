@@ -81,6 +81,7 @@ package() {
     install -Dm644 "$r/home/skel-zshrc" "$d/etc/skel/.zshrc"
     install -Dm644 "$r/home/skel-zprofile" "$d/etc/skel/.zprofile"
     install -Dm644 "$r/config/kitty.conf" "$d/usr/share/vyntaris/kitty.conf"
+    install -Dm644 -t "$d/usr/share/fonts/vyntaris" "$r/system/fonts/VyntarisSymbols.ttf"
     install -Dm644 "$r/config/fastfetch/config.jsonc" "$d/etc/xdg/fastfetch/config.jsonc"
     install -Dm644 "$r/config/fastfetch/pngs/logo.png" "$d/usr/share/vyntaris/fastfetch/logo.png"
     install -Dm644 -t "$d/usr/share/vyntaris" "$r/config/vscode-settings.json" "$r/system/thunar-actions.xml" \
