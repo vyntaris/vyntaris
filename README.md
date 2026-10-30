@@ -273,7 +273,8 @@ every place that needs them:
   symbolic, device, status, file type and emblem icons, the folders (not Papirus's 25 other colours of
   them), toolbar and tray icons at 16 to 24 px, and of the apps' icons the installed apps' and the generic
   ones: some 37,000, 36 ms, the calculator open in 0.34 s instead of 1.1. It's written again when apps
-  come or go (AppTheme.qml); an icon it lacks comes from Adwaita and hicolor;
+  come or go (AppTheme.qml); an icon it lacks comes from Adwaita and hicolor. The shell and Qt apps, which
+  ask by window class and notification name too, use `Vyntaris-Qt`: that theme, then all of Papirus;
 - **every app that asks**: `rust/daemons/portal` answers the XDG Settings portal with the accent and
   whether it's dark, and tells apps when either changes;
 - **Hyprland's** window borders (an accent gradient), the **login screen** and the **boot splash**.

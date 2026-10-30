@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 const NAME: &str = "Vyntaris";
+const QT_NAME: &str = "Vyntaris-Qt";
 
 fn rgb(hex: &str) -> (f64, f64, f64) {
     let h = hex.trim_start_matches('#');
@@ -208,6 +209,18 @@ fn link_base(icons: &Path, base: &str, work: &Path, written: &mut BTreeMap<Strin
     }
 }
 
+fn qt_index(base: &str) -> String {
+    format!(
+        "[Icon Theme]\nName={QT_NAME}\nComment={NAME}, then all of {base} (written by the Vyntaris shell)\nHidden=true\nInherits={NAME},{base},Adwaita,hicolor\nDirectories=\n"
+    )
+}
+
+fn write_qt_theme(out_root: &Path, base: &str) {
+    let dir = out_root.join(QT_NAME);
+    let _ = fs::create_dir_all(&dir);
+    let _ = fs::write(dir.join("index.theme"), qt_index(base));
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let [out_root, base, accent] = &args[..] else {
@@ -216,6 +229,7 @@ fn main() {
     };
     let icons = PathBuf::from(std::env::var("VYNTARIS_ICONS").unwrap_or_else(|_| "/usr/share/icons".into()));
     let out_root = Path::new(out_root);
+    write_qt_theme(out_root, base);
     let written_from = written_from(&icons, base, accent);
     let mark = out_root.join(NAME).join(".written-from");
     if fs::read_to_string(&mark).is_ok_and(|was| was == written_from) && out_root.join(NAME).join("index.theme").is_file() {
@@ -311,6 +325,13 @@ mod tests {
         assert!(out.contains(&format!("fill=\"{}\"", map[1].1)));
         assert!(out.contains("#5294e2aa"), "not a whole colour: left");
         assert!(is_blue("folder-blue.svg") && is_blue("user-blue-home.svg") && !is_blue("folder-bluegrass.svg"));
+    }
+
+    #[test]
+    fn qt_finds_all_of_the_base_after_ours() {
+        let index = qt_index("Papirus-Dark");
+        assert!(index.contains("\nInherits=Vyntaris,Papirus-Dark,Adwaita,hicolor\n"));
+        assert!(index.contains("\nHidden=true\n"));
     }
 
     #[test]

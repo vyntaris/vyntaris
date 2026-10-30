@@ -175,6 +175,7 @@ Scope {
     }
 
     readonly property string iconTheme: "Vyntaris"
+    readonly property string qtIconTheme: "Vyntaris-Qt"
     function applyIcons(dark) {
         iconsFor = appIcons;
         const base = dark ? Config.theme.iconThemeDark : Config.theme.iconThemeLight;
@@ -264,7 +265,7 @@ Scope {
         return `# ${marker}\n[Appearance]\n`
             + `style=Fusion\ncustom_palette=true\n`
             + `color_scheme_path=${configHome}/qt6ct/colors/shell.conf\n`
-            + `icon_theme=${iconTheme}\n`
+            + `icon_theme=${qtIconTheme}\n`
             + `standard_dialogs=xdgdesktopportal\n\n[Fonts]\n`
             + `general="${Theme.fontFamily},${pt},-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\n`
             + `fixed="${Theme.monoFamily},${pt},-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\n`;
