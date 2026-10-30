@@ -124,15 +124,14 @@ Scope {
                     Layout.fillWidth: true
                     spacing: 8
 
-                    Field {
-                        radius: Theme.r(8)
+                    PasswordCells {
                         id: field
                         Layout.fillWidth: true
-                        secret: !(root.showPassword || (root.flow?.responseVisible ?? false))
+                        wrong: (root.flow?.failed ?? false) && field.text === ""
+                        reveal: root.showPassword || (root.flow?.responseVisible ?? false)
                         enabled: root.flow?.isResponseRequired ?? false
-                        placeholder: Tr.t("Password")
                         Keys.onEscapePressed: root.cancel()
-                        Connections { target: field.input; function onAccepted() { root.submit(); } }
+                        onSubmitted: root.submit()
                     }
                     IconButton {
                         icon: root.showPassword ? "eye-off" : "eye"

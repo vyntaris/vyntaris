@@ -11,8 +11,6 @@ RowLayout {
     property real level: -1
     property string details
     property bool showDetails: true
-    property bool canDisconnect: true
-    signal disconnect()
 
     readonly property string caption: [level >= 0 ? Math.round(level * 100) + "%" : "", showDetails ? details : ""].filter(s => s).join("  ·  ")
     spacing: 12
@@ -49,10 +47,5 @@ RowLayout {
             color: Theme.overlay1
             text: root.caption
         }
-    }
-    Button {
-        visible: root.connected && root.canDisconnect
-        text: Tr.t("Disconnect")
-        onClicked: root.disconnect()
     }
 }

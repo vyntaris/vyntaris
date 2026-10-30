@@ -1,6 +1,7 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Shapes
 import qs.config
 import qs.components
 import "../../components/Slant.js" as Slant
@@ -11,11 +12,34 @@ Item {
     id: root
     readonly property int gap: 16
     function out(y) { return Theme.slanted ? Slant.out(height, Theme.barHeight, y) : 0; }
-    readonly property int columns: 6
-    readonly property int rows: 4
-    readonly property real cell: 100
-    readonly property real fullWidth: columns * cell + 2 * gap
-    readonly property real hang: gap + field.height + gap + chips.height + gap + grid.height + gap + hints.height + gap
+
+    component SlantBox: Shape {
+        id: box
+        property color fill: "transparent"
+        property color stroke: "transparent"
+        property real strokeWidth: 0
+        property real corner: 0
+        property real leftLean: 0
+        property real rightLean: 0
+        anchors.fill: parent
+        preferredRendererType: Shape.CurveRenderer
+        Behavior on fill { ColorAnim {} }
+        ShapePath {
+            fillColor: box.fill
+            strokeColor: box.stroke
+            strokeWidth: box.strokeWidth
+            joinStyle: ShapePath.RoundJoin
+            PathSvg { path: Slant.path(box.width, box.height, box.corner, { lt: box.leftLean, lb: 0, rt: box.rightLean, rb: 0 }) }
+        }
+    }
+
+    readonly property int columns: 5
+    readonly property int rows: 3
+    readonly property real cell: 108
+    readonly property real sideWidth: 160
+    readonly property real listWidth: columns * cell
+    readonly property real fullWidth: gap + sideWidth + gap + listWidth + gap
+    readonly property real hang: gap + field.height + 12 + grid.height + gap
     readonly property bool active: Panels.appsOpen
 
     width: fullWidth
@@ -35,6 +59,10 @@ Item {
                   Graphics: Tr.t("Graphics"), Office: Tr.t("Office"), Games: Tr.t("Games"), Utility: Tr.t("Utility"),
                   System: Tr.t("System") })[c] ?? c;
     }
+    function categoryIcon(c) {
+        return ({ All: "apps", Internet: "globe", Development: "terminal", Media: "play", Graphics: "image",
+                  Office: "folder", Games: "gamepad", Utility: "settings", System: "cpu" })[c] ?? "apps";
+    }
     readonly property var apps: {
         const q = search.text.trim().toLowerCase();
         return allApps.filter(a => (category === "All" || Search.category(a) === category)
@@ -46,11 +74,16 @@ Item {
         grid.currentIndex = 0;
     }
 
+    property bool moved: false
+    readonly property bool choosing: moved || search.text !== ""
+    function step(move) { moved = true; move(); }
+
     property bool entering: false
     Timer { id: enterTimer; interval: Theme.durationSlow + 400; onTriggered: root.entering = false }
     onActiveChanged: if (active) {
         search.text = "";
         categoryIndex = 0;
+        moved = false;
         grid.currentIndex = 0;
         grid.positionViewAtBeginning();
         entering = true;
@@ -73,16 +106,66 @@ Item {
         title: Tr.t("Apps")
     }
 
-    PanelSurface {
-        id: field
-        x: root.gap - root.out(y + height)
-        y: Theme.barHeight + root.gap
-        width: parent.width - 2 * root.gap + 2 * root.out(y + height)
-        height: 38
-        radius: Theme.r(height / 2)
-        fill: Theme.alpha(Theme.crust, 0.45)
-        edgeWidth: 1; edge: Theme.glassRim
+    Column {
+        id: side
+        x: root.gap
+        y: field.y
+        width: root.sideWidth
+        spacing: 2
+        Repeater {
+            model: root.categories
+            Item {
+                id: nav
+                required property string modelData
+                required property int index
+                readonly property bool current: root.categoryIndex === index
+                readonly property real lean: root.out(side.y + y + height)
+                x: -lean
+                width: side.width + lean
+                height: Math.min(54, (field.height + 12 + grid.height - (root.categories.length - 1) * side.spacing) / root.categories.length)
+                SlantBox {
+                    fill: nav.current ? Theme.accent : navArea.containsMouse ? Theme.hover : "transparent"
+                    corner: Theme.r(10)
+                    leftLean: root.out(side.y + nav.y) - nav.lean
+                }
+                RowLayout {
+                    anchors { fill: parent; leftMargin: 14; rightMargin: 12 }
+                    spacing: 10
+                    Icon { name: root.categoryIcon(nav.modelData); size: 16; color: nav.current ? Theme.textOnAccent : Theme.overlay1 }
+                    Label {
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        font.weight: nav.current ? Font.DemiBold : Font.Normal
+                        color: nav.current ? Theme.textOnAccent : Theme.subtext0
+                        text: root.categoryName(nav.modelData)
+                    }
+                }
+                MouseArea {
+                    id: navArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: { root.categoryIndex = nav.index; grid.currentIndex = 0; search.forceActiveFocus(); }
+                }
+            }
+        }
+    }
 
+    Item {
+        id: field
+        readonly property real lean: root.out(y + height)
+        x: root.gap + root.sideWidth + root.gap
+        y: Theme.barHeight + root.gap
+        width: root.listWidth + lean
+        height: 38
+
+        SlantBox {
+            fill: Theme.alpha(Theme.crust, 0.45)
+            stroke: Theme.glassRim
+            strokeWidth: 1
+            corner: Theme.r(field.height / 2)
+            rightLean: root.out(field.y) - field.lean
+        }
         Rectangle {
             id: disc
             anchors { left: parent.left; leftMargin: 5; verticalCenter: parent.verticalCenter }
@@ -92,7 +175,6 @@ Item {
             color: Theme.accent
         }
         Icon {
-            id: prompt
             anchors.centerIn: disc
             name: "search"
             size: 16
@@ -112,7 +194,7 @@ Item {
                 font.pixelSize: Theme.fontSizeSmall
                 font.weight: Font.DemiBold
                 color: Theme.textOnAccent
-                text: root.apps.length
+                text: grid.count
             }
         }
         TextInput {
@@ -127,10 +209,10 @@ Item {
             Keys.onEscapePressed: Panels.appsOpen = false
             Keys.onTabPressed: root.cycle(1)
             Keys.onBacktabPressed: root.cycle(-1)
-            Keys.onDownPressed: grid.moveCurrentIndexDown()
-            Keys.onUpPressed: grid.moveCurrentIndexUp()
-            Keys.onRightPressed: grid.moveCurrentIndexRight()
-            Keys.onLeftPressed: grid.moveCurrentIndexLeft()
+            Keys.onDownPressed: root.step(grid.moveCurrentIndexDown)
+            Keys.onUpPressed: root.step(grid.moveCurrentIndexUp)
+            Keys.onRightPressed: root.step(grid.moveCurrentIndexRight)
+            Keys.onLeftPressed: root.step(grid.moveCurrentIndexLeft)
             Keys.onReturnPressed: root.start(root.apps[grid.currentIndex])
             Keys.onEnterPressed: root.start(root.apps[grid.currentIndex])
 
@@ -139,161 +221,102 @@ Item {
                 visible: !search.text
                 text: Tr.t("Search apps…")
                 color: Theme.overlay0
-            }
-        }
-    }
-
-    Item {
-        id: chips
-        anchors { top: field.bottom; topMargin: root.gap; left: parent.left; leftMargin: root.gap + 5 - root.out(y + height) }
-        width: parent.width - 2 * (root.gap + 5) + 2 * root.out(y + height)
-        height: 28
-
-        Rectangle {
-            readonly property Item target: chipRow.children[root.categoryIndex] ?? null
-            x: target?.x ?? 0
-            width: target?.width ?? 0
-            height: parent.height
-            radius: Theme.r(height / 2)
-            color: Theme.accent
-            Behavior on x { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
-            Behavior on width { Anim { duration: Theme.durationNormal } }
-        }
-        Row {
-            id: chipRow
-            height: parent.height
-            width: parent.width
-            spacing: {
-                let words = 0, n = 0;
-                for (const c of children) if (c.isChip) { words += c.width; n++; }
-                return n > 1 ? Math.max(0, (width - words) / (n - 1)) : 0;
-            }
-            Repeater {
-                model: root.categories
-                Item {
-                    required property string modelData
-                    required property int index
-                    readonly property bool current: root.categoryIndex === index
-                    readonly property bool isChip: true
-                    width: chipText.implicitWidth + 24
-                    height: chipRow.height
-                    Label {
-                        id: chipText
-                        anchors.centerIn: parent
-                        caps: true
-                        font.weight: current ? Font.DemiBold : Font.Normal
-                        text: root.categoryName(modelData)
-                        color: current ? Theme.textOnAccent : chipArea.containsMouse ? Theme.subtext0 : Theme.overlay1
-                    }
-                    MouseArea {
-                        id: chipArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: { root.categoryIndex = index; grid.currentIndex = 0; }
-                    }
-                }
+                font: search.font
             }
         }
     }
 
     Item {
         id: gridClip
-        readonly property real widest: root.out(y)
-        anchors { top: chips.bottom; topMargin: root.gap; left: parent.left; leftMargin: root.gap - widest }
-        width: root.columns * root.cell + 2 * widest
+        x: field.x
+        y: field.y + field.height + 12
+        width: root.listWidth + root.out(y)
         height: grid.height
         clip: true
 
-        GridView {
-            id: grid
-            x: gridClip.widest
-            width: root.columns * root.cell
-            height: root.rows * root.cell
-            cellWidth: root.cell
-            cellHeight: root.cell
-            function spread(tile) {
-                if (!Theme.slanted || !tile) return 0;
-                const half = (root.columns - 1) / 2, col = tile.index % root.columns;
-                return (col - half) / half * root.out(gridClip.y + tile.y - contentY + root.cell);
-            }
-            model: root.apps
-            boundsBehavior: Flickable.StopAtBounds
-            keyNavigationWraps: true
-            highlightMoveDuration: 0
+    GridView {
+        id: grid
+        width: root.columns * root.cell
+        height: root.rows * root.cell
+        cellWidth: root.cell
+        cellHeight: root.cell
+        function spread(tile) {
+            const col = tile.index % root.columns;
+            return col / (root.columns - 1) * root.out(gridClip.y + tile.y - contentY + root.cell);
+        }
+        model: root.apps
+        boundsBehavior: Flickable.StopAtBounds
+        keyNavigationWraps: true
+        highlightMoveDuration: 0
 
-            delegate: Item {
-                id: tile
-                required property var modelData
-                required property int index
-                readonly property bool picked: GridView.isCurrentItem
-                width: root.cell
-                height: root.cell
+        delegate: Item {
+            id: tile
+            required property var modelData
+            required property int index
+            readonly property bool picked: GridView.isCurrentItem && root.choosing
+            width: root.cell
+            height: root.cell
 
-                Component.onCompleted: if (root.entering && index < root.columns * root.rows) { surface.opacity = 0; surface.y = 14; intro.start(); }
-                SequentialAnimation {
-                    id: intro
-                    PauseAnimation { duration: Theme.duration(120 + tile.index * 18) }
-                    ParallelAnimation {
-                        Anim { target: surface; property: "opacity"; to: 1 }
-                        Anim { target: surface; property: "y"; to: 4; easing.bezierCurve: Theme.curveDecelerate }
-                    }
-                }
-
-                PanelSurface {
-                    id: surface
-                    x: 4 + grid.spread(tile); y: 4
-                    width: parent.width - 8
-                    height: parent.height - 8
-                    radius: Theme.r(12)
-                    fill: tile.picked ? Theme.accent : "transparent"
-                    scale: area.pressed ? 0.96 : 1
-                    Behavior on fill { ColorAnim {} }
-                    Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
-
-                    ColumnLayout {
-                        anchors.centerIn: parent
-                        width: parent.width - 12
-                        spacing: 8
-                        AppIcon {
-                            Layout.alignment: Qt.AlignHCenter
-                            implicitSize: 40
-                            source: Quickshell.iconPath(tile.modelData.icon, true) || Quickshell.iconPath("application-x-executable", true)
-                        }
-                        Label {
-                            Layout.fillWidth: true
-                            horizontalAlignment: Text.AlignHCenter
-                            elide: Text.ElideRight
-                            maximumLineCount: 2
-                            wrapMode: Text.Wrap
-                            font.pixelSize: Theme.fontSizeSmall + 1
-                            color: tile.picked ? Theme.textOnAccent : Theme.subtext1
-                            text: tile.modelData.name
-                        }
-                    }
-                }
-                MouseArea {
-                    id: area
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onEntered: grid.currentIndex = tile.index
-                    onClicked: root.start(tile.modelData)
-                }
+            Component.onCompleted: if (root.entering && index < root.columns * root.rows) { surface.opacity = 0; intro.start(); }
+            SequentialAnimation {
+                id: intro
+                PauseAnimation { duration: Theme.duration(60 + tile.index * 14) }
+                Anim { target: surface; property: "opacity"; to: 1 }
             }
 
-            Label {
-                anchors.centerIn: parent
-                visible: grid.count === 0
-                caps: true
-                text: Tr.t("No apps found")
+            Rectangle {
+                id: surface
+                x: 4 + grid.spread(tile); y: 4
+                width: parent.width - 8
+                height: parent.height - 8
+                radius: Theme.r(12)
+                color: tile.picked ? Theme.accent : "transparent"
+                scale: area.pressed ? 0.96 : 1
+                Behavior on color { ColorAnim {} }
+                Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    width: parent.width - 12
+                    spacing: 8
+                    AppIcon {
+                        Layout.alignment: Qt.AlignHCenter
+                        implicitSize: 56
+                        source: Quickshell.iconPath(tile.modelData.icon, true) || Quickshell.iconPath("application-x-executable", true)
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                        maximumLineCount: 2
+                        wrapMode: Text.Wrap
+                        font.pixelSize: Theme.fontSizeSmall + 1
+                        color: tile.picked ? Theme.textOnAccent : Theme.subtext1
+                        text: tile.modelData.name
+                    }
+                }
+            }
+            MouseArea {
+                id: area
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onPositionChanged: {
+                    const at = mapToItem(root, mouseX, mouseY);
+                    if (root.pointer && (at.x !== root.pointer.x || at.y !== root.pointer.y)) { root.moved = true; grid.currentIndex = tile.index; }
+                    root.pointer = at;
+                }
+                onClicked: root.start(tile.modelData)
             }
         }
-    }
 
-    KeyHints {
-        id: hints
-        anchors { horizontalCenter: parent.horizontalCenter; top: gridClip.bottom; topMargin: root.gap }
-        keys: [["↑ ↓ ← →", Tr.t("select")], ["⇥", Tr.t("category")], ["↵", Tr.t("open")], ["esc", Tr.t("close")]]
+        Label {
+            anchors.centerIn: parent
+            visible: grid.count === 0
+            caps: true
+            text: Tr.t("No apps found")
+        }
     }
+    }
+    property var pointer: null
 }

@@ -23,137 +23,138 @@ Item {
 
     PanelHeader { icon: "volume"; title: Tr.t("Sound") }
 
-    component Current: RowLayout {
-        id: cur
-        property string kind
-        property var device: null
+    component Section: ColumnLayout {
+        id: section
+        property string title
+        property bool isInput: false
+        property var audio: null
+        property var devices: []
         Layout.fillWidth: true
-        spacing: 10
+        spacing: 8
+
+        Caption { Layout.leftMargin: 12; text: section.title }
+
+        SegmentSlider {
+            Layout.fillWidth: true
+            Layout.leftMargin: 12
+            Layout.rightMargin: 12
+            icon: section.isInput ? (section.audio?.muted ? "mic-off" : "mic") : (section.audio?.muted ? "volume-x" : "volume")
+            iconLevel: section.isInput ? -1 : Icons.volumeLevel(section.audio?.volume ?? 0)
+            value: section.audio?.volume ?? 0
+            dimmed: section.audio?.muted ?? false
+            valueText: section.audio?.muted ? "--" : Math.round(shown * 100)
+            onMoved: v => { if (section.audio) section.audio.volume = v; }
+            onIconClicked: if (section.audio) section.audio.muted = !section.audio.muted
+        }
+
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 0
-            Label { caps: true; color: Theme.accent; font.pixelSize: Theme.fontSizeSmall - 1; text: cur.kind }
-            Label {
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                font.pixelSize: Theme.fontSize + 6
-                font.weight: Font.DemiBold
-                text: cur.device?.label ?? Tr.t("None")
-            }
-            Caption { Layout.fillWidth: true; elide: Text.ElideRight; text: cur.device?.sub ?? "" }
-        }
-        Icon { name: cur.device?.icon ?? "volume"; size: 26; stroke: 1.6; color: Theme.accent }
-    }
+            spacing: 2
 
-    component Other: PanelSurface {
-        id: row
-        required property var modelData
-        property bool isInput: false
-        readonly property bool can: modelData.available
-        Layout.fillWidth: true
-        implicitHeight: 40
-        radius: Theme.r(12)
-        fill: area.containsMouse && can ? Theme.hover : "transparent"
-        opacity: can ? 1 : 0.45
-        Behavior on fill { ColorAnim {} }
-        RowLayout {
-            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-            spacing: 12
-            Icon { name: row.modelData.icon; size: 16; color: row.modelData.available ? Theme.text : Theme.overlay1 }
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-                Label { Layout.fillWidth: true; elide: Text.ElideRight; text: row.modelData.label }
-                Caption {
+            Caption {
+                Layout.leftMargin: 12
+                visible: section.devices.length === 0
+                text: Tr.t("None")
+            }
+
+            Repeater {
+                model: section.devices
+                PanelSurface {
+                    id: row
+                    required property var modelData
+                    readonly property bool chosen: modelData.current
+                    readonly property bool can: modelData.available
+                    readonly property bool twin: section.devices.filter(d => d.label === modelData.label).length > 1
                     Layout.fillWidth: true
-                    elide: Text.ElideRight
-                    visible: !row.modelData.available
-                    text: row.modelData.takenOver ? Tr.t("Off") : Tr.t("Not connected")
+                    implicitHeight: 36
+                    radius: Theme.r(10)
+                    fill: chosen ? Theme.accent : area.containsMouse && can ? Theme.hover : "transparent"
+                    opacity: can ? 1 : 0.5
+                    Behavior on fill { ColorAnim {} }
+                    RowLayout {
+                        anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
+                        spacing: 12
+                        Icon { name: row.modelData.icon; size: 16; color: row.chosen ? Theme.textOnAccent : Theme.subtext0 }
+                        Label {
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                            font.weight: row.chosen ? Font.DemiBold : Font.Normal
+                            color: row.chosen ? Theme.textOnAccent : Theme.text
+                            text: row.twin && row.modelData.sub ? `${row.modelData.label} · ${row.modelData.sub}` : row.modelData.label
+                        }
+                        Caption {
+                            visible: !row.can
+                            text: row.modelData.takenOver ? Tr.t("Off") : Tr.t("Not connected")
+                        }
+                        Icon { visible: row.chosen; name: "check"; size: 15; color: Theme.textOnAccent }
+                    }
+                    MouseArea {
+                        id: area
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: row.can && !row.chosen ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        onClicked: if (row.can && !row.chosen) AudioDevices.pick(row.modelData, section.isInput)
+                    }
                 }
             }
-            Label {
-                visible: area.containsMouse && row.can
-                caps: true
-                font.pixelSize: Theme.fontSizeSmall - 1
-                color: Theme.accent
-                text: Tr.t("Use")
-            }
-        }
-        MouseArea {
-            id: area
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: row.can ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onClicked: AudioDevices.pick(row.modelData, row.isInput)
         }
     }
 
     PanelBody {
         id: content
-        spacing: 10
 
-        Current { kind: Tr.t("Output"); device: AudioDevices.outputs.find(e => e.current) ?? null }
-        SegmentSlider {
+        // One block, so everything in it starts on the same line.
+        Item {
             Layout.fillWidth: true
-            icon: root.sink?.audio?.muted ? "volume-x" : "volume"
-            iconLevel: Icons.volumeLevel(root.sink?.audio?.volume ?? 0)
-            value: root.sink?.audio?.volume ?? 0
-            dimmed: root.sink?.audio?.muted ?? false
-            valueText: root.sink?.audio?.muted ? "--" : Math.round(shown * 100)
-            onMoved: v => { if (root.sink?.audio) root.sink.audio.volume = v; }
-            onIconClicked: if (root.sink?.audio) root.sink.audio.muted = !root.sink.audio.muted
-        }
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2
-            Repeater { model: AudioDevices.outputs.filter(e => !e.current); Other {} }
-        }
+            implicitHeight: stack.implicitHeight
 
-        Rectangle { Layout.fillWidth: true; Layout.topMargin: 2; implicitHeight: 1; color: Theme.hairline }
+            ColumnLayout {
+                id: stack
+                width: parent.width
+                spacing: 18
 
-        Current { kind: Tr.t("Input"); device: AudioDevices.inputs.find(e => e.current) ?? null }
-        SegmentSlider {
-            Layout.fillWidth: true
-            icon: root.source?.audio?.muted ? "mic-off" : "mic"
-            value: root.source?.audio?.volume ?? 0
-            dimmed: root.source?.audio?.muted ?? false
-            valueText: root.source?.audio?.muted ? "--" : Math.round(shown * 100)
-            onMoved: v => { if (root.source?.audio) root.source.audio.volume = v; }
-            onIconClicked: if (root.source?.audio) root.source.audio.muted = !root.source.audio.muted
-        }
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2
-            Repeater { model: AudioDevices.inputs.filter(e => !e.current); Other { isInput: true } }
-        }
+                Section {
+                    title: Tr.t("Output")
+                    audio: root.sink?.audio ?? null
+                    devices: AudioDevices.outputs
+                }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.topMargin: 4
-            Caption { Layout.fillWidth: true; text: Tr.t("Noise suppression") }
-            Label {
-                caps: true
-                font.pixelSize: Theme.fontSizeSmall - 1
-                color: NoiseSuppression.level > 0 ? Theme.accent : Theme.overlay1
-                text: NoiseSuppression.installing ? Tr.t("Installing…") : NoiseSuppression.labels[NoiseSuppression.level]
+                Section {
+                    title: Tr.t("Input")
+                    isInput: true
+                    audio: root.source?.audio ?? null
+                    devices: AudioDevices.inputs
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 12
+                        spacing: 8
+                        Label { Layout.fillWidth: true; elide: Text.ElideRight; text: Tr.t("Noise suppression") }
+                        Spinner { visible: NoiseSuppression.installing; size: 14 }
+                        Choice {
+                            options: NoiseSuppression.labels.map((label, i) => ({ value: i, label: label }))
+                            current: NoiseSuppression.level
+                            onPicked: v => NoiseSuppression.set(v)
+                        }
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 12
+                        Layout.rightMargin: 12
+                        visible: !NoiseSuppression.available
+                        wrapMode: Text.Wrap
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.overlay1
+                        text: NoiseSuppression.installing ? Tr.t("Installing…") : Tr.t("Turning it on installs RNNoise (noise-suppression-for-voice) once.")
+                    }
+                }
             }
-        }
-        SegmentSlider {
-            Layout.fillWidth: true
-            icon: "sliders"
-            count: 4
-            value: NoiseSuppression.level / 4
-            dimmed: NoiseSuppression.level === 0
-            valueText: ""
-            onMoved: v => NoiseSuppression.set(v * 4)
-            onIconClicked: NoiseSuppression.set(NoiseSuppression.level > 0 ? 0 : 2)
-        }
-        Caption {
-            Layout.fillWidth: true
-            wrapMode: Text.Wrap
-            text: !NoiseSuppression.available && !NoiseSuppression.installing
-                ? Tr.t("Turning it on installs RNNoise (noise-suppression-for-voice) once.")
-                : Tr.t("Low takes out a hum or a fan; higher steps also silence typing and noise between words.")
         }
     }
 }

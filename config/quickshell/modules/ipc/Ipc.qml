@@ -300,8 +300,8 @@ Scope {
 
     IpcHandler {
         target: "screenshot"
-        function region(): void { Panels.closeAll(); Screenshot.capture("region") }
-        function screen(): void { Panels.closeAll(); Screenshot.capture("screen") }
+        function region(): void { Screenshot.capture("region") }
+        function screen(): void { Screenshot.capture("screen") }
     }
 
     IpcHandler {

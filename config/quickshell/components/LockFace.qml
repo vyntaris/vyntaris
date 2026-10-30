@@ -195,61 +195,16 @@ Item {
                 Layout.fillWidth: true
                 spacing: 12
 
-                Item {
-                    id: cellsBox
+                PasswordCells {
+                    id: input
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    readonly property int count: 20
-                    readonly property int lit: Math.min(count, input.text.length)
-
-                    property real runner: 0
-                    NumberAnimation on runner { running: root.busy; from: 0; to: cellsBox.count; duration: 700; loops: Animation.Infinite }
-
-                    Row {
-                        id: cells
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 3
-                        opacity: !root.showPassword ? 1 : 0
-                        Behavior on opacity { Anim { duration: Theme.durationFast } }
-                        Repeater {
-                            model: cellsBox.count
-                            Rectangle {
-                                required property int index
-                                readonly property bool on: index < cellsBox.lit
-                                readonly property real run: root.busy ? Math.max(0, 1 - Math.abs(index - cellsBox.runner) / 3) : 0
-                                width: (cellsBox.width - (cellsBox.count - 1) * cells.spacing) / cellsBox.count
-                                height: on || run > 0.3 ? 16 : 10
-                                anchors.verticalCenter: parent.verticalCenter
-                                radius: 2
-                                color: root.wrong ? Theme.alpha(Theme.error, 0.75)
-                                    : root.busy ? Theme.alpha(Theme.accent, 0.15 + 0.85 * run)
-                                    : !on ? Theme.alpha(Theme.text, 0.16)
-                                    : index === cellsBox.lit - 1 ? Theme.accentBright : Theme.accent
-                                Behavior on height { Anim { duration: Theme.durationFast } }
-                                Behavior on color { ColorAnim {} }
-                            }
-                        }
-                    }
-                    TextInput {
-                        id: input
-                        anchors { fill: parent; leftMargin: 2 }
-                        opacity: root.showPassword && !root.busy && !root.wrong ? 1 : 0
-                        echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
-                        verticalAlignment: TextInput.AlignVCenter
-                        clip: true
-                        color: Theme.text
-                        selectionColor: Theme.accent
-                        selectedTextColor: Theme.textOnAccent
-                        font.family: Theme.monoFamily
-                        font.pixelSize: Theme.fontSize + 2
-                        enabled: !root.busy
-                        focus: root.active
-                        onTextChanged: if (text && root.wrong) root.status = ""
-                        Keys.onReturnPressed: root.send()
-                        Keys.onEnterPressed: root.send()
-                        Keys.onEscapePressed: event => { if (text) text = ""; else event.accepted = false; }
-                    }
-                    MouseArea { anchors.fill: parent; cursorShape: Qt.IBeamCursor; onClicked: input.forceActiveFocus() }
+                    busy: root.busy
+                    wrong: root.wrong
+                    reveal: root.showPassword
+                    enabled: !root.busy
+                    focus: root.active
+                    onTextChanged: if (text && root.wrong) root.status = ""
+                    onSubmitted: root.send()
                 }
 
                 IconButton {

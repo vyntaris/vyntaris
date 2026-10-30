@@ -7,9 +7,6 @@ import qs.config
 Singleton {
     id: root
 
-    property string lastPath: ""
-    property bool shown: false
-
     readonly property string directory: UserDirs.pictures + "/Screenshots"
 
     function capture(mode) {
@@ -37,57 +34,12 @@ Singleton {
         proc.running = true;
     }
 
-    function open() {
-        if (lastPath) Config.launch(["xdg-open", lastPath]);
-        shown = false;
-    }
     function openFolder() {
         Config.launch(["xdg-open", directory]);
-        shown = false;
-    }
-    function rename(name) {
-        name = name.trim().replace(/[\/]/g, "-");
-        if (!lastPath || !name) return;
-        if (!name.toLowerCase().endsWith(".png")) name += ".png";
-        const target = directory + "/" + name;
-        if (target === lastPath) return;
-        Quickshell.execDetached(["mv", "-n", lastPath, target]);
-        lastPath = target;
-    }
-
-    function editShot() {
-        if (!lastPath) return;
-        Quickshell.execDetached(["sh", "-c", 'command -v swappy >/dev/null && swappy -f "$1" -o "$1" || xdg-open "$1"', "sh", lastPath]);
-        shown = false;
-    }
-
-    function remove() {
-        if (lastPath) Quickshell.execDetached(["rm", "-f", lastPath]);
-        lastPath = "";
-        shown = false;
     }
 
     Process {
         id: proc
         property string target
-        onExited: code => {
-            if (code !== 0) return;
-            root.lastPath = target;
-            root.shown = true;
-            hideTimer.restart();
-        }
-    }
-
-    Timer {
-        id: hideTimer
-        interval: 6000
-        onTriggered: root.shown = false
-    }
-    function dismiss() {
-        hideTimer.stop();
-        shown = false;
-    }
-    function keepOpen(hovered) {
-        if (hovered) hideTimer.stop(); else hideTimer.restart();
     }
 }

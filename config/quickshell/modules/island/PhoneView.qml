@@ -137,7 +137,6 @@ Item {
             ConnectionSummary {
                 Layout.fillWidth: true
                 connected: root.phone !== null
-                canDisconnect: false
                 name: root.mine?.name ?? (!Phone.running ? Tr.t("Starting…") : Tr.t("No phone yet"))
                 icon: Phone.iconFor(root.mine)
                 level: root.phone && root.phone.battery >= 0 ? root.phone.battery / 100 : -1

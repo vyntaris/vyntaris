@@ -140,7 +140,6 @@ Item {
                 iconLevel: Icons.wifiLevel(root.connected?.signalStrength ?? 0)
                 level: Icons.signal(root.connected?.signalStrength ?? 0)
                 details: [link.band, link.address, root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : ""].filter(s => s).join("  ·  ")
-                onDisconnect: root.connected.disconnect()
             }
 
             RowLayout {
@@ -189,7 +188,14 @@ Item {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; implicitHeight: 1; color: Theme.hairline }
+            QuietAction {
+                Layout.fillWidth: true
+                icon: "close"
+                text: Tr.t("Disconnect")
+                onClicked: root.connected.disconnect()
+            }
+
+            Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.hairline }
             RowLayout {
                 Layout.fillWidth: true
                 Caption { Layout.fillWidth: true; text: Tr.t("Nearby") }
@@ -313,7 +319,7 @@ Item {
                         color: Theme.overlay1
                     }
 
-                    Button { visible: row.modelData.connected && !row.busy; implicitHeight: 32; color: Theme.crust; text: Tr.t("Disconnect"); onClicked: row.modelData.disconnect() }
+                    QuietAction { visible: row.modelData.connected && !row.busy; icon: "close"; ink: Theme.textOnAccent; hoverFill: Theme.crust; hoverInk: Theme.text; text: Tr.t("Disconnect"); onClicked: row.modelData.disconnect() }
                 }
             }
             }
