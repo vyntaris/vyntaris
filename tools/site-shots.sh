@@ -36,7 +36,7 @@ python3 - "$H" <<'E'
 import json,sys,os
 h=sys.argv[1]
 d=json.load(open(os.path.expanduser('~/.config/quickshell/settings.json')))
-d['wallpaper']['path']='vyntaris:terrain'; d['wallpaper']['directory']='~/Pictures/Wallpapers'
+d['wallpaper']['path']=''; d['wallpaper']['directory']='~/Pictures/Wallpapers'
 d.setdefault('theme',{}).update({'flavor':'mocha','accent':'blue'})
 d['weather']={'enabled':True,'city':'Čačak','lat':43.89139,'lon':20.34972}
 d['life']={'birthday':'1998-04-12','years':70}

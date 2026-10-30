@@ -15,8 +15,8 @@ Singleton {
 
     readonly property QtObject theme: QtObject {
         readonly property string flavor: root.cfg.flavor || "mocha"
-        readonly property string accent: root.cfg.accent || "blue"
-        readonly property string accentLight: root.cfg.accentLight || "sky"
+        readonly property string accent: root.cfg.accent || "mauve"
+        readonly property string accentLight: root.cfg.accentLight || "mauve"
         readonly property string fontFamily: root.cfg.font || "Inter"
         readonly property string monoFamily: root.cfg.monoFont || "JetBrains Mono"
         readonly property int fontSize: root.cfg.fontSize || 13
@@ -28,9 +28,9 @@ Singleton {
         readonly property int endCurve: root.cfg.endCurve ?? 16
         readonly property string clockFormat: root.cfg.clockFormat || "HH:mm"
         readonly property string corners: root.cfg.corners || "round"
-        readonly property string notchStyle: root.cfg.notchStyle || "classic"
+        readonly property string notchStyle: root.cfg.notchStyle || "slant"
         readonly property bool flatIsland: root.cfg.flatIsland ?? false
-        readonly property bool endCorners: root.cfg.endCorners ?? true
+        readonly property bool endCorners: root.cfg.endCorners ?? false
         readonly property string inside: root.cfg.inside || "rounded"
     }
     readonly property QtObject accessibility: QtObject {

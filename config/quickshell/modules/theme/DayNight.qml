@@ -34,7 +34,7 @@ Scope {
 
     readonly property bool dark: Theme.isDark
     onDarkChanged: {
-        if (Config.isAccentWallpaper(Config.wallpaper.path)) return;
+        if (/^(times|heic):/.test(Config.wallpaperPath)) return;
         const path = Config.wallpaper.path;
         const m = path.match(/^(.*?)(-light)?(\.[A-Za-z0-9]+)$/);
         if (!m) return;

@@ -70,7 +70,7 @@ impl Settings {
         self.flavour() != "latte"
     }
     pub fn accent_name(&self) -> String {
-        if self.dark() { self.str("theme.accent", "blue") } else { self.str("theme.accentLight", "sky") }
+        if self.dark() { self.str("theme.accent", "mauve") } else { self.str("theme.accentLight", "mauve") }
     }
     pub fn accent(&self) -> (String, String) {
         crate::palette::accent(crate::palette::palette(&self.flavour()), &self.accent_name())

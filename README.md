@@ -255,8 +255,7 @@ island, from their tiles. Help (`help.qml`) lists every shortcut, read from Hypr
 
 ## Colours and themes
 
-The palettes are Catppuccin's: Mocha (dark) and Latte (light), with eight accents to pick from (Blue by default in
-the dark, Sky in the light). Light and dark can follow the time of day. The accent can also come from the wallpaper.
+The palettes are Catppuccin's: Mocha (dark) and Latte (light), with eight accents to pick from (Mauve by default). Light and dark can follow the time of day. The accent can also come from the wallpaper.
 
 When the accent or the flavour changes, the shell (`modules/theme/AppTheme.qml`) writes the colours to
 every place that needs them:
@@ -278,11 +277,12 @@ every place that needs them:
   whether it's dark, and tells apps when either changes;
 - **Hyprland's** window borders (an accent gradient), the **login screen** and the **boot splash**.
 
-The Vyntaris wallpapers, Minimal (the mark on a faint dot grid) and Terrain (a contour map), are drawn
-again in the accent and the flavour each time either changes (`config/AccentWallpaper.qml`), from vector
-scenes (`WallpaperArt.js`, rendered by rsvg-convert). Your own pictures go in `~/Pictures/Wallpapers`. One
-picture is shipped, `default.png`, Minimal in the default accent (`tools/make-default-wallpaper.sh`): the
-login screen's and the installer's.
+The wallpaper is Mauve Crystal Shards (`default.png`). Your own pictures go in `~/Pictures/Wallpapers`. A
+dynamic HEIC there is unpacked once to `~/.cache/vyntaris/dynamic` and shown on the schedule written in the
+file (`config/DynamicWallpaper.qml`; `h24` and `solar`, the sun's position taken as an ordinary day). Pictures named `name_morning`,
+`name_day`, `name_evening` and `name_night` (two or more of them) show as one wallpaper that follows the time
+of day, fading from one to the next: morning from 06:00, day from 09:00, evening from 18:00, night from 20:30.
+The login screen and the installer show the day picture.
 
 The workspaces' app icons in the bar can be in the accent or in their own colours (Settings → Bar →
 Icons).

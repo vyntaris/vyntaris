@@ -13,7 +13,7 @@ Item {
     readonly property bool active: Panels.wallpaperOpen
 
     readonly property string directory: Config.expandHome(Config.wallpaper.directory)
-    readonly property string current: Config.expandHome(Config.wallpaper.path)
+    readonly property string current: Config.wallpaperPath
 
     width: fullWidth
     height: Theme.barHeight + hang
@@ -22,7 +22,7 @@ Item {
     function rebuild() {
         const paths = [];
         for (let k = 0; k < files.count; k++) paths.push(files.get(k, "filePath"));
-        entries = AccentWallpaper.styles.map(st => ({ path: "vyntaris:" + st.id, title: st.title, style: st.id }))
+        entries = [{ path: Config.defaultWallpaper, title: "Mauve Crystal Shards" }]
             .concat(Walls.group(paths, Theme.isDark).map(e => ({ path: e.path, title: e.title })));
         showCurrent();
     }
@@ -33,7 +33,7 @@ Item {
     FolderListModel {
         id: files
         folder: root.directory ? "file://" + root.directory : ""
-        nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.svg", "*.PNG", "*.JPG", "*.JPEG"]
+        nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.svg", "*.heic", "*.heif", "*.PNG", "*.JPG", "*.JPEG", "*.HEIC", "*.HEIF"]
         showDirs: false
         sortField: FolderListModel.Name
         onStatusChanged: if (status === FolderListModel.Ready) root.rebuild()
@@ -47,7 +47,7 @@ Item {
     }
 
     function inUse(e) {
-        return e.style ? AccentWallpaper.styleOf(Config.wallpaper.path) === e.style : Walls.same(e.path, current);
+        return Walls.same(e.path, current);
     }
     function showCurrent() {
         let i = 0;
@@ -144,8 +144,7 @@ Item {
 
                 Image {
                     anchors.fill: parent
-                    source: card.modelData.style ? (AccentWallpaper.files[card.modelData.style] ? "file://" + AccentWallpaper.files[card.modelData.style] : "")
-                        : card.modelData.path ? "file://" + card.modelData.path : ""
+                    source: card.modelData.path ? "file://" + Config.wallpaperFileOf(card.modelData.path) : ""
                     sourceSize: Qt.size(480, 270)
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true

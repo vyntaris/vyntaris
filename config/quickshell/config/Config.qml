@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "Wallpapers.js" as Walls
 
 Singleton {
     id: root
@@ -115,11 +116,14 @@ Singleton {
     }
 
     readonly property string defaultWallpaper: "/usr/share/backgrounds/vyntaris/default.png"
-    function isAccentWallpaper(p) {
-        return !p || p.startsWith("vyntaris:");
+    SystemClock { id: wallpaperClock; precision: SystemClock.Minutes }
+    readonly property int minuteOfDay: wallpaperClock.date.getHours() * 60 + wallpaperClock.date.getMinutes()
+    readonly property string wallpaperPath: !wallpaper.path || wallpaper.path.startsWith("vyntaris:") ? defaultWallpaper : expandHome(wallpaper.path)
+    function wallpaperFileOf(path) {
+        return path.startsWith("heic:") ? (DynamicWallpaper.fileAt(path, minuteOfDay) || defaultWallpaper) : Walls.fileAt(path, minuteOfDay);
     }
     function wallpaperFile() {
-        return isAccentWallpaper(wallpaper.path) ? (AccentWallpaper.fileFor(wallpaper.path) || defaultWallpaper) : expandHome(wallpaper.path);
+        return wallpaperFileOf(wallpaperPath);
     }
 
     function expandHome(p) {
@@ -165,8 +169,8 @@ Singleton {
                 property string darkFlavor: "mocha"
                 property string lightFrom: "07:00"
                 property string darkFrom: "19:00"
-                property string accent: "blue"
-                property string accentLight: "sky"
+                property string accent: "mauve"
+                property string accentLight: "mauve"
                 property string fontFamily: "Inter"
                 property string monoFamily: "JetBrains Mono"
                 property int fontSize: 13
@@ -221,8 +225,8 @@ Singleton {
             property JsonObject bar: JsonObject {
                 property int height: 28
                 property int endCurve: 16
-                property bool endCorners: true
-                property string notchStyle: "classic"
+                property bool endCorners: false
+                property string notchStyle: "slant"
                 property string corners: "round"
                 property bool flatIsland: false
                 property string inside: "rounded"

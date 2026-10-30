@@ -1,7 +1,7 @@
 # What Vyntaris ships that others made
 
-Vyntaris's own files (the shell, the setup, the installer, the boot splash, the wallpapers and sounds its
-tools draw and synthesize) are this repository's. Shipped with them, under their own licenses:
+Vyntaris's own files (the shell, the setup, the installer, the boot splash, the sounds its tools
+synthesize) are this repository's. Shipped with them, under their own licenses:
 
 | What | Where | Made by | License |
 |------|-------|---------|---------|

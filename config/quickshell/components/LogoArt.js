@@ -9,7 +9,7 @@ function accent(palette, accentName) {
 }
 
 function partner(palette, accentName) {
-    return mix(Palettes.accent(palette, accentName), "#000000", 0.28);
+    return mix(Palettes.accent(palette, accentName), "#000000", 0.18);
 }
 
 function mix(a, b, t) {
@@ -27,13 +27,13 @@ function svg(viewBox, body, px) {
 }
 
 function defs(accent, partnerColor, base) {
-    var p = shape.orbit.planet, x0 = shape.orbit.cx - shape.orbit.rx, w = "#ffffff";
+    var p = shape.orbit.planet, x0 = shape.orbit.cx - shape.orbit.rx;
     return '<defs>'
         + '<linearGradient id="v" x1="2" y1="3" x2="20" y2="21" gradientUnits="userSpaceOnUse">'
-        + '<stop offset="0" stop-color="' + mix(accent, w, 0.2) + '"/><stop offset="1" stop-color="' + partnerColor + '"/></linearGradient>'
+        + '<stop offset="0" stop-color="' + accent + '"/><stop offset="1" stop-color="' + partnerColor + '"/></linearGradient>'
         + '<linearGradient id="f" x1="' + x0 + '" y1="0" x2="' + p.x + '" y2="0" gradientUnits="userSpaceOnUse">'
         + '<stop offset="0" stop-color="' + mix(partnerColor, base, 0.2) + '"/><stop offset="0.55" stop-color="' + accent + '"/>'
-        + '<stop offset="1" stop-color="' + mix(accent, w, 0.5) + '"/></linearGradient>'
+        + '<stop offset="1" stop-color="' + accent + '"/></linearGradient>'
         + '<linearGradient id="b" x1="' + x0 + '" y1="0" x2="' + p.x + '" y2="0" gradientUnits="userSpaceOnUse">'
         + '<stop offset="0" stop-color="' + mix(partnerColor, base, 0.2) + '"/><stop offset="1" stop-color="' + mix(accent, base, 0.5) + '"/></linearGradient>'
         + '</defs>';
@@ -43,8 +43,8 @@ function planet(accent, glow) {
     return '<defs><radialGradient id="g" r="2.4" cx="0" cy="0" gradientUnits="userSpaceOnUse">'
         + '<stop offset="0.3" stop-color="' + accent + '" stop-opacity="0.45"/><stop offset="0.55" stop-color="' + accent + '" stop-opacity="0.13"/>'
         + '<stop offset="1" stop-color="' + accent + '" stop-opacity="0"/></radialGradient>'
-        + '<radialGradient id="p" cx="-0.35" cy="-0.4" r="1.35" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff"/>'
-        + '<stop offset="0.35" stop-color="' + mix(accent, "#ffffff", 0.5) + '"/><stop offset="1" stop-color="' + accent + '"/></radialGradient>'
+        + '<radialGradient id="p" cx="-0.35" cy="-0.4" r="1.35" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="' + mix(accent, "#ffffff", 0.35) + '"/>'
+        + '<stop offset="1" stop-color="' + accent + '"/></radialGradient>'
         + '</defs>' + (glow === false ? '' : '<circle r="2.4" fill="url(#g)"/>') + '<circle r="1" fill="url(#p)"/>';
 }
 

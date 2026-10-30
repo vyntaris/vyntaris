@@ -18,7 +18,7 @@ depends=(
     archlinux-appstream-data fwupd
     poppler ffmpegthumbnailer qt6-multimedia qt6-multimedia-ffmpeg ripgrep
     wtype openssl
-    gtk4 libadwaita
+    gtk4 libadwaita libheif
 )
 optdepends=(
     'thunar: files (SUPER+E)'

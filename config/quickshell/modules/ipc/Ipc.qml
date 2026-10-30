@@ -65,7 +65,7 @@ Scope {
 
     Process {
         id: randomWallpaper
-        command: ["sh", "-c", 'find "$1" -maxdepth 1 -type f \\( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \\) | sort',
+        command: ["sh", "-c", 'find "$1" -maxdepth 1 -type f \\( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" -o -iname "*.heic" -o -iname "*.heif" \\) | sort',
                   "sh", Config.expandHome(Config.wallpaper.directory)]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -81,7 +81,7 @@ Scope {
     IpcHandler {
         target: "wallpaper"
         function random(): void { randomWallpaper.running = true }
-        function set(path: string): void { if (path) { Config.wallpaper.path = path; Config.save(); } }
+        function set(path: string): void { if (path) { Config.wallpaper.path = (/\.hei[cf]$/i.test(path) ? "heic:" : "") + path; Config.save(); } }
         function toggle(): void { Panels.wallpaperOpen = !Panels.wallpaperOpen }
         function open(): void { Panels.wallpaperOpen = true }
         function close(): void { Panels.wallpaperOpen = false }

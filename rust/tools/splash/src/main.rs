@@ -395,7 +395,7 @@ fn write_png(surf: &ImageSurface, path: &Path) {
 
 fn deeper(hex: &str) -> String {
     let h = hex.trim_start_matches('#');
-    let c = |i: usize| (u8::from_str_radix(&h[i..i + 2], 16).unwrap_or(0) as f64 * 0.72).round() as u8;
+    let c = |i: usize| (u8::from_str_radix(&h[i..i + 2], 16).unwrap_or(0) as f64 * 0.82).round() as u8;
     format!("#{:02x}{:02x}{:02x}", c(0), c(2), c(4))
 }
 
@@ -441,8 +441,8 @@ fn main() {
 
     let mut s = Splash {
         k, acc, light, hot, base: base.clone(),
-        v_fill: linear(2.0, 3.0, 20.0, 21.0, &[(0.0, mix(&acc_hex, WHITE, 0.2), 1.0), (1.0, rgb(&partner), 1.0)]),
-        front_fill: linear(x0, 0.0, plx, 0.0, &[(0.0, mix(&partner, &base, 0.2), 1.0), (0.55, acc, 1.0), (1.0, mix(&acc_hex, WHITE, 0.5), 1.0)]),
+        v_fill: linear(2.0, 3.0, 20.0, 21.0, &[(0.0, acc, 1.0), (1.0, rgb(&partner), 1.0)]),
+        front_fill: linear(x0, 0.0, plx, 0.0, &[(0.0, mix(&partner, &base, 0.2), 1.0), (0.55, acc, 1.0), (1.0, acc, 1.0)]),
         back_fill: linear(x0, 0.0, plx, 0.0, &[(0.0, mix(&partner, &base, 0.2), 1.0), (1.0, mix(&acc_hex, &base, 0.5), 1.0)]),
         ring_v: ring("v"), ring_back: ring("back"), ring_front: ring("front"), ring_hide: ring("hide"),
         o, ox: 0.0, oy: 0.0, w: 0, h: 0, times, turn: a,

@@ -96,13 +96,13 @@
   typeset -g POWERLEVEL9K_RIGHT_PROMPT_LAST_SEGMENT_END_SYMBOL='\uE0B4'
   typeset -g POWERLEVEL9K_EMPTY_LINE_LEFT_PROMPT_LAST_SEGMENT_END_SYMBOL=
 
-  local accent=4 accent_ok=76 soft=7 ink=254 ink_soft=232 ink_shortened=250 ink_anchor=255
+  local accent=4 accent_ok=76 ink=254 ink_shortened=250 ink_anchor=255
   if [[ -n $KITTY_WINDOW_ID ]]; then
-    accent=17 accent_ok=17 soft=18 ink=19 ink_soft=19 ink_shortened=19 ink_anchor=19
+    accent=17 accent_ok=17 ink=19 ink_shortened=19 ink_anchor=19
   fi
 
-  typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND=$ink_soft
-  typeset -g POWERLEVEL9K_OS_ICON_BACKGROUND=$soft
+  typeset -g POWERLEVEL9K_OS_ICON_FOREGROUND=232
+  typeset -g POWERLEVEL9K_OS_ICON_BACKGROUND=231
   typeset -g POWERLEVEL9K_OS_ICON_CONTENT_EXPANSION=''
 
   typeset -g POWERLEVEL9K_PROMPT_CHAR_BACKGROUND=

@@ -34,13 +34,13 @@ fn greeter(args: &[String]) -> Value {
     let full = if arg(3).is_empty() { arg(0) } else { arg(3) };
     json!({
         "user": arg(0), "session": ["vyntaris-session"], "wallpaper": arg(1), "face": arg(2), "fullName": full,
-        "flavor": or(t, "flavor", json!("mocha")), "accent": or(t, "accent", json!("blue")), "accentLight": or(t, "accentLight", json!("sky")),
+        "flavor": or(t, "flavor", json!("mocha")), "accent": or(t, "accent", json!("mauve")), "accentLight": or(t, "accentLight", json!("mauve")),
         "font": or(t, "fontFamily", json!("Inter")), "monoFont": or(t, "monoFamily", json!("JetBrains Mono")),
         "fontSize": or(t, "fontSize", json!(13)), "animationSpeed": or(t, "animationSpeed", json!(1)),
         "animationStyle": or(t, "animationStyle", json!("snappy")), "highContrast": or(a, "highContrast", json!(false)),
         "barHeight": or(b, "height", json!(28)), "endCurve": or(b, "endCurve", json!(16)),
-        "corners": or(b, "corners", json!("round")), "notchStyle": or(b, "notchStyle", json!("classic")),
-        "flatIsland": or(b, "flatIsland", json!(false)), "endCorners": or(b, "endCorners", json!(true)),
+        "corners": or(b, "corners", json!("round")), "notchStyle": or(b, "notchStyle", json!("slant")),
+        "flatIsland": or(b, "flatIsland", json!(false)), "endCorners": or(b, "endCorners", json!(false)),
         "inside": or(b, "inside", json!("rounded")),
         "clockFormat": or(b, "clockFormat", json!("HH:mm")),
     })
@@ -51,9 +51,9 @@ fn splash(path: &str) -> Option<String> {
     let word = Regex::new(r"^[a-z]+$").unwrap();
     let accent_ok = Regex::new(r"^([a-z]+|#[0-9a-fA-F]{6})$").unwrap();
     let f = t.get("flavor").and_then(Value::as_str).unwrap_or("mocha");
-    let a = t.get("accent").and_then(Value::as_str).unwrap_or("blue");
+    let a = t.get("accent").and_then(Value::as_str).unwrap_or("mauve");
     let f = if f == "latte" || !word.is_match(f) { "mocha" } else { f };
-    let a = if accent_ok.is_match(a) { a } else { "blue" };
+    let a = if accent_ok.is_match(a) { a } else { "mauve" };
     Some(format!("{f} {a}"))
 }
 
@@ -160,6 +160,136 @@ fn riseup_ovpn(eip: &Value, cert_pem: &str, ca: &str, place: &str) -> Option<Str
     ))
 }
 
+fn from_base64(text: &[u8]) -> Option<Vec<u8>> {
+    let value = |c: u8| match c {
+        b'A'..=b'Z' => Some(c - b'A'),
+        b'a'..=b'z' => Some(c - b'a' + 26),
+        b'0'..=b'9' => Some(c - b'0' + 52),
+        b'+' => Some(62),
+        b'/' => Some(63),
+        _ => None,
+    };
+    let mut out = Vec::with_capacity(text.len() / 4 * 3);
+    let (mut bits, mut have) = (0u32, 0);
+    for &c in text.iter().filter(|c| **c != b'=') {
+        bits = (bits << 6) | value(c)? as u32;
+        have += 6;
+        if have >= 8 {
+            have -= 8;
+            out.push((bits >> have) as u8);
+        }
+    }
+    Some(out)
+}
+
+struct Plist<'a> {
+    data: &'a [u8],
+    table: usize,
+    offset_size: usize,
+    ref_size: usize,
+    objects: usize,
+}
+
+impl Plist<'_> {
+    fn uint(bytes: &[u8]) -> usize {
+        bytes.iter().fold(0usize, |n, b| n.wrapping_shl(8) | *b as usize)
+    }
+
+    fn object(&self, index: usize, depth: usize) -> Option<Value> {
+        if index >= self.objects || depth > 16 {
+            return None;
+        }
+        let at = self.table.checked_add(index.checked_mul(self.offset_size)?)?;
+        let start = Self::uint(self.data.get(at..at.checked_add(self.offset_size)?)?);
+        let marker = *self.data.get(start)?;
+        let (kind, low) = (marker >> 4, (marker & 15) as usize);
+        let (count, body) = if low == 15 && kind >= 5 {
+            let head = *self.data.get(start + 1)?;
+            let width = 1usize.checked_shl((head & 15) as u32)?;
+            (Self::uint(self.data.get(start + 2..start + 2 + width)?), start + 2 + width)
+        } else {
+            (low, start + 1)
+        };
+        let refs = |at: usize, n: usize| -> Option<Vec<usize>> {
+            let bytes = self.data.get(at..at.checked_add(n.checked_mul(self.ref_size)?)?)?;
+            Some(bytes.chunks(self.ref_size).map(Self::uint).collect())
+        };
+        match kind {
+            0x1 => {
+                let width = 1usize.checked_shl(low as u32)?;
+                Some(json!(Self::uint(self.data.get(start + 1..start + 1 + width)?)))
+            }
+            0x2 => match low {
+                2 => Some(json!(f32::from_be_bytes(self.data.get(start + 1..start + 5)?.try_into().ok()?))),
+                3 => Some(json!(f64::from_be_bytes(self.data.get(start + 1..start + 9)?.try_into().ok()?))),
+                _ => None,
+            },
+            0x5 => Some(json!(String::from_utf8_lossy(self.data.get(body..body.checked_add(count)?)?))),
+            0xA => {
+                let items = refs(body, count)?;
+                items.into_iter().map(|i| self.object(i, depth + 1)).collect::<Option<Vec<_>>>().map(Value::Array)
+            }
+            0xD => {
+                let keys = refs(body, count)?;
+                let values = refs(body.checked_add(count.checked_mul(self.ref_size)?)?, count)?;
+                let mut map = serde_json::Map::new();
+                for (k, v) in keys.into_iter().zip(values) {
+                    if let Value::String(key) = self.object(k, depth + 1)? {
+                        map.insert(key, self.object(v, depth + 1)?);
+                    }
+                }
+                Some(Value::Object(map))
+            }
+            _ => Some(Value::Null),
+        }
+    }
+}
+
+fn parse_plist(data: &[u8]) -> Option<Value> {
+    if !data.starts_with(b"bplist00") || data.len() < 40 {
+        return None;
+    }
+    let tail = &data[data.len() - 32..];
+    let plist = Plist {
+        data,
+        offset_size: tail[6] as usize,
+        ref_size: tail[7] as usize,
+        objects: Plist::uint(&tail[8..16]),
+        table: Plist::uint(&tail[24..32]),
+    };
+    if plist.offset_size == 0 || plist.ref_size == 0 {
+        return None;
+    }
+    plist.object(Plist::uint(&tail[16..24]), 0)
+}
+
+fn minute_of_sun(altitude: f64, azimuth: f64) -> f64 {
+    let rise = (altitude / 60.0).clamp(-1.0, 1.0).asin() / std::f64::consts::PI * 720.0;
+    (if azimuth < 180.0 { 360.0 + rise } else { 1080.0 - rise }).rem_euclid(1440.0)
+}
+
+fn heic_schedule(kind: &str, plist: &Value) -> Option<Value> {
+    let number = |v: &Value, key: &str| v.get(key).and_then(Value::as_f64);
+    let list = plist.get(if kind == "h24" { "ti" } else { "si" })?.as_array()?;
+    let mut entries: Vec<(f64, u64)> = list
+        .iter()
+        .filter_map(|e| {
+            let minute = if kind == "h24" { number(e, "t")? * 1440.0 } else { minute_of_sun(number(e, "a")?, number(e, "z")?) };
+            Some((minute, e.get("i")?.as_u64()?))
+        })
+        .collect();
+    entries.sort_by(|a, b| a.0.total_cmp(&b.0));
+    (!entries.is_empty()).then(|| Value::Array(entries.iter().map(|(m, i)| json!({ "m": m.round(), "i": i })).collect()))
+}
+
+fn heic_file_schedule(path: &str) -> Option<Value> {
+    let bytes = fs::read(path).ok()?;
+    let found = regex::bytes::Regex::new(r#"apple_desktop:(h24|solar)(?:="|>)([A-Za-z0-9+/=]+)"#).unwrap();
+    let m = found.captures(&bytes)?;
+    let kind = String::from_utf8_lossy(&m[1]).to_string();
+    heic_schedule(&kind, &parse_plist(&from_base64(&m[2])?)?)
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let a: Vec<&str> = args.iter().map(String::as_str).collect();
@@ -204,12 +334,43 @@ fn main() {
             true
         }
         ["splash", file] => splash(file).map(|s| println!("{s}")).is_some(),
+        ["heic-schedule", file] => heic_file_schedule(file).map(|s| println!("{s}")).is_some(),
         ["guard-status", out] => guard_status(out).is_ok(),
         ["merge-actions", uca, extra] => merge_actions(uca, extra).is_ok(),
         _ => {
-            eprintln!("json get|palette|snapshots|greeter|splash|guard-status|merge-actions …");
+            eprintln!("json get|palette|snapshots|greeter|splash|heic-schedule|guard-status|merge-actions …");
             false
         }
     };
     std::process::exit(if ok { 0 } else { 1 });
+}
+
+#[cfg(test)]
+mod heic_tests {
+    use super::*;
+
+    #[test]
+    fn reads_a_schedule_from_a_binary_plist() {
+        let data = [98, 112, 108, 105, 115, 116, 48, 48, 209, 1, 2, 82, 116, 105, 162, 3, 8, 210, 4, 5, 6, 7, 81, 105, 81, 116, 16, 2, 35, 63, 224, 0, 0, 0, 0, 0, 0, 210, 4, 5, 9, 10, 16, 1, 35, 0, 0, 0, 0, 0, 0, 0, 0, 8, 11, 14, 17, 22, 24, 26, 28, 37, 42, 44, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53];
+        let plist = parse_plist(&data).expect("a plist");
+        let s = heic_schedule("h24", &plist).expect("a schedule");
+        assert_eq!(s, json!([{ "m": 0.0, "i": 1 }, { "m": 720.0, "i": 2 }]));
+    }
+
+    #[test]
+    fn what_is_not_a_plist_is_refused() {
+        assert!(parse_plist(b"not a plist at all, not even close to one").is_none());
+        let mut broken = [98, 112, 108, 105, 115, 116, 48, 48, 209, 1, 2, 82, 116, 105, 162, 3, 8, 210, 4, 5, 6, 7, 81, 105, 81, 116, 16, 2, 35, 63, 224, 0, 0, 0, 0, 0, 0, 210, 4, 5, 9, 10, 16, 1, 35, 0, 0, 0, 0, 0, 0, 0, 0, 8, 11, 14, 17, 22, 24, 26, 28, 37, 42, 44, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 53].to_vec();
+        let at = broken.len() - 8;
+        broken[at..].fill(255);
+        assert!(parse_plist(&broken).is_none());
+    }
+
+    #[test]
+    fn base64_and_the_sun() {
+        assert_eq!(from_base64(b"aGVsbG8=").unwrap(), b"hello");
+        assert_eq!(minute_of_sun(0.0, 90.0), 360.0);
+        assert_eq!(minute_of_sun(60.0, 180.0), 720.0);
+        assert_eq!(minute_of_sun(0.0, 270.0), 1080.0);
+    }
 }

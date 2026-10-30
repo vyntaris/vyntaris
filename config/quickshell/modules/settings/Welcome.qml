@@ -87,13 +87,13 @@ Scope {
     FolderListModel {
         id: userWalls
         folder: Config.wallpaper.directory ? "file://" + Config.expandHome(Config.wallpaper.directory) : ""
-        nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.PNG", "*.JPG", "*.JPEG"]
+        nameFilters: ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.heic", "*.heif", "*.PNG", "*.JPG", "*.JPEG", "*.HEIC", "*.HEIF"]
         showDirs: false
     }
     readonly property var walls: {
         const m = userWalls, paths = [];
         for (let k = 0; k < m.count; k++) paths.push(m.get(k, "filePath"));
-        return AccentWallpaper.styles.map(st => "vyntaris:" + st.id).concat(Walls.group(paths, Theme.isDark).map(e => e.path));
+        return [Config.defaultWallpaper].concat(Walls.group(paths, Theme.isDark).map(e => e.path));
     }
 
     component Tile: Rectangle {
@@ -449,8 +449,7 @@ Scope {
                                                 Layout.fillWidth: true
                                                 Layout.fillHeight: true
                                                 Layout.minimumHeight: 60
-                                                readonly property string style: path.startsWith("vyntaris:") ? path.slice(9) : ""
-                                                selected: style ? AccentWallpaper.styleOf(Config.wallpaper.path) === style : Walls.same(Config.wallpaperFile(), path)
+                                                selected: Walls.same(Config.wallpaperPath, path)
                                                 onClicked: { Config.wallpaper.path = path; root.changed(); }
                                                 ClippingRectangle {
                                                     anchors.fill: parent
@@ -458,8 +457,7 @@ Scope {
                                                     color: Theme.alpha(Theme.text, 0.06)
                                                     Image {
                                                         anchors.fill: parent
-                                                        source: wallTile.style ? (AccentWallpaper.files[wallTile.style] ? "file://" + AccentWallpaper.files[wallTile.style] : "")
-                                                            : wallTile.path ? "file://" + wallTile.path : ""
+                                                        source: wallTile.path ? "file://" + Config.wallpaperFileOf(wallTile.path) : ""
                                                         sourceSize.width: 360
                                                         fillMode: Image.PreserveAspectCrop
                                                         asynchronous: true

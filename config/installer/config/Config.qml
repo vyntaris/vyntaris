@@ -5,8 +5,8 @@ import QtQuick
 Singleton {
     readonly property QtObject theme: QtObject {
         readonly property string flavor: "mocha"
-        readonly property string accent: "blue"
-        readonly property string accentLight: "sky"
+        readonly property string accent: "mauve"
+        readonly property string accentLight: "mauve"
         readonly property string fontFamily: "Inter"
         readonly property string monoFamily: "JetBrains Mono"
         readonly property int fontSize: 13
@@ -17,7 +17,7 @@ Singleton {
         readonly property int height: 32
         readonly property int endCurve: 16
         readonly property string corners: "round"
-        readonly property string notchStyle: "classic"
+        readonly property string notchStyle: "slant"
         readonly property string inside: "rounded"
         readonly property string clockFormat: "HH:mm"
     }

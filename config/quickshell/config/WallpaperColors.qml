@@ -7,7 +7,7 @@ Singleton {
     id: root
 
     readonly property string file: Config.wallpaperFile()
-    readonly property bool wanted: Config.theme.wallpaperAccent && !Config.isAccentWallpaper(Config.wallpaper.path)
+    readonly property bool wanted: Config.theme.wallpaperAccent
 
     property bool ready: false
     property color vibrant: "#cba6f7"

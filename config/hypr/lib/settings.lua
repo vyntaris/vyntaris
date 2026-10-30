@@ -3,7 +3,7 @@ local json = require("lib.json")
 local M = {}
 
 local defaults = {
-    theme   = { flavor = "mocha", accent = "blue", accentLight = "sky", animationSpeed = 1.5,
+    theme   = { flavor = "mocha", accent = "mauve", accentLight = "mauve", animationSpeed = 1.5,
                 animationStyle = "snappy", windowAnimation = "slidevert", workspaceAnimation = "slidevert",
                 cursorTheme = "Bibata-Modern-Ice", cursorSize = 24 },
     apps    = { terminal = "kitty", terminalRun = "kitty", fileManager = "thunar", browser = "firefox", editor = "code" },

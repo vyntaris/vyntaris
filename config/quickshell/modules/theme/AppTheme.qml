@@ -292,11 +292,11 @@ Scope {
             ["color1", t.red], ["color9", t.red],
             ["color2", t.green], ["color10", t.green],
             ["color3", t.yellow], ["color11", t.yellow],
-            ["color4", t.blue], ["color12", t.blue],
+            ["color4", t.accent], ["color12", t.accent],
             ["color5", t.pink], ["color13", t.pink],
             ["color6", t.teal], ["color14", t.teal],
             ["color7", c7], ["color15", c15],
-            ["color17", t.accent], ["color18", Qt.tint(t.accent, t.alpha(t.text, 0.45))], ["color19", t.crust],
+            ["color17", t.accent], ["color19", t.crust],
         ];
         return `# ${marker} from config/Theme.qml. Edits are overwritten; put your own settings in kitty.conf.\n`
             + entries.map(([k, v]) => `${k} ${typeof v === "string" ? v : hex(v)}`).join("\n") + "\n";

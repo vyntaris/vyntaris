@@ -8,14 +8,26 @@ g=/etc/greetd/greeter
 [ -d "$g" ] || exit 0
 
 wp="$(runuser -u "$user" -- /usr/lib/vyntaris/json get "$settings" wallpaper.path "" 2>/dev/null || true)"
+case "$wp" in
+    ""|vyntaris:*) wp="/usr/share/backgrounds/vyntaris/default.png" ;;
+    heic:*) wp="${wp#heic:}" ;;
+    times:*)
+        have="${wp#times:}"; have="${have%%:*}"; wp="${wp#times:"$have":}"
+        case ",$have," in *,day,*) when=day ;; *) when="${have%%,*}" ;; esac
+        wp="${wp/\{t\}/$when}" ;;
+esac
 case "$wp" in \~/*) wp="$home/${wp#\~/}" ;; \~) wp="$home" ;; esac
 
 tmp="$(mktemp)"
 trap 'rm -f "$tmp"' EXIT
 dest=""
-if [ -n "$wp" ] && runuser -u "$user" -- cat -- "$wp" > "$tmp" 2>/dev/null &&
+ext="${wp##*.}"; ext="${ext,,}"
+case "$ext" in
+    heic|heif) read_picture() { runuser -u "$user" -- magick "$wp[0]" -quality 92 jpg:-; }; ext=jpg ;;
+    *) read_picture() { runuser -u "$user" -- cat -- "$wp"; } ;;
+esac
+if [ -n "$wp" ] && read_picture > "$tmp" 2>/dev/null &&
    [[ "$(file -b --mime-type "$tmp")" == image/* ]]; then
-    ext="${wp##*.}"; ext="${ext,,}"
     [[ "$ext" =~ ^(png|jpe?g|webp|svg|avif)$ ]] || ext=png
     rm -f "$g"/wallpaper.*
     install -m644 "$tmp" "$g/wallpaper.$ext"
