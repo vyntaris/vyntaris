@@ -225,6 +225,7 @@ Scope {
             + lines.join("\n") + "\n"
             + `@define-color headerbar_shade_color ${shade};\n`
             + `@define-color shade_color ${shade};\n`
+            + `.view:selected, iconview:selected, treeview.view:selected, row:selected, .sidebar row:selected, placessidebar row:selected { background-color: @accent_bg_color; color: @accent_fg_color; }\n`
             + `.titlebutton, windowcontrols { min-width: 0; min-height: 0; padding: 0; margin: 0; opacity: 0; }\n`
             + `window.csd > .titlebar:not(headerbar) { min-height: 0; padding: 0; margin: 0; border: none; background: none; box-shadow: none; }\n`
             + `window.csd > .titlebar:not(headerbar) * { min-height: 0; padding: 0; margin: 0; font-size: 0; }\n`

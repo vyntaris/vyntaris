@@ -78,10 +78,9 @@ Scope {
             anchors.centerIn: parent
             width: 420
             height: body.implicitHeight + 48
-            radius: Theme.r(30)
+            radius: Theme.r(21)
             border { width: 1; color: root.flow?.failed ? Theme.alpha(Theme.error, 0.6) : Theme.glassEdge }
             color: Theme.isDark ? Theme.crust : Theme.base
-            Rectangle { x: parent.radius + 6; width: 22; height: 2; radius: 1; color: Theme.accent }
             transform: Translate { id: shakeShift }
             scale: root.open ? 1 : 0.94
             Behavior on scale { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
@@ -105,9 +104,8 @@ Scope {
                         implicitWidth: 44
                         implicitHeight: 44
                         radius: 22
-                        color: Theme.alpha(Theme.accent, 0.18)
-                        border { width: 1; color: Theme.alpha(Theme.accent, 0.55) }
-                        Icon { anchors.centerIn: parent; name: "lock"; size: 18; color: Theme.accent }
+                        color: Theme.accent
+                        Icon { anchors.centerIn: parent; name: "lock"; size: 18; color: Theme.textOnAccent }
                     }
                     ColumnLayout {
                         spacing: 2
@@ -127,6 +125,7 @@ Scope {
                     spacing: 8
 
                     Field {
+                        radius: Theme.r(8)
                         id: field
                         Layout.fillWidth: true
                         secret: !(root.showPassword || (root.flow?.responseVisible ?? false))
@@ -156,8 +155,8 @@ Scope {
                     Layout.topMargin: 2
                     spacing: 8
                     Item { Layout.fillWidth: true }
-                    Button { text: Tr.t("Cancel"); onClicked: root.cancel() }
-                    Button { primary: true; text: Tr.t("Authenticate"); active: field.text !== ""; onClicked: root.submit() }
+                    Button { radius: Theme.r(13); text: Tr.t("Cancel"); onClicked: root.cancel() }
+                    Button { radius: Theme.r(13); primary: true; text: Tr.t("Authenticate"); active: field.text !== ""; onClicked: root.submit() }
                 }
             }
         }

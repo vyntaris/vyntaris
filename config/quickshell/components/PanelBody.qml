@@ -11,8 +11,9 @@ ColumnLayout {
             if (p.hang !== undefined && p.fullWidth !== undefined) v = p;
         return v;
     }
+    readonly property bool inIsland: island !== null && island.hang !== undefined && island.fullWidth !== undefined
     readonly property real drop: island ? island.height - Theme.barHeight : 0
-    readonly property real lean: Theme.slanted && drop > 1 ? Slant.lean(drop) : 0
+    readonly property real lean: inIsland && Theme.slanted && drop > 1 ? Slant.lean(drop) : 0
     function out(y) {
         return lean > 0 ? Math.max(0, lean * (island.height - y) / drop) : 0;
     }

@@ -167,11 +167,10 @@ Item {
         opacity: root.reveal
         width: 400
         height: cardColumn.implicitHeight + 44
-        radius: Theme.r(30)
+        radius: Theme.r(21)
         border { width: 1; color: root.wrong ? Theme.alpha(Theme.error, 0.6) : Theme.glassEdge }
         color: Theme.isDark ? Theme.crust : Theme.base
         Behavior on border.color { ColorAnim {} }
-        Rectangle { x: parent.radius + 6; width: 22; height: 2; radius: 1; color: Theme.accent }
 
         ColumnLayout {
             id: cardColumn
@@ -199,31 +198,18 @@ Item {
                 Item {
                     id: cellsBox
                     Layout.fillWidth: true
-                    implicitHeight: 44
+                    implicitHeight: 34
                     readonly property int count: 20
                     readonly property int lit: Math.min(count, input.text.length)
 
                     property real runner: 0
                     NumberAnimation on runner { running: root.busy; from: 0; to: cellsBox.count; duration: 700; loops: Animation.Infinite }
 
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: Theme.r(12)
-                        color: Theme.alpha(Theme.text, input.activeFocus ? 0.09 : 0.05)
-                        border {
-                            width: input.activeFocus || root.wrong ? 2 : 1
-                            color: root.wrong ? Theme.error : input.activeFocus ? Theme.accent : Theme.alpha(Theme.text, 0.16)
-                        }
-                        Behavior on color { ColorAnim {} }
-                        Behavior on border.color { ColorAnim {} }
-                    }
-
                     Row {
                         id: cells
-                        x: 14
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 3
-                        opacity: !root.showPassword && (input.text || root.busy || root.wrong) ? 1 : 0
+                        opacity: !root.showPassword ? 1 : 0
                         Behavior on opacity { Anim { duration: Theme.durationFast } }
                         Repeater {
                             model: cellsBox.count
@@ -231,28 +217,22 @@ Item {
                                 required property int index
                                 readonly property bool on: index < cellsBox.lit
                                 readonly property real run: root.busy ? Math.max(0, 1 - Math.abs(index - cellsBox.runner) / 3) : 0
-                                width: (cellsBox.width - 28 - (cellsBox.count - 1) * cells.spacing) / cellsBox.count
-                                height: on || run > 0.3 ? 16 : 7
+                                width: (cellsBox.width - (cellsBox.count - 1) * cells.spacing) / cellsBox.count
+                                height: on || run > 0.3 ? 16 : 10
                                 anchors.verticalCenter: parent.verticalCenter
                                 radius: 2
                                 color: root.wrong ? Theme.alpha(Theme.error, 0.75)
                                     : root.busy ? Theme.alpha(Theme.accent, 0.15 + 0.85 * run)
-                                    : !on ? Theme.alpha(Theme.text, 0.12)
+                                    : !on ? Theme.alpha(Theme.text, 0.16)
                                     : index === cellsBox.lit - 1 ? Theme.accentBright : Theme.accent
                                 Behavior on height { Anim { duration: Theme.durationFast } }
                                 Behavior on color { ColorAnim {} }
                             }
                         }
                     }
-                    Caption {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: !input.text && !root.busy && !root.wrong
-                        x: 14
-                        text: root.t(Tr.t("Type your password"))
-                    }
                     TextInput {
                         id: input
-                        anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
+                        anchors { fill: parent; leftMargin: 2 }
                         opacity: root.showPassword && !root.busy && !root.wrong ? 1 : 0
                         echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
                         verticalAlignment: TextInput.AlignVCenter
@@ -317,6 +297,7 @@ Item {
         Repeater {
             model: [{ id: "reboot", icon: "restart", label: Tr.t("Restart") }, { id: "poweroff", icon: "power", label: Tr.t("Shut down") }]
             Button {
+                radius: Theme.r(13)
                 required property var modelData
                 icon: modelData.icon
                 text: root.t(modelData.label)

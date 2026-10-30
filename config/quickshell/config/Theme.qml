@@ -104,10 +104,12 @@ Singleton {
     readonly property var curveSpring: animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
         : calm ? [0.25, 0.8, 0.25, 1, 1, 1] : [0.34, 1.32, 0.64, 1, 1, 1]
 
-    readonly property int durationWindowIn: calm ? duration(220) : duration(600)
-    readonly property int durationWindowOut: duration(220)
-    readonly property var curveWindowIn: animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
+    readonly property int durationPanelIn: calm ? duration(340) : duration(500)
+    readonly property int durationPanelOut: duration(260)
+    readonly property int durationContentDelay: duration(90)
+    readonly property int durationContentOut: duration(80)
+    readonly property var curvePanelIn: animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
         : calm ? [0.25, 0.8, 0.25, 1, 1, 1]
-        : [0.0417, 0, 0.0833, 0.2087, 0.125, 0.3996, 0.1667, 0.5906, 0.2083, 0.7689, 0.25, 0.8827, 0.2917, 0.9966, 0.3333, 1.0526, 0.375, 1.0745, 0.4167, 1.0964, 0.4583, 1.0869, 0.5, 1.0726, 0.5417, 1.0583, 0.5833, 1.0392, 0.625, 1.0253, 0.6667, 1.0115, 0.7083, 1.0024, 0.75, 0.9976, 0.7917, 0.9929, 0.8333, 0.992, 0.875, 0.9925, 0.9167, 0.993, 0.9583, 0.9986, 1, 1]
-    readonly property var curveWindowOut: [0.3, 0, 0.8, 0.15, 1, 1]
+        : [0.0417, 0, 0.0833, 0.1433, 0.125, 0.2843, 0.1667, 0.4254, 0.2083, 0.5694, 0.25, 0.6788, 0.2917, 0.7882, 0.3333, 0.8664, 0.375, 0.9183, 0.4167, 0.9702, 0.4583, 0.9971, 0.5, 1.0118, 0.5417, 1.0264, 0.5833, 1.029, 0.625, 1.0283, 0.6667, 1.0275, 0.7083, 1.0232, 0.75, 1.0192, 0.7917, 1.0151, 0.8333, 1.0112, 0.875, 1.0083, 0.9167, 1.0053, 0.9583, 1.0013, 1, 1]
+    readonly property var curvePanelOut: [0.3, 0, 0.2, 1, 1, 1]
 }

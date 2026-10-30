@@ -117,6 +117,7 @@ var palettes = {
 
 var accentNames = ["rosewater", "flamingo", "pink", "mauve", "red", "maroon", "peach",
                    "yellow", "green", "teal", "sky", "sapphire", "blue", "lavender"];
+var accentChoices = ["pink", "mauve", "red", "peach", "yellow", "green", "sky", "blue"];
 
 function isCustom(name) {
     return typeof name === "string" && /^#[0-9a-fA-F]{6}$/.test(name);

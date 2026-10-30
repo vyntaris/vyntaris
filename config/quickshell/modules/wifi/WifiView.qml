@@ -12,15 +12,15 @@ Item {
     property bool open: false
     property bool showHeader: true
 
-    readonly property real fullWidth: 340
-    readonly property real hang: content.implicitHeight > 0 ? content.implicitHeight + 28 : 8
+    readonly property real naturalWidth: 340
+    readonly property real bodyHeight: content.implicitHeight > 0 ? content.implicitHeight + 28 : 8
 
     property var pending: null
     property string error: ""
     readonly property bool asking: pending !== null
 
-    width: fullWidth
-    height: hang
+    width: naturalWidth
+    height: bodyHeight
 
     readonly property var networks: (device?.networks.values ?? [])
         .filter(n => n.name)
@@ -55,10 +55,17 @@ Item {
         password.text = "";
     }
 
+    WifiLink {
+        id: link
+        device: root.device?.name ?? ""
+        active: root.open && !root.asking && root.connected !== null
+    }
+
+    Timer { id: scanLinger; interval: 1500 }
     Binding {
         target: root.device
         property: "scannerEnabled"
-        value: root.open
+        value: root.open || scanLinger.running
         when: root.device !== null
     }
 
@@ -69,7 +76,7 @@ Item {
         when: root.open
     }
 
-    onOpenChanged: if (!open) { pending = null; error = ""; }
+    onOpenChanged: if (!open) { pending = null; error = ""; scanLinger.restart(); }
 
     PanelBody {
         id: content
@@ -125,12 +132,47 @@ Item {
             ConnectionSummary {
                 Layout.fillWidth: true
                 connected: true
-                showState: false
                 name: root.connected?.name ?? ""
+                icon: "wifi"
+                iconLevel: Icons.wifiLevel(root.connected?.signalStrength ?? 0)
                 level: Icons.signal(root.connected?.signalStrength ?? 0)
-                detailIcon: root.connected?.security !== WifiSecurityType.Open ? "lock" : ""
-                details: (root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : Tr.t("Secured")) + "  ·  " + (root.device?.name ?? "")
+                details: [link.band, link.address, root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : ""].filter(s => s).join("  ·  ")
                 onDisconnect: root.connected.disconnect()
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 2
+                spacing: 8
+                Repeater {
+                    model: [
+                        { value: link.speed(link.down), label: Tr.t("Download") },
+                        { value: link.speed(link.up), label: Tr.t("Upload") },
+                        { value: link.ping >= 0 ? Math.round(link.ping) + " ms" : "–", label: Tr.t("Ping") },
+                        { value: link.rate || "–", label: Tr.t("Link") },
+                    ]
+                    ColumnLayout {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
+                        spacing: 1
+                        Label {
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                            mono: true
+                            font.pixelSize: Theme.fontSizeSmall + 1
+                            font.weight: Font.DemiBold
+                            text: parent.modelData.value
+                        }
+                        Label {
+                            Layout.fillWidth: true
+                            elide: Text.ElideRight
+                            font.pixelSize: Theme.fontSizeSmall - 1
+                            color: Theme.overlay1
+                            text: parent.modelData.label
+                        }
+                    }
+                }
             }
 
             Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; implicitHeight: 1; color: Theme.hairline }
@@ -167,9 +209,9 @@ Item {
                 width: slot.width - 2 * x
                 height: slot.height
                 radius: Theme.r(12)
-                fill: row.modelData.connected ? Theme.alpha(Theme.accent, 0.14)
+                fill: row.modelData.connected ? Theme.accent
                      : hover.containsMouse ? Theme.hover : "transparent"
-                edgeWidth: row.modelData.connected ? 1 : 0; edge: Theme.glassRim
+                edgeWidth: 0
                 Behavior on fill { ColorAnim {} }
 
                 Connections {
@@ -209,8 +251,8 @@ Item {
                                 width: 4
                                 height: 5 + index * 2.5
                                 radius: 1.5
-                                color: index < mini.lit ? (row.modelData.connected ? Theme.accent : Theme.text)
-                                                        : Theme.alpha(Theme.text, 0.12)
+                                color: index < mini.lit ? (row.modelData.connected ? Theme.textOnAccent : Theme.text)
+                                                        : Theme.alpha(row.modelData.connected ? Theme.textOnAccent : Theme.text, 0.2)
                             }
                         }
                     }
@@ -223,13 +265,14 @@ Item {
                             Layout.fillWidth: true
                             text: row.modelData.name
                             elide: Text.ElideRight
+                            color: row.modelData.connected ? Theme.textOnAccent : Theme.text
                             font.weight: row.modelData.connected ? Font.DemiBold : Font.Normal
                         }
                         Label {
                             Layout.fillWidth: true
                             visible: text !== ""
                             font.pixelSize: Theme.fontSizeSmall
-                            color: Theme.overlay1
+                            color: row.modelData.connected ? Theme.textOnAccent : Theme.overlay1
                             text: row.busy ? (row.modelData.connected ? Tr.t("Disconnecting") : Tr.t("Connecting"))
                                 : !row.modelData.connected && row.modelData.known ? Tr.t("Saved") : ""
                         }
@@ -239,7 +282,7 @@ Item {
                         visible: row.modelData.connected && !row.busy
                         name: "check"
                         size: 16
-                        color: Theme.accent
+                        color: Theme.textOnAccent
                     }
 
                     Icon {
@@ -249,7 +292,7 @@ Item {
                         color: Theme.overlay1
                     }
 
-                    ChipButton { visible: row.modelData.connected && !row.busy; danger: true; text: Tr.t("Disconnect"); onClicked: row.modelData.disconnect() }
+                    Button { visible: row.modelData.connected && !row.busy; implicitHeight: 32; color: Theme.crust; text: Tr.t("Disconnect"); onClicked: row.modelData.disconnect() }
                 }
             }
             }
@@ -268,8 +311,8 @@ Item {
                     implicitWidth: 38
                     implicitHeight: 38
                     radius: Theme.r(12)
-                    color: Theme.alpha(Theme.accent, 0.16)
-                    Icon { anchors.centerIn: parent; name: "lock"; size: 17; color: Theme.accent }
+                    color: Theme.accent
+                    Icon { anchors.centerIn: parent; name: "lock"; size: 17; color: Theme.textOnAccent }
                 }
                 ColumnLayout {
                     Layout.fillWidth: true

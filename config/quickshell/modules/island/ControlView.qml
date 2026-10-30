@@ -83,7 +83,7 @@ Item {
 
                 ClippingRectangle {
                     implicitWidth: 52; implicitHeight: 52; radius: Theme.r(12)
-                    color: Theme.alpha(Theme.accent, 0.15)
+                    color: Theme.accent
                     Image {
                         anchors.fill: parent
                         source: mediaCard.player?.trackArtUrl ?? ""
@@ -92,7 +92,7 @@ Item {
                         asynchronous: true
                         visible: status === Image.Ready
                     }
-                    Icon { anchors.centerIn: parent; visible: !(mediaCard.player?.trackArtUrl); name: "music"; size: 22; color: Theme.accent }
+                    Icon { anchors.centerIn: parent; visible: !(mediaCard.player?.trackArtUrl); name: "music"; size: 22; color: Theme.textOnAccent }
                 }
 
                 ColumnLayout {

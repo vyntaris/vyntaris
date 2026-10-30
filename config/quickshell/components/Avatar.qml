@@ -13,15 +13,14 @@ Rectangle {
     implicitWidth: size
     implicitHeight: size
     radius: size / 2
-    color: Theme.alpha(Theme.accent, 0.18)
-    border { width: 1; color: Theme.alpha(Theme.accent, root.hasPicture ? 0 : 0.55) }
+    color: Theme.accent
 
     Label {
         anchors.centerIn: parent
         visible: !root.hasPicture
         font.pixelSize: root.size * 0.42
         font.weight: Font.DemiBold
-        color: Theme.accent
+        color: Theme.textOnAccent
         text: (root.name || "?").charAt(0).toUpperCase()
     }
     Image {

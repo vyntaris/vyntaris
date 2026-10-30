@@ -35,10 +35,10 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Accent")
         Grid {
-            columns: 7
+            columns: 8
             spacing: 7
             Repeater {
-                model: Palettes.accentNames
+                model: Palettes.accentChoices
                 AccentSwatch { required property string modelData; accent: modelData; size: 24 }
             }
         }

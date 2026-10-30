@@ -168,8 +168,8 @@ Scope {
                             Layout.fillWidth: true
                             implicitHeight: resRow.implicitHeight + 20
                             radius: Theme.r(12)
-                            color: resArea.containsMouse ? Theme.alpha(Theme.accent, 0.12) : Theme.alpha(Theme.text, 0.04)
-                            border { width: 1; color: resArea.containsMouse ? Theme.alpha(Theme.accent, 0.4) : Theme.glassRim }
+                            color: resArea.containsMouse ? Theme.hover : Theme.alpha(Theme.text, 0.04)
+                            border { width: 1; color: resArea.containsMouse ? Theme.accent : Theme.glassRim }
                             RowLayout {
                                 id: resRow
                                 anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 14; rightMargin: 14 }

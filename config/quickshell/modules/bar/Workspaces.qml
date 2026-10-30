@@ -50,8 +50,7 @@ Item {
         width: target?.width ?? 0
         height: parent.height
         radius: Theme.r(height / 2)
-        color: Theme.alpha(Theme.accent, 0.18)
-        border { width: 1; color: Theme.alpha(Theme.accent, 0.3) }
+        color: Theme.accent
         Behavior on x { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
         Behavior on width { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
     }
@@ -91,7 +90,7 @@ Item {
                         text: ws.modelData.id
                         font.pixelSize: Theme.fontSizeSmall + 1
                         font.weight: ws.focused ? Font.Bold : Font.Medium
-                        color: ws.focused ? Theme.accent : Theme.subtext1
+                        color: ws.focused ? Theme.textOnAccent : Theme.subtext1
                     }
                     Repeater {
                         model: ws.appIcons

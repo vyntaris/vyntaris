@@ -111,8 +111,8 @@ Item {
                     Layout.fillWidth: true
                     implicitHeight: 48
                     radius: Theme.r(12)
-                    fill: Theme.alpha(Theme.accent, 0.14)
-                    edgeWidth: 1; edge: Theme.glassRim
+                    fill: Theme.alpha(Theme.text, 0.05)
+                    edgeWidth: 1; edge: Theme.accent
                     RowLayout {
                         anchors { fill: parent; leftMargin: 12; rightMargin: 8 }
                         spacing: 10
@@ -141,7 +141,6 @@ Item {
                 name: root.mine?.name ?? (!Phone.running ? Tr.t("Starting…") : Tr.t("No phone yet"))
                 icon: Phone.iconFor(root.mine)
                 level: root.phone && root.phone.battery >= 0 ? root.phone.battery / 100 : -1
-                detailIcon: root.phone?.charging ? "bolt" : ""
                 details: !root.mine ? Tr.t("KDE Connect on the phone, on the same Wi-Fi")
                     : !root.phone ? Tr.t("Not in reach · on the same Wi-Fi?")
                     : [root.phone.charging ? Tr.t("Charging") : "", root.phone.network,

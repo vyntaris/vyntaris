@@ -15,6 +15,7 @@ post_install() {
 
 post_upgrade() {
     _keyring
+    pkill -f '^/usr/bin/qs -p /etc/xdg/quickshell/vyntaris/(settings|help)\.qml' >/dev/null 2>&1 || true
     if grep -qxE 'command = "(start-hyprland -- --config /etc/greetd/hyprland.lua|sh -c '"'"'exec start-hyprland -- --config /etc/greetd/hyprland.lua >/dev/null 2>&1'"'"')"' /etc/greetd/config.toml 2>/dev/null; then
         install -m644 /usr/share/vyntaris/greetd/config.toml /etc/greetd/config.toml
     fi

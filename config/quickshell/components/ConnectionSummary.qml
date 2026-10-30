@@ -2,78 +2,57 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 
-ColumnLayout {
+RowLayout {
     id: root
     property bool connected: false
-    property bool showState: true
     property string name
     property string icon
+    property int iconLevel: -1
     property real level: -1
-    property string detailIcon
     property string details
     property bool showDetails: true
     property bool canDisconnect: true
     signal disconnect()
 
-    readonly property bool hasLevel: level >= 0
-    spacing: 8
+    readonly property string caption: [level >= 0 ? Math.round(level * 100) + "%" : "", showDetails ? details : ""].filter(s => s).join("  ·  ")
+    spacing: 12
 
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: 10
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 0
-            Label {
-                visible: root.showState
-                caps: true
-                color: root.connected ? Theme.accent : Theme.overlay1
-                font.pixelSize: Theme.fontSizeSmall - 1
-                text: root.connected ? Tr.t("Connected") : Tr.t("Not connected")
-            }
-            Label {
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                font.pixelSize: Theme.fontSize + 6
-                font.weight: Font.DemiBold
-                color: root.connected ? Theme.text : Theme.subtext0
-                text: root.name
-            }
-        }
+    Rectangle {
+        implicitWidth: 38
+        implicitHeight: 38
+        radius: Theme.r(12)
+        color: root.connected ? Theme.accent : Theme.alpha(Theme.text, 0.06)
         Icon {
-            visible: !root.hasLevel
+            anchors.centerIn: parent
             name: root.icon
-            size: 26
-            stroke: 1.6
-            color: root.connected ? Theme.accent : Theme.overlay0
+            level: root.iconLevel
+            size: 18
+            color: root.connected ? Theme.textOnAccent : Theme.overlay1
+        }
+    }
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: 1
+        Label {
+            Layout.fillWidth: true
+            elide: Text.ElideRight
+            font.pixelSize: Theme.fontSize + 3
+            font.weight: Font.DemiBold
+            color: root.connected ? Theme.text : Theme.subtext0
+            text: root.name
         }
         Label {
-            visible: root.hasLevel
-            mono: true
-            font.pixelSize: Theme.fontSize + 6
-            font.weight: Font.Light
-            color: Theme.accent
-            text: Math.round(root.level * 100) + "%"
-        }
-    }
-
-    Meter {
-        Layout.fillWidth: true
-        visible: root.hasLevel
-        implicitHeight: 12
-        count: 24
-        value: Math.max(0, root.level)
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-        visible: root.showDetails
-        spacing: 8
-        Icon { visible: root.detailIcon !== ""; name: root.detailIcon; size: 13; color: Theme.overlay1 }
-        Caption {
             Layout.fillWidth: true
-            text: root.details
+            visible: text !== ""
+            wrapMode: Text.Wrap
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.overlay1
+            text: root.caption
         }
-        ChipButton { visible: root.connected && root.canDisconnect; danger: true; text: Tr.t("Disconnect"); onClicked: root.disconnect() }
+    }
+    Button {
+        visible: root.connected && root.canDisconnect
+        text: Tr.t("Disconnect")
+        onClicked: root.disconnect()
     }
 }

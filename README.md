@@ -255,7 +255,7 @@ island, from their tiles. Help (`help.qml`) lists every shortcut, read from Hypr
 
 ## Colours and themes
 
-The palettes are Catppuccin's: Mocha (dark) and Latte (light), with fourteen accents (Blue by default in
+The palettes are Catppuccin's: Mocha (dark) and Latte (light), with eight accents to pick from (Blue by default in
 the dark, Sky in the light). Light and dark can follow the time of day. The accent can also come from the wallpaper.
 
 When the accent or the flavour changes, the shell (`modules/theme/AppTheme.qml`) writes the colours to

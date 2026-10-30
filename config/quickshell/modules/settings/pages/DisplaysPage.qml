@@ -84,12 +84,12 @@ SettingsPage {
                 width: modelData.w * arrange.k
                 height: modelData.h * arrange.k
                 radius: Theme.r(8)
-                color: drag.active ? Theme.alpha(Theme.accent, 0.3) : Theme.alpha(Theme.accent, 0.16)
-                border { width: 1.5; color: Theme.alpha(Theme.accent, 0.7) }
+                color: drag.active ? Qt.lighter(Theme.accent, 1.08) : Theme.accent
+                border { width: 1.5; color: Theme.accent }
                 Column {
                     anchors.centerIn: parent
-                    Label { anchors.horizontalCenter: parent.horizontalCenter; font.weight: Font.DemiBold; text: monBox.modelData.name }
-                    Label { anchors.horizontalCenter: parent.horizontalCenter; mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.overlay1; text: Math.round(monBox.modelData.w) + "×" + Math.round(monBox.modelData.h) }
+                    Label { anchors.horizontalCenter: parent.horizontalCenter; font.weight: Font.DemiBold; color: Theme.textOnAccent; text: monBox.modelData.name }
+                    Label { anchors.horizontalCenter: parent.horizontalCenter; mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.textOnAccent; text: Math.round(monBox.modelData.w) + "×" + Math.round(monBox.modelData.h) }
                 }
                 DragHandler {
                     id: drag

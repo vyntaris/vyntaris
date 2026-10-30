@@ -108,16 +108,15 @@ Item {
                         width: root.mark
                         height: root.mark
                         radius: root.mark / 2
-                        color: day.isToday ? Theme.accent
-                            : day.isPicked ? Theme.alpha(Theme.accent, 0.22)
-                            : dayArea.containsMouse ? Theme.hover : "transparent"
+                        color: day.isPicked ? Theme.accent : dayArea.containsMouse ? Theme.hover : "transparent"
+                        border { width: day.isToday && !day.isPicked ? 1.5 : 0; color: Theme.accent }
                     }
                     Label {
                         anchors.centerIn: parent
                         mono: true
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: day.isToday || day.isPicked ? Font.Bold : Font.Normal
-                        color: day.isToday ? Theme.textOnAccent : day.inMonth ? Theme.text : Theme.overlay0
+                        color: day.isPicked ? Theme.textOnAccent : day.isToday ? Theme.accent : day.inMonth ? Theme.text : Theme.overlay0
                         text: day.modelData.getDate()
                     }
                     MouseArea {

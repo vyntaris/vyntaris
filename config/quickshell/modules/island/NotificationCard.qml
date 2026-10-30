@@ -106,8 +106,7 @@ Item {
                 implicitWidth: 36
                 implicitHeight: 36
                 radius: 18
-                color: Theme.alpha(root.tint, 0.16)
-                border { width: 1; color: Theme.alpha(root.tint, 0.35) }
+                color: root.tint
                 AppIcon {
                     anchors.centerIn: parent
                     visible: root.iconPath !== ""
@@ -120,7 +119,7 @@ Item {
                     visible: root.iconPath === ""
                     name: "bell"
                     size: 16
-                    color: root.tint
+                    color: Theme.textOnAccent
                 }
             }
 
@@ -147,8 +146,8 @@ Item {
                         implicitWidth: moreText.implicitWidth + 14
                         implicitHeight: 18
                         radius: Theme.r(9)
-                        color: Theme.alpha(Theme.accent, 0.16)
-                        Label { id: moreText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.accent; text: "+" + root.more }
+                        color: Theme.accent
+                        Label { id: moreText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.textOnAccent; text: "+" + root.more }
                     }
                     Rectangle {
                         implicitWidth: 20

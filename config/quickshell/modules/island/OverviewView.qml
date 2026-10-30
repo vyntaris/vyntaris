@@ -114,9 +114,9 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     radius: Theme.r(16)
-                    color: card.selected ? Theme.alpha(Theme.accent, 0.22)
+                    color: card.selected ? Theme.accent
                         : area.containsMouse ? Theme.alpha(Theme.text, 0.09) : Theme.alpha(Theme.text, 0.05)
-                    border { width: 1; color: card.selected ? Theme.alpha(Theme.accent, 0.55) : Theme.glassRim }
+                    border { width: 1; color: card.selected ? Theme.accent : Theme.glassRim }
                     Behavior on color { ColorAnim {} }
                 }
 
@@ -143,13 +143,13 @@ Item {
                         elide: Text.ElideRight
                         font.pixelSize: Theme.fontSizeSmall + 1
                         font.weight: card.selected ? Font.DemiBold : Font.Normal
-                        color: card.selected ? Theme.text : Theme.subtext1
+                        color: card.selected ? Theme.textOnAccent : Theme.subtext1
                         text: card.modelData.title
                     }
                     Label {
                         mono: true
                         font.pixelSize: Theme.fontSizeSmall - 1
-                        color: Theme.overlay0
+                        color: card.selected ? Theme.textOnAccent : Theme.overlay0
                         text: card.modelData.workspace?.id ?? ""
                     }
                 }

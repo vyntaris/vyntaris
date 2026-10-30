@@ -46,8 +46,8 @@ ColumnLayout {
             implicitWidth: countText.implicitWidth + 14
             implicitHeight: 18
             radius: Theme.r(9)
-            color: Theme.alpha(Theme.accent, 0.18)
-            Label { id: countText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.accent; text: root.count }
+            color: Theme.accent
+            Label { id: countText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.textOnAccent; text: root.count }
         }
         Item { Layout.fillWidth: true }
         Label {
@@ -62,7 +62,7 @@ ColumnLayout {
             implicitWidth: 28
             implicitHeight: 28
             radius: 14
-            color: Notifications.dnd ? Theme.accent : silentArea.containsMouse ? Theme.alpha(Theme.accent, 0.16) : Theme.alpha(Theme.text, 0.06)
+            color: Notifications.dnd ? Theme.accent : silentArea.containsMouse ? Theme.alpha(Theme.text, 0.12) : Theme.alpha(Theme.text, 0.06)
             border { width: 1; color: Notifications.dnd ? Theme.accent : Theme.glassRim }
             Behavior on color { ColorAnim {} }
             Icon { anchors.centerIn: parent; name: Notifications.dnd ? "bell-off" : "bell"; size: 14; color: Notifications.dnd ? Theme.textOnAccent : Theme.subtext0 }

@@ -3,7 +3,6 @@ import qs.config
 
 Rectangle {
     id: surface
-    property bool accentMark: true
     property color tint: "transparent"
 
     radius: Theme.r(Theme.radius)
@@ -18,15 +17,5 @@ Rectangle {
         radius: parent.radius
         color: surface.tint
         Behavior on color { ColorAnim {} }
-    }
-
-    Rectangle {
-        visible: parent.accentMark
-        x: parent.radius + 6
-        y: 0
-        width: 22
-        height: 2
-        radius: 1
-        color: Theme.accent
     }
 }

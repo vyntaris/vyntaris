@@ -14,11 +14,11 @@ Rectangle {
     implicitWidth: row.implicitWidth + 20
     implicitHeight: 24
     radius: Theme.r(12)
-    color: area.containsMouse ? fill : on ? Theme.alpha(Theme.accent, 0.2) : Theme.alpha(Theme.text, 0.06)
-    border { width: 1; color: area.containsMouse ? fill : on ? Theme.alpha(Theme.accent, 0.5) : Theme.glassRim }
+    color: area.containsMouse ? fill : on ? Theme.accent : Theme.alpha(Theme.text, 0.06)
+    border { width: 1; color: area.containsMouse ? fill : on ? Theme.accent : Theme.glassRim }
     Behavior on color { ColorAnim {} }
 
-    readonly property color ink: area.containsMouse ? Theme.textOnAccent : on ? Theme.accent : Theme.subtext0
+    readonly property color ink: area.containsMouse || on ? Theme.textOnAccent : Theme.subtext0
     RowLayout {
         id: row
         anchors.centerIn: parent

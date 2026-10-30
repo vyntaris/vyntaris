@@ -166,15 +166,15 @@ Item {
                         Layout.preferredWidth: 1
                         implicitHeight: 42
                         radius: Theme.r(12)
-                        fill: hitArea.containsMouse || index === 0 ? Theme.alpha(Theme.accent, 0.12) : Theme.alpha(Theme.text, 0.05)
-                        edgeWidth: 1; edge: index === 0 ? Theme.alpha(Theme.accent, 0.45) : Theme.glassRim
+                        fill: index === 0 ? Theme.accent : hitArea.containsMouse ? Theme.hover : Theme.alpha(Theme.text, 0.05)
+                        edgeWidth: 1; edge: index === 0 ? Theme.accent : Theme.glassRim
                         Behavior on fill { ColorAnim {} }
                         RowLayout {
                             anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
                             spacing: 10
-                            Label { mono: true; font.weight: Font.DemiBold; color: Theme.accent; text: hit.modelData.layout.toUpperCase() }
-                            Label { Layout.fillWidth: true; elide: Text.ElideRight; text: hit.modelData.name }
-                            Icon { name: "plus"; size: 13; color: hitArea.containsMouse ? Theme.accent : Theme.overlay1 }
+                            Label { mono: true; font.weight: Font.DemiBold; color: hit.index === 0 ? Theme.textOnAccent : Theme.accent; text: hit.modelData.layout.toUpperCase() }
+                            Label { Layout.fillWidth: true; elide: Text.ElideRight; color: hit.index === 0 ? Theme.textOnAccent : Theme.text; text: hit.modelData.name }
+                            Icon { name: "plus"; size: 13; color: hit.index === 0 ? Theme.textOnAccent : hitArea.containsMouse ? Theme.accent : Theme.overlay1 }
                         }
                         MouseArea { id: hitArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.addHit(hit.modelData) }
                     }

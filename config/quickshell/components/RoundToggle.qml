@@ -25,7 +25,7 @@ Item {
         height: 48
         radius: 24
         color: root.on ? root.tint : area.containsMouse && root.interactive ? Theme.alpha(Theme.text, 0.12) : Theme.alpha(Theme.text, 0.07)
-        border { width: 1; color: root.on ? Theme.alpha(root.tint, 0.6) : Theme.glassRim }
+        border { width: 1; color: root.on ? root.tint : Theme.glassRim }
         scale: area.pressed ? 0.9 : 1
         Behavior on color { ColorAnim {} }
         Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }

@@ -16,9 +16,9 @@ window, .card, list.boxed-list, preferencesgroup > box > list { border-radius: 1
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 99px;
-    color: @accent_color;
-    background: alpha(@accent_bg_color, 0.16);
+    color: @accent_fg_color;
+    background: @accent_bg_color;
 }
-.vyntaris-badge.warning { color: @warning_color; background: alpha(@warning_bg_color, 0.16); }
+.vyntaris-badge.warning { color: @warning_fg_color; background: @warning_bg_color; }
 .vyntaris-note { padding: 10px 14px; }
 .vyntaris-note.error { color: @error_color; background: alpha(@error_bg_color, 0.12); }

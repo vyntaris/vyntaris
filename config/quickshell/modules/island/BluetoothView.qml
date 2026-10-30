@@ -89,7 +89,6 @@ Item {
                 name: root.connected ? root.nameOf(root.connected) : Tr.t("No device")
                 icon: root.iconFor(root.connected)
                 level: root.connected?.batteryAvailable ? root.connected.battery : -1
-                detailIcon: "bluetooth"
                 details: root.connected ? root.connected.address : root.paired.length > 0 ? root.paired.length + " paired" : ""
                 showDetails: root.connected !== null || root.paired.length > 0
                 onDisconnect: root.connected.disconnect()

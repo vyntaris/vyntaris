@@ -103,7 +103,7 @@ Scope {
         signal clicked()
         default property alias content: tileBody.data
         radius: Theme.r(16)
-        color: selected ? Theme.alpha(Theme.accent, 0.16) : tileArea.containsMouse ? Theme.hover : Theme.alpha(Theme.text, 0.04)
+        color: selected ? Theme.alpha(Theme.text, 0.06) : tileArea.containsMouse ? Theme.hover : Theme.alpha(Theme.text, 0.04)
         border { width: selected ? 2 : 1; color: selected ? Theme.accent : Theme.glassRim }
         scale: tileArea.pressed ? 0.96 : tileArea.containsMouse ? 1.02 : 1
         Behavior on scale { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
@@ -129,8 +129,8 @@ Scope {
         spacing: 14
         Rectangle {
             implicitWidth: 34; implicitHeight: 34; radius: 17
-            color: Theme.alpha(Theme.accent, 0.14)
-            Icon { anchors.centerIn: parent; name: opt.icon; size: 16; color: Theme.accent }
+            color: Theme.accent
+            Icon { anchors.centerIn: parent; name: opt.icon; size: 16; color: Theme.textOnAccent }
         }
         Label { Layout.fillWidth: true; font.weight: Font.DemiBold; text: opt.title }
         Item {
@@ -213,7 +213,6 @@ Scope {
                     width: Math.min(1000, parent.width - 80)
                     height: Math.min(660, parent.height - 80)
                     radius: Theme.r(26)
-                    accentMark: false
                     clip: true
 
                     readonly property real islandY: -(parent.height / 2 - Theme.barHeight / 2)
@@ -272,7 +271,7 @@ Scope {
                                         height: 36
                                         radius: Theme.r(12)
                                         y: root.step * 40
-                                        color: Theme.alpha(Theme.accent, 0.16)
+                                        color: Theme.accent
                                         Behavior on y { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
                                     }
                                     Column {
@@ -294,14 +293,14 @@ Scope {
                                                     Rectangle {
                                                         implicitWidth: 22; implicitHeight: 22; radius: 11
                                                         color: stepItem.done ? Theme.accent : "transparent"
-                                                        border { width: 1.5; color: stepItem.current || stepItem.done ? Theme.accent : Theme.overlay0 }
+                                                        border { width: 1.5; color: stepItem.current ? Theme.textOnAccent : stepItem.done ? Theme.accent : Theme.overlay0 }
                                                         Behavior on color { ColorAnim {} }
                                                         Icon { anchors.centerIn: parent; visible: stepItem.done; name: "check"; size: 12; stroke: 2.4; color: Theme.textOnAccent }
-                                                        Label { anchors.centerIn: parent; visible: !stepItem.done; mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: stepItem.current ? Theme.accent : Theme.overlay1; text: stepItem.index + 1 }
+                                                        Label { anchors.centerIn: parent; visible: !stepItem.done; mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: stepItem.current ? Theme.textOnAccent : stepItem.current ? Theme.accent : Theme.overlay1; text: stepItem.index + 1 }
                                                     }
                                                     Label {
                                                         Layout.fillWidth: true
-                                                        color: stepItem.current ? Theme.text : stepItem.done ? Theme.subtext0 : Theme.overlay1
+                                                        color: stepItem.current ? Theme.textOnAccent : stepItem.done ? Theme.subtext0 : Theme.overlay1
                                                         font.weight: stepItem.current ? Font.DemiBold : Font.Normal
                                                         text: stepItem.modelData.label
                                                     }
@@ -423,14 +422,14 @@ Scope {
                                     Row {
                                         spacing: 8
                                         Repeater {
-                                            model: Palettes.accentNames
+                                            model: Palettes.accentChoices
                                             AccentSwatch { required property string modelData; accent: modelData }
                                         }
                                         Rectangle {
                                             width: 30; height: 30; radius: 15
-                                            color: Config.theme.wallpaperAccent ? Theme.alpha(Theme.accent, 0.2) : Theme.alpha(Theme.text, 0.06)
+                                            color: Config.theme.wallpaperAccent ? Theme.accent : Theme.alpha(Theme.text, 0.06)
                                             border { width: Config.theme.wallpaperAccent ? 2 : 1; color: Config.theme.wallpaperAccent ? Theme.accent : Theme.glassRim }
-                                            Icon { anchors.centerIn: parent; name: "image"; size: 14; color: Config.theme.wallpaperAccent ? Theme.accent : Theme.subtext0 }
+                                            Icon { anchors.centerIn: parent; name: "image"; size: 14; color: Config.theme.wallpaperAccent ? Theme.textOnAccent : Theme.subtext0 }
                                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { Config.theme.wallpaperAccent = !Config.theme.wallpaperAccent; root.changed(); } }
                                         }
                                     }
@@ -552,18 +551,17 @@ Scope {
                                                 implicitWidth: kbRow.implicitWidth + 24
                                                 implicitHeight: 36
                                                 radius: Theme.r(18)
-                                                color: Theme.alpha(Theme.accent, 0.14)
-                                                border { width: 1; color: Theme.alpha(Theme.accent, 0.5) }
+                                                color: Theme.accent
                                                 RowLayout {
                                                     id: kbRow
                                                     anchors.centerIn: parent
                                                     spacing: 8
-                                                    Label { mono: true; font.weight: Font.DemiBold; color: Theme.accent; text: modelData.code }
-                                                    Label { text: modelData.name }
+                                                    Label { mono: true; font.weight: Font.DemiBold; color: Theme.textOnAccent; text: modelData.code }
+                                                    Label { color: Theme.textOnAccent; text: modelData.name }
                                                     Icon {
                                                         visible: Keyboard.entries.length > 1
                                                         name: "close"; size: 12
-                                                        color: kbX.containsMouse ? Theme.error : Theme.overlay1
+                                                        color: Theme.textOnAccent
                                                         MouseArea { id: kbX; anchors.fill: parent; anchors.margins: -5; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Keyboard.remove(index) }
                                                     }
                                                 }

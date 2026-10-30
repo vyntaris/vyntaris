@@ -9,7 +9,7 @@ Item {
     id: root
     readonly property var device: Networking.devices.values.find(d => d.type === DeviceType.Wifi) ?? null
     readonly property real fullWidth: 400
-    readonly property real hang: wifi.hang + 4
+    readonly property real hang: wifi.bodyHeight + 4
 
     width: fullWidth
     height: Theme.barHeight + hang

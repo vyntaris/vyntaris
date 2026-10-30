@@ -374,8 +374,8 @@ ShellRoot {
         signal clicked()
         implicitHeight: sub ? 48 : 38
         radius: 12
-        color: selected ? Theme.alpha(Theme.accent, 0.22) : pickArea.containsMouse && !dim ? Theme.hover : "transparent"
-        border { width: 1; color: selected ? Theme.alpha(Theme.accent, 0.7) : "transparent" }
+        color: selected ? Theme.alpha(Theme.text, 0.08) : pickArea.containsMouse && !dim ? Theme.hover : "transparent"
+        border { width: 1; color: selected ? Theme.accent : "transparent" }
         opacity: dim ? 0.45 : 1
         Behavior on color { ColorAnim {} }
         RowLayout {

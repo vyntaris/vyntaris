@@ -22,7 +22,7 @@ ListView {
         width: root.width
         height: root.rowHeight
         radius: Theme.r(12)
-        fill: chosen ? Theme.accent : area.containsMouse ? Theme.alpha(Theme.accent, 0.12) : "transparent"
+        fill: chosen ? Theme.accent : area.containsMouse ? Theme.hover : "transparent"
         Behavior on fill { ColorAnim {} }
 
         RowLayout {

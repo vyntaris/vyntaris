@@ -64,13 +64,13 @@ Rectangle {
                         Layout.fillWidth: true
                         implicitHeight: root.itemHeight
                         radius: Theme.r(9)
-                        color: current ? Theme.alpha(Theme.accent, 0.16) : navArea.containsMouse ? Theme.hover : "transparent"
+                        color: current ? Theme.accent : navArea.containsMouse ? Theme.hover : "transparent"
                         Behavior on color { ColorAnim {} }
                         RowLayout {
                             anchors { fill: parent; leftMargin: 11 }
                             spacing: 9
-                            Icon { name: item.modelData.icon; size: 15; filled: item.current; color: item.current ? Theme.accent : Theme.overlay1 }
-                            Label { Layout.fillWidth: true; color: item.current ? Theme.text : Theme.subtext0; text: Tr.t(item.modelData.label) }
+                            Icon { name: item.modelData.icon; size: 15; filled: item.current; color: item.current ? Theme.textOnAccent : Theme.overlay1 }
+                            Label { Layout.fillWidth: true; color: item.current ? Theme.textOnAccent : Theme.subtext0; text: Tr.t(item.modelData.label) }
                         }
                         MouseArea {
                             id: navArea

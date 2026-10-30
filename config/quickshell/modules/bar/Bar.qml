@@ -5,6 +5,7 @@ import Quickshell.Networking
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
 import qs.config
 import qs.components
@@ -170,8 +171,18 @@ PanelWindow {
         hangGrows = targetHang > islandHang;
         islandHang = targetHang;
     }
-    Behavior on islandWidth { Anim { duration: bar.widthGrows ? Theme.durationWindowIn : Theme.durationWindowOut; easing.bezierCurve: bar.widthGrows ? Theme.curveWindowIn : Theme.curveWindowOut } }
-    Behavior on islandHang { Anim { duration: bar.hangGrows ? Theme.durationWindowIn : Theme.durationWindowOut; easing.bezierCurve: bar.hangGrows ? Theme.curveWindowIn : Theme.curveWindowOut } }
+    Behavior on islandWidth {
+        SequentialAnimation {
+            PauseAnimation { duration: bar.widthGrows ? 0 : Theme.durationContentOut }
+            Anim { duration: bar.widthGrows ? Theme.durationPanelIn : Theme.durationPanelOut; easing.bezierCurve: bar.widthGrows ? Theme.curvePanelIn : Theme.curvePanelOut }
+        }
+    }
+    Behavior on islandHang {
+        SequentialAnimation {
+            PauseAnimation { duration: bar.hangGrows ? 0 : Theme.durationContentOut }
+            Anim { duration: bar.hangGrows ? Theme.durationPanelIn : Theme.durationPanelOut; easing.bezierCurve: bar.hangGrows ? Theme.curvePanelIn : Theme.curvePanelOut }
+        }
+    }
 
     component Divider: Rectangle {
         Layout.preferredWidth: 1
@@ -192,7 +203,7 @@ PanelWindow {
         Rectangle {
             anchors.fill: parent
             radius: Theme.r(height / 2)
-            color: mod.active ? Theme.alpha(Theme.accent, 0.16)
+            color: mod.active ? Theme.accent
                  : area.containsMouse ? Theme.hover : "transparent"
             Behavior on color { ColorAnim {} }
         }
@@ -201,6 +212,8 @@ PanelWindow {
             id: row
             anchors.centerIn: parent
             spacing: 7
+            layer.enabled: mod.active
+            layer.effect: MultiEffect { colorization: 1; colorizationColor: Theme.textOnAccent; brightness: -0.4 }
         }
 
         MouseArea {
@@ -271,7 +284,10 @@ PanelWindow {
                 opacity: current ? 1 : 0
                 visible: opacity > 0
                 Behavior on opacity {
-                    Anim { duration: view.current ? Theme.durationNormal : Theme.durationFast }
+                    SequentialAnimation {
+                        PauseAnimation { duration: view.current ? Theme.durationContentDelay : 0 }
+                        Anim { duration: view.current ? Theme.durationNormal : Theme.durationContentOut }
+                    }
                 }
 
                 property bool held: false

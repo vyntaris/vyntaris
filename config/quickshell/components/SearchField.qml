@@ -12,7 +12,7 @@ PanelSurface {
     implicitHeight: 38
     radius: Theme.r(height / 2)
     fill: Theme.alpha(Theme.crust, 0.45)
-    edgeWidth: 1; edge: field.activeFocus ? Theme.alpha(Theme.accent, 0.55) : Theme.glassRim
+    edgeWidth: 1; edge: field.activeFocus ? Theme.accent : Theme.glassRim
     Behavior on edge { ColorAnim {} }
 
     Rectangle {
