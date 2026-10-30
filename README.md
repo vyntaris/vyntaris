@@ -823,7 +823,8 @@ The disk: the **whole disk** (erased), or next to Windows or another system, its
 partition** (only that one is erased; at least 30 GB). Btrfs (with the subvolumes Timeshift expects) or
 ext4. Next to another system, Vyntaris uses that system's EFI partition only for systemd-boot (mounted on
 `/efi`), which lists both at start; its boot images go in a 1 GB boot partition of its own (XBOOTLDR, on
-`/boot`). Make room in Windows first (Disk Management → Shrink volume), and with BitLocker keep its
+`/boot`). If the disk has no EFI partition (Windows is on another disk), Vyntaris makes its own and the other
+system starts from the computer's boot menu. A disk with the old MBR layout can only be used whole. Make room in Windows first (Disk Management → Shrink volume), and with BitLocker keep its
 recovery key at hand.
 
 On Btrfs the installer makes the subvolumes `@` (the system) and `@home`, mounted with

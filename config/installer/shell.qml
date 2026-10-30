@@ -40,7 +40,7 @@ ShellRoot {
     function canLeave(p) {
         if (p === 1) return online || preview;
         if (p === 4) return userOk && hostOk && passOk;
-        if (p === 5) return disk !== "" && (mode === "erase" || (diskEsp !== "" && (mode === "free" ? freeBytes >= minRoom : part !== "")));
+        if (p === 5) return disk !== "" && (mode === "erase" || (diskTable === "gpt" && (mode === "free" ? freeBytes >= minRoom : part !== "")));
         return true;
     }
     function slugOf(name) {
@@ -108,9 +108,15 @@ ShellRoot {
                         cur += line[i];
                     }
                     f.push(cur);
-                    if (f.length < 4 || !f[1] || seen[f[1]]) continue;
-                    seen[f[1]] = true;
-                    out.push({ ssid: f[1], signal: parseInt(f[2]) || 0, secure: f[3] !== "" && f[3] !== "--", active: f[0] === "*" });
+                    if (f.length < 4 || !f[1]) continue;
+                    const signal = parseInt(f[2]) || 0, active = f[0] === "*";
+                    if (seen[f[1]]) {
+                        seen[f[1]].active = seen[f[1]].active || active;
+                        seen[f[1]].signal = Math.max(seen[f[1]].signal, signal);
+                        continue;
+                    }
+                    seen[f[1]] = { ssid: f[1], signal: signal, secure: f[3] !== "" && f[3] !== "--", active: active };
+                    out.push(seen[f[1]]);
                 }
                 root.networks = out.sort((a, b) => b.active - a.active || b.signal - a.signal);
             }
@@ -123,6 +129,19 @@ ShellRoot {
     }
     Timer { interval: 3000; repeat: true; running: !root.hasWifi; triggeredOnStart: true; onTriggered: wifiDevice.running = true }
     property string wifiOpen: ""
+    property bool wifiAsking: false
+    function pickWifi(n) {
+        if (n.active || connecting !== "") return;
+        wifiError = "";
+        wifiOpen = n.ssid;
+        wifiAsking = n.secure;
+        if (!n.secure) connectWifi(n.ssid, "");
+    }
+    function cancelWifi() {
+        wifiOpen = "";
+        wifiAsking = false;
+        wifiError = "";
+    }
     Timer { interval: 8000; repeat: true; running: root.hasWifi && root.page === 1 && root.connecting === "" && root.wifiOpen === ""; onTriggered: wifiList.running = true }
     Process {
         id: wifiConnect
@@ -137,7 +156,7 @@ ShellRoot {
             root.wifiError = code === 0 ? "" : pw || !last ? "Couldn't connect. Check the password." : "Couldn't connect." + " " + last;
             password = "";
             onlineCheck.running = true;
-            if (code === 0) { root.wifiOpen = ""; wifiList.running = true; }
+            if (code === 0) { root.wifiOpen = ""; root.wifiAsking = false; wifiList.running = true; }
         }
     }
     function connectWifi(ssid, password) {
@@ -191,15 +210,20 @@ ShellRoot {
 
     property var parts: []
     property string diskEsp: ""
+    property string diskTable: ""
+    property string probedDisk: ""
     property real freeBytes: 0
     readonly property real minRoom: 30e9
     readonly property var partInfo: parts.find(p => p.path === part) ?? null
-    onDiskChanged: { part = ""; parts = []; diskEsp = ""; freeBytes = 0; if (disk) partProbe.running = true; }
+    onDiskChanged: { part = ""; parts = []; diskEsp = ""; diskTable = ""; freeBytes = 0; if (disk) partProbe.running = true; }
+    onModeChanged: if (disk) partProbe.running = true
     Component.onCompleted: if (disk) partProbe.running = true
     Process {
         id: partProbe
-        command: ["sh", "-c", 'lsblk -J -b -o NAME,PATH,SIZE,FSTYPE,LABEL,PARTTYPE,TYPE "$1"; echo @@; '
-            + 'echo "$(sgdisk -F "$1" 2>/dev/null) $(sgdisk -E "$1" 2>/dev/null) $(blockdev --getss "$1" 2>/dev/null)"', "sh", root.disk]
+        onRunningChanged: if (running) root.probedDisk = root.disk
+        onExited: if (root.disk && root.probedDisk !== root.disk) running = true
+        command: ["sh", "-c", 'lsblk -J -b -o NAME,PATH,SIZE,FSTYPE,LABEL,PARTTYPE,PTTYPE,TYPE "$1"; echo @@; '
+            + 'echo "$(sgdisk -F "$1" 2>/dev/null | tail -n1) $(sgdisk -E "$1" 2>/dev/null | tail -n1) $(blockdev --getss "$1" 2>/dev/null)"', "sh", root.disk]
         stdout: StdioCollector {
             onStreamFinished: {
                 const [json, tail] = text.split("@@");
@@ -210,12 +234,14 @@ ShellRoot {
                         path: c.path, size: Number(c.size), fstype: c.fstype || "", label: c.label || "",
                         esp: (c.parttype || "").toLowerCase() === esp }));
                     root.diskEsp = (list.find(p => p.esp) ?? { path: "" }).path;
+                    root.diskTable = dev.pttype || "";
                     root.parts = list.filter(p => !p.esp);
                     const [first, last, sector] = tail.trim().split(/\s+/).map(Number);
-                    root.freeBytes = first > 0 && last > first ? (last - first + 1) * sector : 0;
+                    root.freeBytes = root.diskTable === "gpt" && first > 0 && last > first ? (last - first + 1) * sector : 0;
                 } catch (e) {}
-                if (root.preview && !root.diskEsp) {
+                if (root.preview) {
                     root.diskEsp = "/dev/nvme0n1p1";
+                    root.diskTable = "gpt";
                     root.parts = [{ path: "/dev/nvme0n1p3", size: 380e9, fstype: "ntfs", label: Tr.t("Windows"), esp: false },
                                   { path: "/dev/nvme0n1p5", size: 120e9, fstype: "ntfs", label: "Data", esp: false }];
                     root.freeBytes = 96e9;
@@ -540,8 +566,8 @@ ShellRoot {
                                     spacing: 12
                                     Rectangle {
                                         implicitWidth: 40; implicitHeight: 40; radius: 20
-                                        color: root.online ? Theme.alpha(Theme.success, 0.2) : Theme.alpha(Theme.text, 0.06)
-                                        Icon { anchors.centerIn: parent; name: root.online ? "wifi" : "wifi-off"; size: 18; color: root.online ? Theme.success : Theme.overlay1 }
+                                        color: root.online ? Theme.accent : Theme.alpha(Theme.text, 0.06)
+                                        Icon { anchors.centerIn: parent; name: root.online ? "wifi" : "wifi-off"; size: 18; color: root.online ? Theme.textOnAccent : Theme.overlay1 }
                                     }
                                     ColumnLayout {
                                         spacing: 0
@@ -554,49 +580,148 @@ ShellRoot {
                                         }
                                     }
                                     Item { Layout.fillWidth: true }
-                                    Button { visible: root.hasWifi; icon: "refresh"; onClicked: wifiList.running = true }
+                                    Button { visible: root.hasWifi && !root.wifiAsking; icon: "refresh"; onClicked: { wifiList.rescan = true; wifiList.running = true; } }
                                 }
-                                PickList {
+                                Item {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
-                                    visible: root.hasWifi
-                                    model: root.networks
-                                    delegate: Column {
-                                        id: net
-                                        required property var modelData
-                                        width: ListView.view.width
-                                        spacing: 6
-                                        Pick {
-                                            width: parent.width
-                                            icon: "wifi"
-                                            text: net.modelData.ssid
-                                            sub: net.modelData.active ? "Connected" : root.connecting === net.modelData.ssid ? "Connecting…" : (net.modelData.secure ? "🔒  " : "") + net.modelData.signal + "%"
-                                            selected: net.modelData.active
-                                            onClicked: {
-                                                if (net.modelData.active) return;
-                                                if (net.modelData.secure) { root.wifiOpen = root.wifiOpen === net.modelData.ssid ? "" : net.modelData.ssid; root.wifiError = ""; }
-                                                else { root.wifiOpen = net.modelData.ssid; root.connectWifi(net.modelData.ssid, ""); }
+                                    visible: root.hasWifi && !root.wifiAsking
+                                    PickList {
+                                        anchors.fill: parent
+                                        model: root.networks
+                                        delegate: Rectangle {
+                                            id: net
+                                            required property var modelData
+                                            readonly property bool joining: root.connecting === modelData.ssid
+                                            width: ListView.view.width
+                                            height: 52
+                                            radius: 12
+                                            color: modelData.active ? Theme.accent : netArea.containsMouse ? Theme.hover : "transparent"
+                                            Behavior on color { ColorAnim {} }
+                                            RowLayout {
+                                                anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
+                                                spacing: 12
+                                                Icon {
+                                                    name: "wifi"
+                                                    level: Math.min(3, Math.floor(net.modelData.signal / 25))
+                                                    size: 18
+                                                    color: net.modelData.active ? Theme.textOnAccent : Theme.subtext0
+                                                }
+                                                ColumnLayout {
+                                                    Layout.fillWidth: true
+                                                    spacing: 0
+                                                    Label {
+                                                        Layout.fillWidth: true
+                                                        elide: Text.ElideRight
+                                                        font.weight: net.modelData.active ? Font.DemiBold : Font.Normal
+                                                        color: net.modelData.active ? Theme.textOnAccent : Theme.text
+                                                        text: net.modelData.ssid
+                                                    }
+                                                    Label {
+                                                        Layout.fillWidth: true
+                                                        visible: text !== ""
+                                                        elide: Text.ElideRight
+                                                        font.pixelSize: Theme.fontSizeSmall
+                                                        color: net.modelData.active ? Theme.textOnAccent : Theme.overlay1
+                                                        text: net.joining ? Tr.t("Connecting") : !net.modelData.secure && !net.modelData.active ? Tr.t("Open") : ""
+                                                    }
+                                                }
+                                                Spinner { visible: net.joining; size: 16 }
+                                                Icon { visible: net.modelData.active; name: "check"; size: 16; color: Theme.textOnAccent }
+                                                Icon { visible: !net.joining && !net.modelData.active && net.modelData.secure; name: "lock"; size: 14; color: Theme.overlay1 }
+                                            }
+                                            MouseArea {
+                                                id: netArea
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: root.pickWifi(net.modelData)
                                             }
                                         }
-                                        RowLayout {
-                                            visible: root.wifiOpen === net.modelData.ssid && !net.modelData.active
-                                            width: parent.width - 24
-                                            x: 12
-                                            spacing: 8
-                                            Field {
-                                                id: wifiPass
-                                                Layout.fillWidth: true
-                                                secret: true; canReveal: true
-                                                placeholder: Tr.t("Password")
-                                                onVisibleChanged: if (visible) input.forceActiveFocus()
-                                                Connections { target: wifiPass.input; function onAccepted() { root.connectWifi(net.modelData.ssid, wifiPass.text); } }
-                                            }
-                                            Button { primary: true; text: Tr.t("Connect"); active: wifiPass.text.length >= 8 && root.connecting === ""; onClicked: root.connectWifi(net.modelData.ssid, wifiPass.text) }
-                                        }
-                                        Label { visible: root.wifiOpen === net.modelData.ssid && root.wifiError !== ""; x: 12; width: parent.width - 24; wrapMode: Text.WordWrap; color: Theme.error; text: root.wifiError }
+                                    }
+                                    Row {
+                                        anchors.centerIn: parent
+                                        visible: root.networks.length === 0
+                                        spacing: 8
+                                        Spinner { anchors.verticalCenter: parent.verticalCenter; size: 14 }
+                                        Label { anchors.verticalCenter: parent.verticalCenter; caps: true; color: Theme.overlay1; text: Tr.t("Scanning…") }
                                     }
                                 }
-                                Item { Layout.fillHeight: true; visible: !root.hasWifi }
+                                Label {
+                                    Layout.fillWidth: true
+                                    visible: !root.wifiAsking && root.wifiError !== ""
+                                    wrapMode: Text.WordWrap
+                                    color: Theme.error
+                                    text: root.wifiError
+                                }
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignTop
+                                    visible: root.wifiAsking
+                                    spacing: 14
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 12
+                                        Rectangle {
+                                            implicitWidth: 38; implicitHeight: 38; radius: Theme.r(12)
+                                            color: Theme.accent
+                                            Icon { anchors.centerIn: parent; name: "lock"; size: 17; color: Theme.textOnAccent }
+                                        }
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 1
+                                            Label { Layout.fillWidth: true; elide: Text.ElideRight; font.pixelSize: Theme.fontSize + 3; font.weight: Font.DemiBold; text: root.wifiOpen }
+                                            Label {
+                                                Layout.fillWidth: true
+                                                elide: Text.ElideRight
+                                                font.pixelSize: Theme.fontSizeSmall
+                                                color: Theme.overlay1
+                                                text: root.connecting !== "" ? Tr.t("Connecting") : Tr.t("Type your password")
+                                            }
+                                        }
+                                        Spinner { visible: root.connecting !== ""; size: 18 }
+                                    }
+                                    Field {
+                                        id: wifiPass
+                                        Layout.fillWidth: true
+                                        implicitHeight: 44
+                                        secret: true
+                                        canReveal: true
+                                        mono: true
+                                        invalid: root.wifiError !== ""
+                                        enabled: root.connecting === ""
+                                        placeholder: Tr.t("Password")
+                                        onTextChanged: if (text) root.wifiError = ""
+                                        onVisibleChanged: if (visible) { text = ""; revealed = false; input.forceActiveFocus(); }
+                                        Keys.onEscapePressed: root.cancelWifi()
+                                        Connections {
+                                            target: wifiPass.input
+                                            function onAccepted() { if (wifiPass.text.length >= 8 && root.connecting === "") root.connectWifi(root.wifiOpen, wifiPass.text); }
+                                        }
+                                    }
+                                    Label {
+                                        Layout.fillWidth: true
+                                        visible: root.wifiError !== ""
+                                        wrapMode: Text.WordWrap
+                                        color: Theme.error
+                                        font.pixelSize: Theme.fontSizeSmall
+                                        text: root.wifiError
+                                    }
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 8
+                                        Button { Layout.fillWidth: true; Layout.preferredWidth: 1; text: Tr.t("Cancel"); onClicked: root.cancelWifi() }
+                                        Button {
+                                            Layout.fillWidth: true
+                                            Layout.preferredWidth: 1
+                                            primary: true
+                                            active: wifiPass.text.length >= 8 && root.connecting === ""
+                                            text: Tr.t("Connect")
+                                            onClicked: root.connectWifi(root.wifiOpen, wifiPass.text)
+                                        }
+                                    }
+                                }
+                                Item { Layout.fillHeight: true; visible: !root.hasWifi || root.wifiAsking }
                             }
                         }
 
@@ -758,14 +883,14 @@ ShellRoot {
                                     }
                                 }
                                 Label {
-                                    visible: root.disk !== "" && root.mode !== "erase" && root.diskEsp === "" && !partProbe.running
+                                    visible: root.disk !== "" && root.mode !== "erase" && !partProbe.running && (root.diskTable !== "gpt" || root.diskEsp === "")
                                     Layout.fillWidth: true
                                     wrapMode: Text.WordWrap
-                                    color: Theme.warning
-                                    text: Tr.t("This disk has no EFI partition from another system to start from. Install on the whole disk, or pick the disk that has Windows on it.")
+                                    color: root.diskTable !== "gpt" ? Theme.warning : Theme.subtext0
+                                    text: root.diskTable !== "gpt" ? Tr.t("This disk uses the old MBR layout, and Vyntaris can't install next to it. Use the whole disk, or a disk with GPT.") : Tr.t("This disk has no EFI partition, so Vyntaris makes its own. To start the other system, use your computer's boot menu.")
                                 }
                                 PickList {
-                                    visible: root.mode === "partition" && root.diskEsp !== ""
+                                    visible: root.mode === "partition" && root.diskTable === "gpt"
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: Math.min(150, Math.max(60, root.parts.length * 50 + 12))
                                     model: root.parts
@@ -781,12 +906,12 @@ ShellRoot {
                                     }
                                 }
                                 Label {
-                                    visible: root.disk !== "" && (root.mode === "erase" || root.diskEsp !== "")
+                                    visible: root.disk !== "" && (root.mode === "erase" || root.diskTable === "gpt")
                                     Layout.fillWidth: true
                                     wrapMode: Text.WordWrap
                                     color: root.diskRisky ? Theme.warning : Theme.subtext0
                                     text: (root.diskRisky ? "⚠  " : "") + root.diskEffect
-                                        + (root.mode !== "erase" ? "  At start you choose Vyntaris or the other system. If Windows uses BitLocker, keep its recovery key at hand." : "")
+                                        + (root.mode !== "erase" && root.diskEsp !== "" ? "  At start you choose Vyntaris or the other system. If Windows uses BitLocker, keep its recovery key at hand." : "")
                                 }
                                 RowLayout {
                                     Layout.topMargin: 6

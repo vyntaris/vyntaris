@@ -109,9 +109,11 @@ fi
 ask INSTALL_MODE "How (erase, free, partition)" "erase"
 case "$INSTALL_MODE" in erase|free|partition) ;; *) die "how: erase, free or partition" ;; esac
 sector="$(blockdev --getss "$INSTALL_DISK")"
+other_esp=""
 if [ "$INSTALL_MODE" != erase ]; then
-    other_esp="$(lsblk -lnpo NAME,PARTTYPE "$INSTALL_DISK" | awk -v t="$ESP_TYPE" 'tolower($2) == t {print $1; exit}')"
-    [ -n "$other_esp" ] || die "next to another system needs the EFI partition it starts from, and $INSTALL_DISK has none: install on the whole disk, or on the disk that has it"
+    [ "$(lsblk -dno PTTYPE "$INSTALL_DISK")" = gpt ] || die "$INSTALL_DISK uses the old MBR layout (or has no partition table), and Vyntaris can't install next to it: use the whole disk, or a disk with GPT"
+    other_esp="$(lsblk -lnpo NAME,PARTTYPE "$INSTALL_DISK" | awk -v t="$ESP_TYPE" 'tolower($2) == t && !e {e = $1} END {print e}')"
+    [ -n "$other_esp" ] || note "$INSTALL_DISK has no EFI partition, so Vyntaris makes its own. To start the other system, use the computer's boot menu."
     if [ "$INSTALL_MODE" = partition ]; then
         ask INSTALL_PART "Which partition (only it is erased)" ""
         [ -b "$INSTALL_PART" ] && [ "$(lsblk -no PKNAME "$INSTALL_PART")" = "$(basename "$INSTALL_DISK")" ] ||
@@ -121,7 +123,7 @@ if [ "$INSTALL_MODE" != erase ]; then
         first="$(sgdisk -i "$partnum" "$INSTALL_DISK" | awk '/^First sector/ {print $3}')"
         last="$(sgdisk -i "$partnum" "$INSTALL_DISK" | awk '/^Last sector/ {print $3}')"
     else
-        first="$(sgdisk -F "$INSTALL_DISK")"; last="$(sgdisk -E "$INSTALL_DISK")"
+        first="$(sgdisk -F "$INSTALL_DISK" | tail -n1)"; last="$(sgdisk -E "$INSTALL_DISK" | tail -n1)"
     fi
     room=$(( (last - first + 1) * sector ))
     [ "$room" -ge 30000000000 ] || die "that's $((room / 1000000000)) GB; Vyntaris needs at least 30"
@@ -166,10 +168,14 @@ else
         local before; before="$(lsblk -lnpo NAME "$INSTALL_DISK" | sort)"
         sgdisk -n "0:$1:$2" -t "0:$3" -c "0:$4" "$INSTALL_DISK" >/dev/null
         settle
-        comm -13 <(echo "$before") <(lsblk -lnpo NAME "$INSTALL_DISK" | sort) | head -n1
+        comm -13 <(echo "$before") <(lsblk -lnpo NAME "$INSTALL_DISK" | sort) | awk 'NR == 1'
     }
     gib=$((1073741824 / sector))
-    esp="$(newpart "$first" "$((first + gib - 1))" ea00 "Vyntaris boot")"
+    if [ -n "$other_esp" ]; then
+        esp="$(newpart "$first" "$((first + gib - 1))" ea00 "Vyntaris boot")"
+    else
+        esp="$(newpart "$first" "$((first + gib - 1))" ef00 EFI)"
+    fi
     root="$(newpart "$((first + gib))" "$last" 8304 Vyntaris)"
     [ -b "$esp" ] && [ -b "$root" ] || die "the new partitions didn't show up"
     wipefs -af "$esp" "$root" >/dev/null
@@ -189,7 +195,7 @@ else
     mount "$root" "$MNT"
 fi
 mount --mkdir -o fmask=0077,dmask=0077 "$esp" "$MNT/boot"
-if [ "$INSTALL_MODE" = erase ]; then
+if [ -z "$other_esp" ]; then
     note "$esp → /boot, $root → / ($INSTALL_FS)"
 else
     mount --mkdir -o fmask=0077,dmask=0077 "$other_esp" "$MNT/efi"
@@ -274,7 +280,7 @@ default_uki="/boot/EFI/Linux/vyntaris.efi"
 default_options=""
 PRESET
 mkdir -p "$MNT/boot/EFI/Linux"
-if [ "$INSTALL_MODE" = erase ]; then
+if [ -z "$other_esp" ]; then
     inside bootctl install >/dev/null
     printf 'timeout 3\nconsole-mode max\n' > "$MNT/boot/loader/loader.conf"
 else
