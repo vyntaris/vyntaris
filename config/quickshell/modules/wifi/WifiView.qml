@@ -18,6 +18,8 @@ Item {
     property var pending: null
     property string error: ""
     readonly property bool asking: pending !== null
+    property bool showDetails: false
+    onConnectedChanged: showDetails = false
 
     width: naturalWidth
     height: bodyHeight
@@ -76,7 +78,7 @@ Item {
         when: root.open
     }
 
-    onOpenChanged: if (!open) { pending = null; error = ""; scanLinger.restart(); }
+    onOpenChanged: if (!open) { pending = null; error = ""; showDetails = false; scanLinger.restart(); }
 
     PanelBody {
         id: content
@@ -132,17 +134,50 @@ Item {
             visible: !root.asking && !root.showHeader && Networking.wifiEnabled && root.connected !== null
             spacing: 8
 
-            ConnectionSummary {
+            Item {
                 Layout.fillWidth: true
-                connected: true
-                name: root.connected?.name ?? ""
-                icon: "wifi"
-                iconLevel: Icons.wifiLevel(root.connected?.signalStrength ?? 0)
-                level: Icons.signal(root.connected?.signalStrength ?? 0)
-                details: [link.band, link.address, root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : ""].filter(s => s).join("  ·  ")
+                implicitHeight: summary.implicitHeight
 
-                QuietAction {
-                    icon: "wifi-off"
+                ConnectionSummary {
+                    id: summary
+                    width: parent.width
+                    connected: true
+                    name: root.connected?.name ?? ""
+                    icon: "wifi"
+                    iconLevel: Icons.wifiLevel(root.connected?.signalStrength ?? 0)
+                    level: Icons.signal(root.connected?.signalStrength ?? 0)
+                    details: link.band
+
+                    Icon {
+                        name: "chevron-right"
+                        size: 18
+                        rotation: root.showDetails ? 90 : 0
+                        color: summaryArea.containsMouse ? Theme.text : Theme.overlay1
+                        Behavior on rotation { Anim { duration: Theme.durationFast } }
+                    }
+                }
+                MouseArea {
+                    id: summaryArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.showDetails = !root.showDetails
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                visible: root.showDetails
+                spacing: 8
+                Label {
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.overlay1
+                    text: [link.address, root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : ""].filter(s => s).join("  ·  ")
+                }
+                Button {
+                    implicitHeight: 30
                     text: Tr.t("Disconnect")
                     onClicked: root.connected.disconnect()
                 }
@@ -318,7 +353,7 @@ Item {
                         color: Theme.overlay1
                     }
 
-                    QuietAction { visible: row.modelData.connected && !row.busy; icon: "wifi-off"; fill: "transparent"; ink: Theme.textOnAccent; hoverFill: Theme.crust; hoverInk: Theme.text; text: Tr.t("Disconnect"); onClicked: row.modelData.disconnect() }
+                    Button { visible: row.modelData.connected && !row.busy; implicitHeight: 30; color: Theme.crust; text: Tr.t("Disconnect"); onClicked: row.modelData.disconnect() }
                 }
             }
             }

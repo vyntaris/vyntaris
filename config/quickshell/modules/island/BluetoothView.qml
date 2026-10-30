@@ -92,9 +92,9 @@ Item {
                 details: root.connected ? root.connected.address : root.paired.length > 0 ? root.paired.length + " paired" : ""
                 showDetails: root.connected !== null || root.paired.length > 0
 
-                QuietAction {
+                Button {
                     visible: root.connected !== null
-                    icon: "close"
+                    implicitHeight: 30
                     text: Tr.t("Disconnect")
                     onClicked: root.connected.disconnect()
                 }
