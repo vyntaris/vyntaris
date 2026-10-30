@@ -57,7 +57,9 @@ what each part does, how it works and where it lives.
 2. **Login screen.** greetd runs a small Hyprland (`system/greetd/hyprland.lua`, on the integrated GPU
    only on a hybrid laptop) with the greeter, a Quickshell config of its own (`config/greeter`) that
    shares the lock screen's face (`components/LockFace.qml`). `vyntaris-greeter-sync@` keeps its
-   wallpaper, colours and user picture in step with the user's desktop whenever they change.
+   wallpaper, colours and user picture in step with the user's desktop whenever they change. The
+   desktop's own user services don't start for the `greeter` account (`system/greetd/not-for-greeter.conf`):
+   it has no home to keep anything in, so the shell would take every boot for a first start.
    `--autologin` skips it and logs in on tty1 instead.
 3. **Session.** `vyntaris-session` starts Hyprland with Vyntaris's configuration
    (`/usr/share/vyntaris/hypr/hyprland.lua`, written in Lua). It watches over it: a Hyprland that

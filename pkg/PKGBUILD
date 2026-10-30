@@ -130,8 +130,10 @@ package() {
     install -Dm644 "$r/system/99-zram.conf" "$d/usr/lib/sysctl.d/99-vyntaris-zram.conf"
     install -Dm644 "$r/system/thp.conf" "$d/usr/lib/tmpfiles.d/vyntaris-thp.conf"
     install -Dm644 "$r/system/oomd-apps.conf" "$d/usr/lib/systemd/user/app.slice.d/10-vyntaris-oomd.conf"
-    for portal in xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk; do
-        install -Dm644 "$r/system/greetd/portal-not-for-greeter.conf" "$d/usr/lib/systemd/user/$portal.service.d/10-vyntaris-greeter.conf"
+    for unit in xdg-desktop-portal.service xdg-desktop-portal-hyprland.service xdg-desktop-portal-gtk.service \
+        vyntaris-shell.service vyntaris-wallpaper.service vyntaris-cliphist-text.service vyntaris-cliphist-image.service \
+        vyntaris-user-setup.service vyntaris-doc-index.timer hypridle.service hyprsunset.service; do
+        install -Dm644 "$r/system/greetd/not-for-greeter.conf" "$d/usr/lib/systemd/user/$unit.d/10-vyntaris-greeter.conf"
     done
     install -Dm644 "$r/system/udev/90-laptop-switches.rules" "$d/usr/lib/udev/rules.d/90-vyntaris-laptop-switches.rules"
     install -Dm644 "$r/system/udev/80-nvidia-pm.rules" "$d/usr/lib/udev/rules.d/80-vyntaris-nvidia-pm.rules"
