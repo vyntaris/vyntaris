@@ -17,7 +17,6 @@ gnome-text-editor
 gnome-calculator
 gnome-disk-utility
 simple-scan
-gnome-system-monitor
 gvfs-smb
 code
 

@@ -71,6 +71,7 @@ Scope {
         applyFirefox();
         applyVscode();
         applyFastfetch();
+        applyBtop();
 
         const css = gtkCss();
         writeGenerated(configHome + "/gtk-3.0/gtk.css", css);
@@ -270,6 +271,37 @@ Scope {
             + `standard_dialogs=xdgdesktopportal\n\n[Fonts]\n`
             + `general="${Theme.fontFamily},${pt},-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\n`
             + `fixed="${Theme.monoFamily},${pt},-1,5,400,0,0,0,0,0,0,0,0,0,0,1"\n`;
+    }
+
+    function btopTheme() {
+        const t = Theme, c = v => hex(v);
+        const a = c(t.accent), dim = hex(Qt.tint(t.accent, t.alpha(t.base, 0.55))), mid = hex(Qt.tint(t.accent, t.alpha(t.base, 0.25)));
+        const hot = c(t.red), warm = c(t.peach);
+        const rows = {
+            main_fg: c(t.text), title: c(t.text), hi_fg: a, selected_bg: a, selected_fg: c(t.textOnAccent),
+            inactive_fg: c(t.overlay0), graph_text: c(t.subtext0), meter_bg: c(t.surface1), proc_misc: a,
+            cpu_box: mid, mem_box: mid, net_box: mid, proc_box: mid, div_line: c(t.surface1),
+            temp_start: a, temp_mid: warm, temp_end: hot,
+            cpu_start: dim, cpu_mid: a, cpu_end: hot,
+            free_start: dim, free_mid: mid, free_end: a,
+            cached_start: dim, cached_mid: mid, cached_end: a,
+            available_start: dim, available_mid: mid, available_end: a,
+            used_start: a, used_mid: warm, used_end: hot,
+            download_start: dim, download_mid: mid, download_end: a,
+            upload_start: dim, upload_mid: mid, upload_end: a,
+            process_start: a, process_mid: warm, process_end: hot,
+        };
+        return `# ${marker} from config/Theme.qml. Edits are overwritten.\n`
+            + `theme[main_bg]=""\n`
+            + Object.entries(rows).map(([k, v]) => `theme[${k}]="${v}"`).join("\n") + "\n";
+    }
+
+    function applyBtop() {
+        Quickshell.execDetached(["sh", "-c",
+            'mkdir -p "$1/themes" && printf "%s" "$2" > "$1/themes/vyntaris.theme"; c="$1/btop.conf"; '
+            + 'if [ -e "$c" ]; then sed -i -e "s/^color_theme *=.*/color_theme = \\"vyntaris\\"/" -e "s/^theme_background *=.*/theme_background = False/" "$c"; '
+            + 'else printf "color_theme = \\"vyntaris\\"\\ntheme_background = False\\nrounded_corners = True\\ntruecolor = True\\n" > "$c"; fi',
+            "sh", configHome + "/btop", btopTheme()]);
     }
 
     function kittyTheme() {

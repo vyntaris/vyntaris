@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=System Monitor
+GenericName=Task manager
+Comment=See what is running and how much it uses; stop what shouldn't be
+Icon=btop
+Exec=vyntaris-monitor
+Categories=System;Monitor;
+Keywords=btop;top;task;manager;processes;cpu;memory;ram;disk;network;usage;kill;
+StartupWMClass=org.vyntaris.btop

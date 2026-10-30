@@ -23,12 +23,13 @@ PanelWindow {
     readonly property bool primary: Monitors.focused?.name === modelData.name
 
     WlrLayershell.namespace: "quickshell-bar"
-    WlrLayershell.layer: mode !== "clock" || Compositor.fullscreenMode === 1 || Compositor.fullscreenMode === 3
-        ? WlrLayer.Overlay : WlrLayer.Top
+    readonly property bool overFullscreen: primary ? Compositor.fullscreenMode === 2 : (Hyprland.monitorFor(modelData)?.activeWorkspace?.hasFullscreen ?? false)
+    readonly property bool resting: overFullscreen && mode === "clock"
+    WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: popupOpen ? WlrKeyboardFocus.Exclusive
         : primary && Screenshot.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     anchors { top: true; left: true; right: true }
-    implicitHeight: modelData.height
+    implicitHeight: resting ? 1 : modelData.height
     exclusiveZone: Theme.barHeight + Theme.notchDepth
     color: "transparent"
 
@@ -93,12 +94,13 @@ PanelWindow {
         }
     }
 
+    Item { id: nothing }
     mask: Region {
-        item: bar.popupOpen ? catcher : strip
-        Region { item: islandArea }
-        Region { item: edges.volumeZone }
-        Region { item: edges.brightnessZone }
-        Region { item: edges.cornerZone }
+        item: bar.resting ? nothing : bar.popupOpen ? catcher : strip
+        Region { item: bar.resting ? nothing : islandArea }
+        Region { item: bar.resting ? nothing : edges.volumeZone }
+        Region { item: bar.resting ? nothing : edges.brightnessZone }
+        Region { item: bar.resting ? nothing : edges.cornerZone }
     }
 
     Component.onCompleted: {
@@ -230,6 +232,7 @@ PanelWindow {
     Item {
         id: content
         readonly property bool solidIcons: true
+        visible: !bar.resting
         width: parent.width
         height: parent.height
 

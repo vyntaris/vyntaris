@@ -252,7 +252,7 @@ hl.bind(mainMod .. " + Return",    run(settings.apps.terminal), { description = 
 hl.bind(mainMod .. " + E",         run(settings.apps.fileManager), { description = "Files" })
 hl.bind(mainMod .. " + B",         run(settings.apps.browser), { description = "Browser" })
 hl.bind(mainMod .. " + C",         run(settings.apps.editor), { description = "Code editor" })
-hl.bind("CTRL + SHIFT + Escape",   run("gnome-system-monitor"), { description = "Task manager" })
+hl.bind("CTRL + SHIFT + Escape",   run("vyntaris-monitor"), { description = "Task manager" })
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"), { description = "Pick a color from the screen" })
 
 hl.bind("SUPER + Super_L",          shell("control"), { release = true, description = "Start: control center, type to search apps (tap SUPER)" })
@@ -418,6 +418,11 @@ hl.window_rule({
     center = true,
 })
 hl.window_rule({
+    name  = "system-monitor",
+    match = { class = "^org\\.vyntaris\\.btop$" },
+    size  = "1240 780",
+})
+hl.window_rule({
     name   = "shell-apps",
     match  = { class = "^org\\.quickshell$" },
     float  = true,
@@ -434,7 +439,6 @@ for _, r in ipairs({
     { "nm-editor",    { class = "^(nm-connection-editor)$" } },
     { "spotify",      { class = "^([Ss]potify)$" } },
     { "calculator",   { class = "^(galculator|org.gnome.Calculator)$" } },
-    { "task-manager", { class = "^(org.gnome.SystemMonitor|gnome-system-monitor)$" } },
     { "portal",       { class = "^(xdg-desktop-portal-gtk)$" } },
     { "dlg-open",     { title = "^(Open|Open File|Choose Files|Save As|Confirm to replace files|File Operation Progress)$" } },
 }) do

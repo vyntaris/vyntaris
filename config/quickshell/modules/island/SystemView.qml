@@ -1,3 +1,4 @@
+import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import qs.config
@@ -51,6 +52,11 @@ Item {
     PanelHeader {
         icon: "cpu"
         title: Tr.t("System")
+        Button {
+            implicitHeight: 26
+            text: Tr.t("Processes")
+            onClicked: { Panels.systemOpen = false; Quickshell.execDetached(["vyntaris-monitor"]); }
+        }
         Label { caps: true; color: Theme.overlay1; text: Tr.t("Up") }
         Label { mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: root.uptimeText(root.s.uptime) }
     }

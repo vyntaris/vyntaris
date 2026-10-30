@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec kitty --class org.vyntaris.btop --title "System Monitor" btop "$@"

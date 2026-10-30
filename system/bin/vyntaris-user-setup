@@ -29,7 +29,7 @@ mime code-oss.desktop text/markdown text/x-csrc text/x-chdr text/x-python applic
 mime firefox.desktop application/pdf text/html x-scheme-handler/http x-scheme-handler/https
 mime xarchiver.desktop application/zip application/x-7z-compressed application/x-tar application/gzip application/x-xz application/zstd application/vnd.rar
 mkdir -p "$HOME/.local/share/applications"
-for id in avahi-discover bssh bvnc lstopo qv4l2 qvidcap xfce4-about thunar-bulk-rename thunar-settings cups qt6ct; do
+for id in avahi-discover bssh bvnc lstopo qv4l2 qvidcap xfce4-about thunar-bulk-rename thunar-settings cups qt6ct btop; do
     [ -e "/usr/share/applications/$id.desktop" ] || continue
     printf '[Desktop Entry]\nType=Application\nName=%s\nNoDisplay=true\n' "$id" > "$HOME/.local/share/applications/$id.desktop"
 done

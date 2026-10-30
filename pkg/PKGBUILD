@@ -18,7 +18,7 @@ depends=(
     archlinux-appstream-data fwupd
     poppler ffmpegthumbnailer qt6-multimedia qt6-multimedia-ffmpeg ripgrep
     wtype openssl
-    gtk4 libadwaita libheif
+    gtk4 libadwaita libheif btop
 )
 optdepends=(
     'thunar: files (SUPER+E)'
@@ -27,7 +27,6 @@ optdepends=(
     'mpv: videos and music'
     'loupe: pictures'
     'gnome-text-editor: text files'
-    'gnome-system-monitor: task manager (CTRL+SHIFT+ESC)'
     'cups: printing'
     'nvidia-prime: running apps on an NVIDIA GPU (vyntaris-setup installs it where there is one)'
 )
