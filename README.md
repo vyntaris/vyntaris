@@ -502,7 +502,7 @@ thumbnails, kitty, VS Code, Loupe (pictures), mpv (video and music), GNOME Text 
 Disks, System Monitor (CTRL+SHIFT+ESC) and Simple Scan, CUPS, network shares (gvfs-smb), phones over
 MTP, exFAT and NTFS disks, and 7-Zip, zip and unzip. Everything else is one click away in the Store.
 
-The terminal is kitty with zsh, 80 % opaque (`background_opacity`): Vyntaris's `zshrc` (Powerlevel10k, history, completion, aliases) is
+The terminal is kitty with zsh, 80 % opaque (`background_opacity`), its prompt in the accent (palette colours 17 to 19, which the shell writes to `theme.conf`, so open terminals follow too; other terminals keep the plain colours): Vyntaris's `zshrc` (Powerlevel10k, history, completion, aliases) is
 sourced by yours, so your own lines stay yours. Fonts: Inter for the interface, JetBrains Mono for code,
 the Nerd Fonts symbols for the prompt's icons, and metric-compatible faces for Office documents
 (Carlito, Caladea, Liberation).

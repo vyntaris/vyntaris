@@ -9,8 +9,7 @@ function accent(palette, accentName) {
 }
 
 function partner(palette, accentName) {
-    if (Palettes.isCustom(accentName)) return Palettes.partnerOf(Palettes.accent(palette, accentName));
-    return palette[shape.partners[accentName]] || palette.blue;
+    return mix(Palettes.accent(palette, accentName), "#000000", 0.28);
 }
 
 function mix(a, b, t) {

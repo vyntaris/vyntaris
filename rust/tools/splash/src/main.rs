@@ -393,6 +393,12 @@ fn write_png(surf: &ImageSurface, path: &Path) {
     surf.write_to_png(&mut f).expect("written");
 }
 
+fn deeper(hex: &str) -> String {
+    let h = hex.trim_start_matches('#');
+    let c = |i: usize| (u8::from_str_radix(&h[i..i + 2], 16).unwrap_or(0) as f64 * 0.72).round() as u8;
+    format!("#{:02x}{:02x}{:02x}", c(0), c(2), c(4))
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.first().map(String::as_str) == Some("--version") {
@@ -409,7 +415,8 @@ fn main() {
     let shape = shape();
     let pal = palette(flavor);
     let (base, text) = (pal["base"].clone(), pal["text"].clone());
-    let (acc_hex, partner) = accent(pal, accent_name);
+    let (acc_hex, _) = accent(pal, accent_name);
+    let partner = deeper(&acc_hex);
     let acc = rgb(&acc_hex);
     let num = |v: &Value| v.as_f64().unwrap_or(0.0);
     let ob = &shape["orbit"];

@@ -295,6 +295,7 @@ Scope {
             ["color5", t.pink], ["color13", t.pink],
             ["color6", t.teal], ["color14", t.teal],
             ["color7", c7], ["color15", c15],
+            ["color17", t.accent], ["color18", Qt.tint(t.accent, t.alpha(t.text, 0.45))], ["color19", t.crust],
         ];
         return `# ${marker} from config/Theme.qml. Edits are overwritten; put your own settings in kitty.conf.\n`
             + entries.map(([k, v]) => `${k} ${typeof v === "string" ? v : hex(v)}`).join("\n") + "\n";
