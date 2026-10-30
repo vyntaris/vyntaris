@@ -843,7 +843,7 @@ pick *Repair an installed Vyntaris*. Or run `repair-desktop` in its terminal:
 
 Without working graphics (or with the boot option `installer=text`), the same questions are asked in
 the console. `fix-keyring` on the ISO repairs pacman's keyring when a signature is refused: it sets the clock, then
-refreshes the keyring (`--reset` rebuilds it).
+refreshes the keyring, asking Arch's key servers for newer keys if that's refused (`--reset` rebuilds it first).
 
 **On an existing Arch Linux system** (it becomes Vyntaris), with a user account:
 

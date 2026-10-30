@@ -1,31 +1,58 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+GNUPG=/etc/pacman.d/gnupg
+
 c_acc=$'\033[1;35m'; c_dim=$'\033[2m'; c_bold=$'\033[1m'; c_off=$'\033[0m'
 step() { printf '%s::%s %s%s%s\n' "$c_acc" "$c_off" "$c_bold" "$*" "$c_off"; }
 note() { printf '   %s%s%s\n' "$c_dim" "$*" "$c_off"; }
+quiet() {
+    local out
+    out="$("$@" 2>&1)" && return 0
+    printf '%s\n' "$out" | tail -n 8 >&2
+    return 1
+}
+refresh() { pacman -Sy --noconfirm archlinux-keyring; }
 
 [ "$(id -u)" -eq 0 ] || { echo "run this as root" >&2; exit 1; }
 
 step "Clock"
 timedatectl set-ntp true 2>/dev/null || true
+synced=""
 for _ in $(seq 30); do
-    [ "$(timedatectl show -p NTPSynchronized --value 2>/dev/null)" = yes ] && break
+    if [ "$(timedatectl show -p NTPSynchronized --value 2>/dev/null)" = yes ]; then synced=1; break; fi
     sleep 1
 done
 note "$(date)"
+[ -n "$synced" ] || note "not synced yet: if that time is wrong, signatures are refused until it's right"
 
 step "Keyring"
 systemctl start pacman-init.service 2>/dev/null || true
 if [ "${1:-}" = --reset ]; then
     note "rebuilding it from scratch"
-    rm -rf /etc/pacman.d/gnupg
-    pacman-key --init >/dev/null 2>&1
-    pacman-key --populate archlinux >/dev/null 2>&1
+    systemctl stop archlinux-keyring-wkd-sync.timer archlinux-keyring-wkd-sync.service 2>/dev/null || true
+    mapfile -t units < <(systemctl list-units --all --plain --no-legend --full '*etc-pacman.d-gnupg*' 2>/dev/null | awk '{print $1}')
+    [ "${#units[@]}" -eq 0 ] || systemctl stop "${units[@]}" 2>/dev/null || true
+    gpgconf --homedir "$GNUPG" --kill all 2>/dev/null || true
+    find "$GNUPG" -mindepth 1 -delete || { note "could not empty $GNUPG"; exit 1; }
+    quiet pacman-key --init || { note "pacman-key --init failed"; exit 1; }
+    quiet pacman-key --populate || { note "pacman-key --populate failed"; exit 1; }
+    for unit in "${units[@]}"; do
+        case "$unit" in *.socket) systemctl start "$unit" 2>/dev/null || true ;; esac
+    done
 fi
-if pacman -Sy --noconfirm archlinux-keyring; then
+if refresh; then
     note "up to date"
-else
-    note "could not update archlinux-keyring; check the internet, or run: fix-keyring --reset"
-    exit 1
+    exit 0
 fi
+note "could not update archlinux-keyring; asking Arch's key servers for newer copies of the keys"
+if quiet timeout 300 archlinux-keyring-wkd-sync && refresh; then
+    note "up to date"
+    exit 0
+fi
+if [ "${1:-}" = --reset ]; then
+    note "still refused after a rebuild: check the clock and the internet. If both are right, this ISO's keys are too old: build a new ISO"
+else
+    note "still refused: check the clock and the internet, or run: fix-keyring --reset"
+fi
+exit 1

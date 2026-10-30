@@ -205,7 +205,10 @@ fast="$(timeout 120 reflector --protocol https --age 12 --latest 25 --fastest 8 
 printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\nServer = https://fastly.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' \
     "$fast" > /etc/pacman.d/mirrorlist
 note "refreshing the package signing keys…"
-fix-keyring >/dev/null 2>&1 || note "could not refresh them, trying anyway"
+fix-keyring >/tmp/fix-keyring.log 2>&1 || {
+    note "could not refresh them, trying anyway (log: /tmp/fix-keyring.log)"
+    tail -n 5 /tmp/fix-keyring.log | sed 's/^/   /' || true
+}
 mapfile -t apps < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$APPS" | grep -v '^$')
 firmware=(linux-firmware-intel linux-firmware-atheros linux-firmware-broadcom linux-firmware-mediatek
           linux-firmware-realtek linux-firmware-other linux-firmware-amd linux-firmware-cirrus linux-firmware-ti)
@@ -225,8 +228,9 @@ for try in 1 2 3 4; do
     [ "$try" = 4 ] && die "could not download the base system (log: /tmp/pacstrap.log). Open a terminal, run fix-keyring --reset, then try again"
     if grep -qiE 'signature|keyring|unknown trust|could not be looked up|corrupted package' /tmp/pacstrap.log; then
         note "package signatures failed, rebuilding the keyring ($try)"
-        fix-keyring --reset >/dev/null 2>&1 || true
-        rm -rf "$MNT/etc/pacman.d/gnupg"
+        fix-keyring --reset >/tmp/fix-keyring.log 2>&1 || tail -n 5 /tmp/fix-keyring.log | sed 's/^/   /' || true
+        gpgconf --homedir "$MNT/etc/pacman.d/gnupg" --kill all 2>/dev/null || true
+        rm -rf "$MNT/etc/pacman.d/gnupg" || note "could not clear the new system's keyring, trying anyway"
     else
         note "download failed, trying again ($try)"
     fi
