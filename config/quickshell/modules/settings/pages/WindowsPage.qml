@@ -40,8 +40,4 @@ SettingsPage {
             onPicked: v => { Config.windows.border = v; Config.saveSoon(); }
         }
     }
-    SettingsRow {
-        title: Tr.t("Blur")
-        Switch { checked: Config.windows.blur; onToggled: on => { Config.windows.blur = on; Config.saveSoon(); } }
-    }
 }

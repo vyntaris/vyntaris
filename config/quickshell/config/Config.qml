@@ -170,7 +170,6 @@ Singleton {
                 property string fontFamily: "Inter"
                 property string monoFamily: "JetBrains Mono"
                 property int fontSize: 13
-                property real panelOpacity: 1
                 property real animationSpeed: 1.5
                 property string animationStyle: "snappy"
                 property string windowAnimation: "slidevert"
@@ -187,7 +186,6 @@ Singleton {
                 property string loginSound: "chime"
                 property string notificationSound: "pop"
                 property bool wallpaperAccent: false
-                property bool wallpaperTint: false
             }
 
             property JsonObject apps: JsonObject {
@@ -213,7 +211,6 @@ Singleton {
                 property int rounding: 10
                 property int gapsIn: 5
                 property int border: 2
-                property bool blur: false
             }
 
             property JsonObject display: JsonObject {

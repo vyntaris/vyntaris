@@ -168,10 +168,7 @@ Item {
         height: cardColumn.implicitHeight + 44
         radius: Theme.r(30)
         border { width: 1; color: root.wrong ? Theme.alpha(Theme.error, 0.6) : Theme.glassEdge }
-        gradient: Gradient {
-            GradientStop { position: 0; color: Theme.alpha(Theme.isDark ? Theme.crust : Theme.base, 0.78) }
-            GradientStop { position: 1; color: Theme.alpha(Theme.isDark ? Theme.crust : Theme.base, 0.7) }
-        }
+        color: Theme.isDark ? Theme.crust : Theme.base
         Behavior on border.color { ColorAnim {} }
         Rectangle { x: parent.radius + 6; width: 22; height: 2; radius: 1; color: Theme.accent }
 

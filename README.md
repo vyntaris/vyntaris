@@ -256,8 +256,7 @@ island, from their tiles. Help (`help.qml`) lists every shortcut, read from Hypr
 ## Colours and themes
 
 The palettes are Catppuccin's: Mocha (dark) and Latte (light), with fourteen accents (Blue by default in
-the dark, Sky in the light). Light and dark can follow the time of day. The accent can also come from the wallpaper, and the
-wallpaper can tint the panels.
+the dark, Sky in the light). Light and dark can follow the time of day. The accent can also come from the wallpaper.
 
 When the accent or the flavour changes, the shell (`modules/theme/AppTheme.qml`) writes the colours to
 every place that needs them:
@@ -503,7 +502,7 @@ thumbnails, kitty, VS Code, Loupe (pictures), mpv (video and music), GNOME Text 
 Disks, System Monitor (CTRL+SHIFT+ESC) and Simple Scan, CUPS, network shares (gvfs-smb), phones over
 MTP, exFAT and NTFS disks, and 7-Zip, zip and unzip. Everything else is one click away in the Store.
 
-The terminal is kitty with zsh, 80 % opaque (`background_opacity`, blurred behind with blur on): Vyntaris's `zshrc` (Powerlevel10k, history, completion, aliases) is
+The terminal is kitty with zsh, 80 % opaque (`background_opacity`): Vyntaris's `zshrc` (Powerlevel10k, history, completion, aliases) is
 sourced by yours, so your own lines stay yours. Fonts: Inter for the interface, JetBrains Mono for code,
 the Nerd Fonts symbols for the prompt's icons, and metric-compatible faces for Office documents
 (Carlito, Caladea, Liberation).

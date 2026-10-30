@@ -1,5 +1,5 @@
 use regex::Regex;
-use serde_json::{Map, Value, json};
+use serde_json::{Value, json};
 use std::fs;
 use std::io::Read;
 use std::path::Path;
@@ -25,14 +25,6 @@ fn text(v: &Value) -> String {
     }
 }
 
-fn palette_only(text: &str) -> Value {
-    let Ok(Value::Object(p)) = serde_json::from_str::<Value>(text) else { return Value::Null };
-    let name = Regex::new(r"^[a-z0-9]{2,12}$").unwrap();
-    let colour = Regex::new(r"^#[0-9a-fA-F]{6,8}$").unwrap();
-    let kept: Map<String, Value> = p.into_iter().filter(|(k, v)| name.is_match(k) && v.as_str().is_some_and(|c| colour.is_match(c))).collect();
-    if kept.is_empty() { Value::Null } else { Value::Object(kept) }
-}
-
 fn greeter(args: &[String]) -> Value {
     let mut stdin = String::new();
     let _ = std::io::stdin().read_to_string(&mut stdin);
@@ -42,9 +34,8 @@ fn greeter(args: &[String]) -> Value {
     let full = if arg(3).is_empty() { arg(0) } else { arg(3) };
     json!({
         "user": arg(0), "session": ["vyntaris-session"], "wallpaper": arg(1), "face": arg(2), "fullName": full,
-        "palette": if t.get("wallpaperTint").is_some_and(|v| v.as_bool().unwrap_or(false)) { palette_only(&arg(4)) } else { Value::Null },
         "flavor": or(t, "flavor", json!("mocha")), "accent": or(t, "accent", json!("blue")), "accentLight": or(t, "accentLight", json!("sky")),
-        "panelOpacity": or(t, "panelOpacity", json!(1)), "font": or(t, "fontFamily", json!("Inter")), "monoFont": or(t, "monoFamily", json!("JetBrains Mono")),
+        "font": or(t, "fontFamily", json!("Inter")), "monoFont": or(t, "monoFamily", json!("JetBrains Mono")),
         "fontSize": or(t, "fontSize", json!(13)), "animationSpeed": or(t, "animationSpeed", json!(1)),
         "animationStyle": or(t, "animationStyle", json!("snappy")), "highContrast": or(a, "highContrast", json!(false)),
         "barHeight": or(b, "height", json!(28)), "endCurve": or(b, "endCurve", json!(16)),

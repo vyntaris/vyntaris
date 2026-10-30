@@ -20,7 +20,7 @@ kinds() {
         local s = require('lib.settings').load()
         local want = { theme = { flavor = 'string', accent = 'string', animationSpeed = 'number', cursorSize = 'number' },
             input = { kbLayout = 'string', sensitivity = 'number', naturalScroll = 'boolean' },
-            apps = { terminal = 'string', browser = 'string' }, windows = { rounding = 'number', blur = 'boolean' },
+            apps = { terminal = 'string', browser = 'string' }, windows = { rounding = 'number' },
             display = { scale = 'number', monitors = 'table' }, bar = { windowGap = 'number', corners = 'string' } }
         for g, keys in pairs(want) do
             assert(type(s[g]) == 'table', g)

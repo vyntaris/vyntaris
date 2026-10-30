@@ -7,8 +7,7 @@ Singleton {
     id: root
 
     readonly property var basePalette: Palettes.palettes[Config.theme.flavor] ?? Palettes.palettes.mocha
-    readonly property var palette: Config.theme.palette ? Object.assign({}, basePalette, Config.theme.palette)
-        : Config.theme.wallpaperTint && WallpaperColors.ready ? WallpaperColors.tint(basePalette) : basePalette
+    readonly property var palette: basePalette
     readonly property bool isDark: Config.theme.flavor !== "latte"
     readonly property var bootPalette: isDark ? basePalette : Palettes.palettes.mocha
 
@@ -51,11 +50,9 @@ Singleton {
     readonly property color error:    red
     readonly property color warning:  peach
 
-    readonly property real glassOpacity: highContrast ? 0.94
-        : isDark ? Config.theme.panelOpacity : Math.min(1, Config.theme.panelOpacity + 0.25)
     readonly property color glassTint:  crust
-    readonly property color glass:      alpha(glassTint, glassOpacity)
-    readonly property color glassTop:   alpha(isDark ? crust : mantle, Math.min(1, glassOpacity + 0.1))
+    readonly property color glass:      glassTint
+    readonly property color glassTop:   isDark ? crust : mantle
     readonly property color glassRim:   alpha(text, highContrast ? 0.45 : isDark ? 0.14 : 0.16)
     readonly property color glassEdge:  isDark ? alpha("#ffffff", 0.24) : alpha(text, 0.14)
     readonly property color hairline: alpha(text, highContrast ? 0.3 : isDark ? 0.08 : 0.12)

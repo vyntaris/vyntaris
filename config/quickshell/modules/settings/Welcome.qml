@@ -534,10 +534,6 @@ Scope {
                                             onPicked: v => { Config.theme.windowAnimation = v; root.changed(); }
                                         }
                                     }
-                                    OptionRow {
-                                        icon: "eye"; title: Tr.t("Blur")
-                                        Switch { checked: Config.windows.blur; onToggled: on => { Config.windows.blur = on; root.changed(); } }
-                                    }
                                     Item { Layout.fillHeight: true }
                                 }
 

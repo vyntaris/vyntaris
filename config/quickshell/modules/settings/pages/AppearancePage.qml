@@ -57,18 +57,6 @@ SettingsPage {
         }
     }
     SettingsRow {
-        title: Tr.t("Tint from wallpaper")
-        Switch { checked: Config.theme.wallpaperTint; onToggled: on => { Config.theme.wallpaperTint = on; Config.saveSoon(); } }
-    }
-    SettingsRow {
-        title: Tr.t("Glass")
-        RowLayout {
-            spacing: 10
-            Slider { implicitWidth: 180; value: Config.theme.panelOpacity; onMoved: v => { Config.theme.panelOpacity = Math.round(Math.max(0.2, v) * 100) / 100; Config.saveSoon(); } }
-            Label { mono: true; Layout.preferredWidth: 40; text: Math.round(Config.theme.panelOpacity * 100) + "%" }
-        }
-    }
-    SettingsRow {
         title: Tr.t("Text size")
         Choice {
             options: [{ value: 12, label: Tr.t("Small") }, { value: 13, label: Tr.t("Normal") }, { value: 15, label: Tr.t("Large") }]

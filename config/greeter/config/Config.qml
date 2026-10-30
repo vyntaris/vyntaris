@@ -17,14 +17,11 @@ Singleton {
         readonly property string flavor: root.cfg.flavor || "mocha"
         readonly property string accent: root.cfg.accent || "blue"
         readonly property string accentLight: root.cfg.accentLight || "sky"
-        readonly property real panelOpacity: root.cfg.panelOpacity ?? 1
         readonly property string fontFamily: root.cfg.font || "Inter"
         readonly property string monoFamily: root.cfg.monoFont || "JetBrains Mono"
         readonly property int fontSize: root.cfg.fontSize || 13
         readonly property real animationSpeed: root.cfg.animationSpeed ?? 1
         readonly property string animationStyle: root.cfg.animationStyle || "snappy"
-        readonly property bool wallpaperTint: false
-        readonly property var palette: root.cfg.palette ?? null
     }
     readonly property QtObject bar: QtObject {
         readonly property int height: root.cfg.barHeight || 28

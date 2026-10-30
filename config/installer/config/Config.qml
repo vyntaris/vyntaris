@@ -7,13 +7,11 @@ Singleton {
         readonly property string flavor: "mocha"
         readonly property string accent: "blue"
         readonly property string accentLight: "sky"
-        readonly property real panelOpacity: 0.55
         readonly property string fontFamily: "Inter"
         readonly property string monoFamily: "JetBrains Mono"
         readonly property int fontSize: 13
         readonly property real animationSpeed: 1
         readonly property string animationStyle: "snappy"
-        readonly property bool wallpaperTint: false
     }
     readonly property QtObject bar: QtObject {
         readonly property int height: 32

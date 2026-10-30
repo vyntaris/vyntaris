@@ -9,7 +9,7 @@ local defaults = {
     apps    = { terminal = "kitty", terminalRun = "kitty", fileManager = "thunar", browser = "firefox", editor = "code" },
     input   = { kbLayout = "us", kbVariant = "", kbOptions = "",
                 naturalScroll = true, tapToClick = true, sensitivity = 0, mouseAccel = false },
-    windows = { rounding = 10, gapsIn = 5, border = 2, blur = false },
+    windows = { rounding = 10, gapsIn = 5, border = 2 },
     display = { scale = 1, monitors = {} },
     bar     = { windowGap = 8, corners = "round", inside = "rounded" },
 }

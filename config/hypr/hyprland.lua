@@ -115,15 +115,7 @@ hl.config({
         },
 
         blur = {
-            enabled    = settings.windows.blur,
-            size       = 12,
-            passes     = 4,
-            noise      = 0.02,
-            contrast   = 0.95,
-            brightness = 1.0,
-            vibrancy   = 0.5,
-            vibrancy_darkness = 0.2,
-            popups     = true,
+            enabled = false,
         },
     },
 
@@ -411,15 +403,6 @@ hl.layer_rule({
     no_anim = true,
 })
 
-if settings.windows.blur then
-    hl.layer_rule({
-        name         = "quickshell-glass",
-        match        = { namespace = "^quickshell-(bar|power)$" },
-        blur         = true,
-        ignore_alpha = 0.2,
-    })
-end
-
 hl.window_rule({
     name     = "electron-dialogs",
     match    = { class = "^(electron)$" },
@@ -456,14 +439,6 @@ for _, r in ipairs({
     { "dlg-open",     { title = "^(Open|Open File|Choose Files|Save As|Confirm to replace files|File Operation Progress)$" } },
 }) do
     hl.window_rule({ name = "float-" .. r[1], match = r[2], float = true })
-end
-
-if settings.windows.blur then
-    hl.window_rule({
-        name    = "kitty-glass",
-        match   = { class = "^(kitty)$" },
-        opacity = "0.95 0.95",
-    })
 end
 
 do

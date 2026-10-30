@@ -4,7 +4,6 @@ Description=Keep the login screen's wallpaper, theme and picture in step with %i
 [Path]
 PathChanged=/home/%i/.config/quickshell/settings.json
 PathChanged=/home/%i/.face
-PathChanged=/home/%i/.cache/vyntaris/palette.json
 Unit=vyntaris-greeter-sync@%i.service
 
 [Install]

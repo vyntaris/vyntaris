@@ -7,12 +7,10 @@ Singleton {
     id: root
 
     readonly property string file: Config.wallpaperFile()
-    readonly property bool wanted: (Config.theme.wallpaperAccent || Config.theme.wallpaperTint) && !Config.isAccentWallpaper(Config.wallpaper.path)
+    readonly property bool wanted: Config.theme.wallpaperAccent && !Config.isAccentWallpaper(Config.wallpaper.path)
 
     property bool ready: false
     property color vibrant: "#cba6f7"
-    property real tintHue: 0.7
-    property real tintStrength: 0
     property string chosen: ""
 
     onFileChanged: if (wanted) later(Theme.duration(950) + 250)
@@ -41,20 +39,15 @@ Singleton {
         }
         if (colors.length === 0) return;
 
-        let best = null, bestScore = -1, dim = null, dimScore = -1, tint = null, tintCount = -1;
+        let best = null, bestScore = -1, dim = null, dimScore = -1;
         for (const e of colors) {
             const s = e.c.hsvSaturation, v = e.c.hsvValue;
             const score = Math.sqrt(e.count / total) * s * v;
             if (v >= 0.4 && s >= 0.12 && score > bestScore) { bestScore = score; best = e; }
             if (v > 0.25 && score > dimScore) { dimScore = score; dim = e; }
-            if (s > 0.12 && e.count > tintCount) { tintCount = e.count; tint = e; }
         }
         best = best ?? dim ?? colors[0];
         vibrant = best.c;
-
-        const source = tint ?? best;
-        tintHue = Math.max(0, source.c.hslHue);
-        tintStrength = Math.min(1, source.c.hslSaturation * 1.5);
 
         chosen = best.c.hsvSaturation < 0.12 ? "lavender" : hex(best.c);
         ready = true;
@@ -76,20 +69,5 @@ Singleton {
     Connections {
         target: Config.theme
         function onWallpaperAccentChanged() { root.apply(); }
-    }
-
-    readonly property var neutrals: ({
-        text: 0.45, subtext1: 0.5, subtext0: 0.55, overlay2: 0.7, overlay1: 0.75, overlay0: 0.8,
-        surface2: 0.9, surface1: 0.95, surface0: 1, base: 1, mantle: 1, crust: 1,
-    })
-
-    function tint(p) {
-        const out = Object.assign({}, p);
-        for (const key in neutrals) {
-            const c = Qt.color(p[key]);
-            const s = Math.min(0.6, Math.max(c.hslSaturation, 0.1) * neutrals[key] * (0.6 + tintStrength * 0.6));
-            out[key] = Qt.hsla(tintHue, s, c.hslLightness, 1).toString();
-        }
-        return out;
     }
 }

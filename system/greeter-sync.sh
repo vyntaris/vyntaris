@@ -32,9 +32,8 @@ else
     rm -f "$g/face"
 fi
 full="$(getent passwd "$user" | cut -d: -f5 | cut -d, -f1)"
-palette="$(runuser -u "$user" -- head -c 65536 -- "$home/.cache/vyntaris/palette.json" 2>/dev/null || true)"
 
-runuser -u "$user" -- cat -- "$settings" 2>/dev/null | /usr/lib/vyntaris/json greeter "$user" "$dest" "$face" "$full" "$palette" > "$g/greeter.json.new"
+runuser -u "$user" -- cat -- "$settings" 2>/dev/null | /usr/lib/vyntaris/json greeter "$user" "$dest" "$face" "$full" > "$g/greeter.json.new"
 mv "$g/greeter.json.new" "$g/greeter.json"
 chmod 644 "$g/greeter.json"
 
