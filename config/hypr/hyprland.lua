@@ -441,6 +441,46 @@ for _, r in ipairs({
     hl.window_rule({ name = "float-" .. r[1], match = r[2], float = true })
 end
 
+local browserWindows = {}
+local signInWords = {
+    "sign in", "sign-in", "signin", "log in", "log-in", "login", "authorize", "authorise", "oauth", "accounts",
+    "prijav", "nalog", "anmeld", "connexion", "iniciar", "accedi", "zaloguj", "entrar",
+}
+
+local function looksLikeSignIn(title)
+    local lower = title:lower()
+    for _, word in ipairs(signInWords) do
+        if lower:find(word, 1, true) then return true end
+    end
+    return false
+end
+
+hl.on("window.open", function(w)
+    if w.class ~= "firefox" then return end
+    for _, other in ipairs(hl.get_windows()) do
+        if other.class == "firefox" and other.address ~= w.address then
+            browserWindows[w.address] = os.time() + 5
+            return
+        end
+    end
+end)
+
+hl.on("window.close", function(w)
+    browserWindows[w.address] = nil
+end)
+
+hl.on("window.title", function(w)
+    local deadline = browserWindows[w.address]
+    if not deadline then return end
+    if os.time() > deadline then browserWindows[w.address] = nil; return end
+    if w.floating or not looksLikeSignIn(w.title) then return end
+    browserWindows[w.address] = nil
+    local target = "address:" .. w.address
+    hl.dispatch(hl.dsp.window.float({ action = "enable", window = target }))
+    hl.dispatch(hl.dsp.window.resize({ x = 520, y = 720, window = target }))
+    hl.dispatch(hl.dsp.window.center({ window = target }))
+end)
+
 do
     local mine = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/user.lua"
     local f = io.open(mine)
