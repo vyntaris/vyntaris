@@ -586,7 +586,7 @@ ShellRoot {
                                             Field {
                                                 id: wifiPass
                                                 Layout.fillWidth: true
-                                                secret: true
+                                                secret: true; canReveal: true
                                                 placeholder: Tr.t("Password")
                                                 onVisibleChanged: if (visible) input.forceActiveFocus()
                                                 Connections { target: wifiPass.input; function onAccepted() { root.connectWifi(net.modelData.ssid, wifiPass.text); } }
@@ -708,11 +708,11 @@ ShellRoot {
                                 }
                                 Item { implicitHeight: 6; Layout.columnSpan: 2 }
                                 Caption { text: Tr.t("Password") }
-                                Field { Layout.fillWidth: true; secret: true; onTextChanged: root.pass = text }
+                                Field { Layout.fillWidth: true; secret: true; canReveal: true; onTextChanged: root.pass = text }
                                 Caption { text: Tr.t("Confirm password") }
                                 ColumnLayout {
                                     spacing: 3
-                                    Field { Layout.fillWidth: true; secret: true; onTextChanged: root.pass2 = text }
+                                    Field { Layout.fillWidth: true; secret: true; canReveal: true; onTextChanged: root.pass2 = text }
                                     Label { visible: root.pass2 !== "" && root.pass !== root.pass2; color: Theme.error; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("The passwords don't match") }
                                 }
                             }

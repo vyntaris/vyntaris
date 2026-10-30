@@ -170,8 +170,8 @@ PanelWindow {
         hangGrows = targetHang > islandHang;
         islandHang = targetHang;
     }
-    Behavior on islandWidth { Anim { duration: Theme.durationSlow; easing.bezierCurve: bar.widthGrows ? Theme.curveIsland : Theme.curveStandard } }
-    Behavior on islandHang { Anim { duration: Theme.durationSlow; easing.bezierCurve: bar.hangGrows ? Theme.curveIsland : Theme.curveStandard } }
+    Behavior on islandWidth { Anim { duration: bar.widthGrows ? Theme.durationWindowIn : Theme.durationWindowOut; easing.bezierCurve: bar.widthGrows ? Theme.curveWindowIn : Theme.curveWindowOut } }
+    Behavior on islandHang { Anim { duration: bar.hangGrows ? Theme.durationWindowIn : Theme.durationWindowOut; easing.bezierCurve: bar.hangGrows ? Theme.curveWindowIn : Theme.curveWindowOut } }
 
     component Divider: Rectangle {
         Layout.preferredWidth: 1
@@ -584,6 +584,7 @@ PanelWindow {
 
                 BatteryGlyph {
                     percent: Battery.percent
+                    charging: Battery.charging && !Battery.full
                     size: 22
                     color: batteryModule.tint
                 }

@@ -26,35 +26,9 @@ Singleton {
             Quickshell.execDetached(["pw-play", Quickshell.shellPath("assets/sounds/chime.wav")]);
     }
 
-    function duration(seconds) {
-        if (!(seconds > 0)) return "";
-        const h = Math.floor(seconds / 3600), m = Math.round(seconds % 3600 / 60);
-        return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${Math.max(1, m)}m`;
-    }
-
-    property bool armed: false
-    Timer { running: true; interval: 4000; onTriggered: root.armed = true }
     Connections {
         target: UPower
-        function onOnBatteryChanged() {
-            Battery.refresh();
-            if (root.armed && Battery.available) chargeDelay.restart();
-        }
-    }
-    Timer {
-        id: chargeDelay
-        interval: 900
-        onTriggered: {
-            const plugged = !UPower.onBattery;
-            const dev = UPower.displayDevice;
-            if (!dev?.ready) return;
-            const pct = Battery.percent;
-            const time = plugged ? root.duration(dev?.timeToFull) : root.duration(dev?.timeToEmpty);
-            root.banner("battery",
-                (plugged ? Tr.t("Charging") : Tr.t("On battery")),
-                pct + "%" + (time ? " · " + (plugged ? "full in " : "left ") + time : ""),
-                pct / 100, plugged ? Theme.accent : pct <= 20 ? Theme.warning : Theme.text, 3500);
-        }
+        function onOnBatteryChanged() { Battery.refresh(); }
     }
 
     property var progress: []

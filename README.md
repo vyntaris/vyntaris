@@ -160,7 +160,7 @@ The island's views (`modules/island/`):
 | **Battery**, **System**, **Keyboard**, **Phone**, **Privacy** | as their names say |
 
 **Live activities.** While something goes on, the clock shares the island with it: a download's speed, a
-timer, a stopwatch, a countdown before recording, a charging laptop, packages installing (counted from
+timer, a stopwatch, a countdown before recording, packages installing (counted from
 pacman's log, and one banner at the end only for what really completed; clicking it shows the kitty
 window's screen pacman runs in, through `kitty @ get-text`). Banners say when something finishes.
 

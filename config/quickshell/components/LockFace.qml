@@ -111,6 +111,7 @@ Item {
                 filled: true
                 color: root.charging ? Theme.accent : root.battery <= 15 ? Theme.error : root.battery <= 30 ? Theme.warning : Theme.accent
             }
+            Icon { visible: root.charging; anchors.verticalCenter: parent.verticalCenter; name: "bolt"; filled: true; size: 13; color: Theme.accent }
             Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: root.battery }
         }
     }
@@ -198,15 +199,28 @@ Item {
                 Item {
                     id: cellsBox
                     Layout.fillWidth: true
-                    implicitHeight: 34
+                    implicitHeight: 44
                     readonly property int count: 20
                     readonly property int lit: Math.min(count, input.text.length)
 
                     property real runner: 0
                     NumberAnimation on runner { running: root.busy; from: 0; to: cellsBox.count; duration: 700; loops: Animation.Infinite }
 
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.r(12)
+                        color: Theme.alpha(Theme.text, input.activeFocus ? 0.09 : 0.05)
+                        border {
+                            width: input.activeFocus || root.wrong ? 2 : 1
+                            color: root.wrong ? Theme.error : input.activeFocus ? Theme.accent : Theme.alpha(Theme.text, 0.16)
+                        }
+                        Behavior on color { ColorAnim {} }
+                        Behavior on border.color { ColorAnim {} }
+                    }
+
                     Row {
                         id: cells
+                        x: 14
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 3
                         opacity: !root.showPassword && (input.text || root.busy || root.wrong) ? 1 : 0
@@ -217,7 +231,7 @@ Item {
                                 required property int index
                                 readonly property bool on: index < cellsBox.lit
                                 readonly property real run: root.busy ? Math.max(0, 1 - Math.abs(index - cellsBox.runner) / 3) : 0
-                                width: (cellsBox.width - (cellsBox.count - 1) * cells.spacing) / cellsBox.count
+                                width: (cellsBox.width - 28 - (cellsBox.count - 1) * cells.spacing) / cellsBox.count
                                 height: on || run > 0.3 ? 16 : 7
                                 anchors.verticalCenter: parent.verticalCenter
                                 radius: 2
@@ -233,12 +247,12 @@ Item {
                     Caption {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: !input.text && !root.busy && !root.wrong
-                        x: 2
+                        x: 14
                         text: root.t(Tr.t("Type your password"))
                     }
                     TextInput {
                         id: input
-                        anchors { fill: parent; leftMargin: 2 }
+                        anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
                         opacity: root.showPassword && !root.busy && !root.wrong ? 1 : 0
                         echoMode: root.showPassword ? TextInput.Normal : TextInput.Password
                         verticalAlignment: TextInput.AlignVCenter

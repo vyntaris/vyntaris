@@ -22,6 +22,7 @@ Singleton {
     property bool awakeOpen: false
     property bool appsOpen: false
     property bool wifiOpen: false
+    property bool wifiTyping: false
     property bool vpnOpen: false
     property bool keyboardOpen: false
     property bool bluetoothOpen: false
@@ -158,5 +159,5 @@ Singleton {
     property Timer commitExpiry: Timer { interval: 500; onTriggered: root.overviewCommitPending = false }
 
     readonly property bool anyIslandPanel: islandPanels.some(p => root[p + "Open"])
-    readonly property bool needsKeyboard: launcherOpen || appsOpen || powerOpen || wallpaperOpen || overviewOpen || keyboardOpen || captureOpen || timerOpen || nightOpen
+    readonly property bool needsKeyboard: wifiTyping || launcherOpen || appsOpen || powerOpen || wallpaperOpen || overviewOpen || keyboardOpen || captureOpen || timerOpen || nightOpen
 }

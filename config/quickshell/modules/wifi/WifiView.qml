@@ -17,6 +17,7 @@ Item {
 
     property var pending: null
     property string error: ""
+    readonly property bool asking: pending !== null
 
     width: fullWidth
     height: hang
@@ -36,8 +37,15 @@ Item {
         } else {
             pending = n;
             password.text = "";
-            password.forceActiveFocus();
+            password.revealed = false;
+            Qt.callLater(() => password.input.forceActiveFocus());
         }
+    }
+
+    function cancelPassword() {
+        pending = null;
+        error = "";
+        password.text = "";
     }
 
     function submitPassword() {
@@ -54,6 +62,13 @@ Item {
         when: root.device !== null
     }
 
+    Binding {
+        target: Panels
+        property: "wifiTyping"
+        value: root.asking
+        when: root.open
+    }
+
     onOpenChanged: if (!open) { pending = null; error = ""; }
 
     PanelBody {
@@ -63,7 +78,7 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            visible: root.showHeader
+            visible: root.showHeader && !root.asking
             spacing: 10
 
             RowLayout {
@@ -95,7 +110,7 @@ Item {
             Layout.fillWidth: true
             Layout.topMargin: 4
             Layout.bottomMargin: 4
-            visible: root.device === null || (Networking.wifiEnabled && root.networks.length === 0)
+            visible: !root.asking && (root.device === null || (Networking.wifiEnabled && root.networks.length === 0))
             caps: true
             text: root.device === null ? Tr.t("No adapter") : Tr.t("Scanning…")
             color: Theme.overlay1
@@ -104,12 +119,13 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            visible: !root.showHeader && Networking.wifiEnabled && root.connected !== null
+            visible: !root.asking && !root.showHeader && Networking.wifiEnabled && root.connected !== null
             spacing: 8
 
             ConnectionSummary {
                 Layout.fillWidth: true
                 connected: true
+                showState: false
                 name: root.connected?.name ?? ""
                 level: Icons.signal(root.connected?.signalStrength ?? 0)
                 detailIcon: root.connected?.security !== WifiSecurityType.Open ? "lock" : ""
@@ -132,7 +148,7 @@ Item {
             id: list
             Layout.fillWidth: true
             implicitHeight: Math.min(contentHeight, 7 * 42)
-            visible: Networking.wifiEnabled && model.length > 0
+            visible: !root.asking && Networking.wifiEnabled && model.length > 0
             clip: true
             spacing: 2
             boundsBehavior: Flickable.StopAtBounds
@@ -162,7 +178,7 @@ Item {
                         if (reason === ConnectionFailReason.NoSecrets) {
                             root.pending = row.modelData;
                             root.error = Tr.t("Wrong or missing password");
-                            password.forceActiveFocus();
+                            Qt.callLater(() => password.input.forceActiveFocus());
                         } else {
                             root.error = "Connection failed: " + ConnectionFailReason.toString(reason);
                         }
@@ -212,17 +228,22 @@ Item {
                         Label {
                             Layout.fillWidth: true
                             visible: text !== ""
-                            caps: true
-                            font.pixelSize: Theme.fontSizeSmall - 1
-                            color: row.modelData.connected ? Theme.accent : Theme.overlay1
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.overlay1
                             text: row.busy ? (row.modelData.connected ? Tr.t("Disconnecting") : Tr.t("Connecting"))
-                                : row.modelData.connected ? Tr.t("Connected")
-                                : row.modelData.known ? Tr.t("Saved") : ""
+                                : !row.modelData.connected && row.modelData.known ? Tr.t("Saved") : ""
                         }
                     }
 
                     Icon {
-                        visible: row.modelData.security !== WifiSecurityType.Open
+                        visible: row.modelData.connected && !row.busy
+                        name: "check"
+                        size: 16
+                        color: Theme.accent
+                    }
+
+                    Icon {
+                        visible: !row.modelData.connected && row.modelData.security !== WifiSecurityType.Open
                         name: "lock"
                         size: 14
                         color: Theme.overlay1
@@ -236,46 +257,52 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            visible: root.pending !== null
-            spacing: 6
-
-            Label {
-                Layout.fillWidth: true
-                caps: true
-                color: Theme.overlay1
-                elide: Text.ElideRight
-                text: Tr.t("Password · ") + (root.pending?.name ?? "")
-            }
+            visible: root.asking
+            spacing: 14
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
+                spacing: 12
 
                 Rectangle {
+                    implicitWidth: 38
+                    implicitHeight: 38
+                    radius: Theme.r(12)
+                    color: Theme.alpha(Theme.accent, 0.16)
+                    Icon { anchors.centerIn: parent; name: "lock"; size: 17; color: Theme.accent }
+                }
+                ColumnLayout {
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: Theme.r(10)
-                    color: Theme.alpha(Theme.crust, 0.45)
-                    border { width: 1; color: password.activeFocus ? Theme.accent : Theme.glassRim }
-                    Behavior on border.color { ColorAnim {} }
-
-                    TextInput {
-                        id: password
-                        anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                        verticalAlignment: TextInput.AlignVCenter
-                        echoMode: TextInput.Password
-                        color: Theme.text
-                        selectionColor: Theme.accent
-                        selectedTextColor: Theme.textOnAccent
-                        font { family: Theme.monoFamily; pixelSize: Theme.fontSize }
-                        clip: true
-                        Keys.onReturnPressed: root.submitPassword()
-                        Keys.onEnterPressed: root.submitPassword()
-                        Keys.onEscapePressed: root.pending = null
+                    spacing: 1
+                    Label {
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        font.pixelSize: Theme.fontSize + 3
+                        font.weight: Font.DemiBold
+                        text: root.pending?.name ?? ""
+                    }
+                    Label {
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.overlay1
+                        text: Tr.t("Type your password")
                     }
                 }
+            }
 
-                Button { primary: true; text: Tr.t("Connect"); onClicked: root.submitPassword() }
+            Field {
+                id: password
+                Layout.fillWidth: true
+                implicitHeight: 44
+                secret: true
+                canReveal: true
+                mono: true
+                invalid: root.error !== ""
+                placeholder: Tr.t("Password")
+                onTextChanged: if (text) root.error = ""
+                Keys.onEscapePressed: root.cancelPassword()
+                Connections { target: password.input; function onAccepted() { root.submitPassword(); } }
             }
         }
 
@@ -286,6 +313,27 @@ Item {
             wrapMode: Text.Wrap
             color: Theme.error
             font.pixelSize: Theme.fontSizeSmall
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            visible: root.asking
+            spacing: 8
+
+            Button {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                text: Tr.t("Cancel")
+                onClicked: root.cancelPassword()
+            }
+            Button {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                primary: true
+                active: password.text !== ""
+                text: Tr.t("Connect")
+                onClicked: root.submitPassword()
+            }
         }
     }
 }

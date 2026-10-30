@@ -5,6 +5,7 @@ import qs.config
 ColumnLayout {
     id: root
     property bool connected: false
+    property bool showState: true
     property string name
     property string icon
     property real level: -1
@@ -24,6 +25,7 @@ ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
             Label {
+                visible: root.showState
                 caps: true
                 color: root.connected ? Theme.accent : Theme.overlay1
                 font.pixelSize: Theme.fontSizeSmall - 1

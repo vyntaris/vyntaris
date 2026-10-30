@@ -81,8 +81,8 @@ SettingsPage {
         Layout.fillWidth: true
         visible: false
         spacing: 8
-        Field { id: newPw; Layout.fillWidth: true; secret: true; placeholder: Tr.t("New password") }
-        Field { id: againPw; Layout.fillWidth: true; secret: true; placeholder: Tr.t("Once more") }
+        Field { id: newPw; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("New password") }
+        Field { id: againPw; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("Once more") }
         Button {
             primary: true
             text: Tr.t("Save")
@@ -150,7 +150,7 @@ SettingsPage {
     RowLayout {
         Layout.fillWidth: true
         spacing: 8
-        Field { id: newPass; Layout.fillWidth: true; secret: true; placeholder: Tr.t("Password") }
+        Field { id: newPass; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("Password") }
         Caption { text: Tr.t("Administrator") }
         Switch { id: newAdmin }
         Button {

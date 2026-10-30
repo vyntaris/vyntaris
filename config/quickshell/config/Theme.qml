@@ -103,6 +103,11 @@ Singleton {
     readonly property var curveDecelerate: [0.05, 0.7, 0.1, 1, 1, 1]
     readonly property var curveSpring: animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
         : calm ? [0.25, 0.8, 0.25, 1, 1, 1] : [0.34, 1.32, 0.64, 1, 1, 1]
-    readonly property var curveIsland: animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
-        : calm ? [0.3, 0.9, 0.3, 1, 1, 1] : [0.3, 1.1, 0.6, 1, 1, 1]
+
+    readonly property int durationWindowIn: calm ? duration(220) : duration(600)
+    readonly property int durationWindowOut: duration(220)
+    readonly property var curveWindowIn: animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
+        : calm ? [0.25, 0.8, 0.25, 1, 1, 1]
+        : [0.0417, 0, 0.0833, 0.2087, 0.125, 0.3996, 0.1667, 0.5906, 0.2083, 0.7689, 0.25, 0.8827, 0.2917, 0.9966, 0.3333, 1.0526, 0.375, 1.0745, 0.4167, 1.0964, 0.4583, 1.0869, 0.5, 1.0726, 0.5417, 1.0583, 0.5833, 1.0392, 0.625, 1.0253, 0.6667, 1.0115, 0.7083, 1.0024, 0.75, 0.9976, 0.7917, 0.9929, 0.8333, 0.992, 0.875, 0.9925, 0.9167, 0.993, 0.9583, 0.9986, 1, 1]
+    readonly property var curveWindowOut: [0.3, 0, 0.8, 0.15, 1, 1]
 }
