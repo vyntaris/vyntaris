@@ -14,6 +14,8 @@ Singleton {
     property var now: null
     property real readAt: 0
     readonly property bool known: enabled && now !== null
+    property bool failed: false
+    readonly property bool loading: enabled && now === null && !failed
 
     function describe(code, day) {
         if (code === 0) return { icon: day ? "sun" : "moon", text: Tr.t("Clear") };
@@ -31,6 +33,7 @@ Singleton {
 
     function refresh() {
         if (!enabled || Date.now() - readAt < 30 * 60000) return;
+        failed = false;
         const wanted = Config.weather.city.trim();
         if (wanted && (Config.weather.lat !== 0 || Config.weather.lon !== 0)) {
             lat = Config.weather.lat; lon = Config.weather.lon; city = wanted; place = wanted;
@@ -92,31 +95,35 @@ Singleton {
 
     Process {
         id: zone
+        onExited: code => { if (code !== 0) root.failed = true; }
         command: ["timedatectl", "show", "-p", "Timezone", "--value"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const z = text.trim();
                 if (z.includes("/")) root.find(z.slice(z.lastIndexOf("/") + 1).replace(/_/g, " "));
+                else root.failed = true;
             }
         }
     }
     Process {
         id: geo
+        onExited: code => { if (code !== 0) root.failed = true; }
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
                     const r = JSON.parse(text).results?.[0];
-                    if (!r) return;
+                    if (!r) { root.failed = true; return; }
                     root.lat = r.latitude;
                     root.lon = r.longitude;
                     root.city = r.name;
                     root.read();
-                } catch (e) {}
+                } catch (e) { root.failed = true; }
             }
         }
     }
     Process {
         id: forecast
+        onExited: code => { if (code !== 0) root.failed = true; }
         stdout: StdioCollector {
             onStreamFinished: {
                 try {
@@ -124,14 +131,15 @@ Singleton {
                     root.now = { temp: Math.round(d.current.temperature_2m), code: d.current.weather_code, day: d.current.is_day === 1,
                                  max: Math.round(d.daily.temperature_2m_max[0]), min: Math.round(d.daily.temperature_2m_min[0]) };
                     root.readAt = Date.now();
-                } catch (e) {}
+                    root.failed = false;
+                } catch (e) { root.failed = true; }
             }
         }
     }
 
     Connections {
         target: Config.weather
-        function onCityChanged() { root.readAt = 0; root.lat = NaN; root.place = ""; root.now = null; cityLater.restart(); }
+        function onCityChanged() { root.readAt = 0; root.lat = NaN; root.place = ""; root.now = null; root.failed = false; cityLater.restart(); }
         function onEnabledChanged() { if (root.enabled) { root.readAt = 0; root.refresh(); } else root.now = null; }
     }
     Timer { id: cityLater; interval: 1500; onTriggered: root.refresh() }

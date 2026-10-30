@@ -354,11 +354,16 @@ Scope {
                     }
                     Label { Layout.alignment: Qt.AlignHCenter; color: Theme.subtext0; text: Tr.t("No preview · Enter opens it") }
                 }
-                Label {
+                Column {
                     anchors.centerIn: parent
                     visible: render.running || docText.running || sheet.running
-                    color: Theme.overlay1
-                    text: Tr.t("Loading…")
+                    spacing: 10
+                    Spinner { anchors.horizontalCenter: parent.horizontalCenter; size: 28 }
+                    Label {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: Theme.overlay1
+                        text: Tr.t("Loading…")
+                    }
                 }
             }
         }

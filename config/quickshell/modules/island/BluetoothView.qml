@@ -111,6 +111,7 @@ Item {
                 spacing: 12
                 Icon { name: root.iconFor(row.modelData); size: 16; color: row.modelData.paired ? Theme.text : Theme.overlay1 }
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; text: root.nameOf(row.modelData) }
+                Spinner { visible: row.busy; size: 14 }
                 Label {
                     visible: row.busy || hover.containsMouse
                     caps: true
@@ -143,6 +144,7 @@ Item {
             Layout.fillWidth: true
             visible: root.on
             Caption { Layout.fillWidth: true; text: Tr.t("Nearby") }
+            Spinner { visible: root.available.length === 0; size: 12 }
             Label {
                 visible: root.available.length === 0
                 caps: true; color: Theme.overlay0; font.pixelSize: Theme.fontSizeSmall - 1; text: Tr.t("Scanning…")

@@ -61,6 +61,12 @@ Item {
                     pressScale: 0.96
                     onActivated: Vpn.place(tile.modelData.name)
 
+                    Spinner {
+                        anchors { top: parent.top; right: parent.right; margins: 8 }
+                        visible: tile.busy
+                        size: 14
+                        color: tile.on ? Theme.textOnAccent : Theme.accent
+                    }
                     ColumnLayout {
                         anchors.centerIn: parent
                         spacing: 4

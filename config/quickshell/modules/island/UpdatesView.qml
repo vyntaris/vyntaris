@@ -140,13 +140,18 @@ Item {
         }
     }
 
-    Label {
+    Row {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.barHeight + 30
         visible: Updates.count === 0 && Updates.checking
-        caps: true
-        color: Theme.overlay0
-        text: Tr.t("Checking…")
+        spacing: 8
+        Spinner { anchors.verticalCenter: parent.verticalCenter; size: 14 }
+        Label {
+            anchors.verticalCenter: parent.verticalCenter
+            caps: true
+            color: Theme.overlay0
+            text: Tr.t("Checking…")
+        }
     }
     Label {
         anchors.horizontalCenter: parent.horizontalCenter

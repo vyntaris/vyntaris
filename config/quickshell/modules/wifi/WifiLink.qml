@@ -13,6 +13,7 @@ Item {
     property string band: ""
     property string address: ""
     property var last: null
+    property bool ready: false
 
     function speed(bytes) {
         if (bytes < 0) return "–";
@@ -22,6 +23,7 @@ Item {
     }
 
     function parse(text) {
+        ready = true;
         const field = key => (text.split("\n").find(l => l.startsWith(key + "=")) ?? "").slice(key.length + 1).trim();
         const [rx, tx, at] = field("n").split(" ").map(Number);
         if (last && at > last.at) {
@@ -39,7 +41,7 @@ Item {
         ping = ms >= 0 ? ms : -1;
     }
 
-    onActiveChanged: if (!active) { last = null; down = -1; up = -1; ping = -1; }
+    onActiveChanged: if (!active) { last = null; ready = false; down = -1; up = -1; ping = -1; }
 
     Timer {
         interval: 2000

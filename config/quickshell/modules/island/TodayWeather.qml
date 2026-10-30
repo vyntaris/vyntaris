@@ -61,6 +61,19 @@ ColumnLayout {
     Item { Layout.fillHeight: true }
 
     RowLayout {
+        visible: Weather.loading
+        Layout.fillWidth: true
+        spacing: 8
+        Spinner { size: 14 }
+        Caption { Layout.fillWidth: true; wrapMode: Text.Wrap; text: Tr.t("Getting the weather…") }
+    }
+    Caption {
+        visible: Weather.enabled && Weather.failed && root.w === null
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        text: Tr.t("Weather isn't available")
+    }
+    RowLayout {
         visible: root.w !== null
         spacing: 8
         Icon { name: root.w?.icon ?? "sun"; size: Theme.fontSize + 9; stroke: 1.6; color: Theme.accent }

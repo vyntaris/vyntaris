@@ -33,10 +33,14 @@ ColumnLayout {
             : Weather.found.map((p, i) => ({ value: String(i), title: p.name, caption: [p.region, p.country].filter(x => x).join(", ") }))
         onPicked: v => pickRow(v)
     }
-    Label {
+    RowLayout {
         visible: search.text.trim().length >= 2 && Weather.found.length === 0
-        leftPadding: 14
-        color: Theme.overlay1
-        text: Weather.looking ? Tr.t("Looking…") : Tr.t("Nothing by that name")
+        Layout.leftMargin: 14
+        spacing: 8
+        Spinner { visible: Weather.looking; size: 14 }
+        Label {
+            color: Theme.overlay1
+            text: Weather.looking ? Tr.t("Looking…") : Tr.t("Nothing by that name")
+        }
     }
 }

@@ -113,15 +113,18 @@ Item {
             Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.hairline }
         }
 
-        Label {
-            Layout.fillWidth: true
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: 4
             Layout.bottomMargin: 4
             visible: !root.asking && (root.device === null || (Networking.wifiEnabled && root.networks.length === 0))
-            caps: true
-            text: root.device === null ? Tr.t("No adapter") : Tr.t("Scanning…")
-            color: Theme.overlay1
-            horizontalAlignment: Text.AlignHCenter
+            spacing: 8
+            Spinner { visible: root.device !== null; size: 14 }
+            Label {
+                caps: true
+                text: root.device === null ? Tr.t("No adapter") : Tr.t("Scanning…")
+                color: Theme.overlay1
+            }
         }
 
         ColumnLayout {
@@ -146,23 +149,34 @@ Item {
                 spacing: 8
                 Repeater {
                     model: [
-                        { value: link.speed(link.down), label: Tr.t("Download") },
-                        { value: link.speed(link.up), label: Tr.t("Upload") },
-                        { value: link.ping >= 0 ? Math.round(link.ping) + " ms" : "–", label: Tr.t("Ping") },
-                        { value: link.rate || "–", label: Tr.t("Link") },
+                        { value: link.speed(link.down), label: Tr.t("Download"), waiting: link.down < 0 },
+                        { value: link.speed(link.up), label: Tr.t("Upload"), waiting: link.up < 0 },
+                        { value: link.ping >= 0 ? Math.round(link.ping) + " ms" : "–", label: Tr.t("Ping"), waiting: !link.ready },
+                        { value: link.rate || "–", label: Tr.t("Link"), waiting: !link.ready },
                     ]
                     ColumnLayout {
                         required property var modelData
                         Layout.fillWidth: true
                         Layout.preferredWidth: 1
                         spacing: 1
-                        Label {
+                        Item {
                             Layout.fillWidth: true
-                            elide: Text.ElideRight
-                            mono: true
-                            font.pixelSize: Theme.fontSizeSmall + 1
-                            font.weight: Font.DemiBold
-                            text: parent.modelData.value
+                            implicitHeight: statValue.implicitHeight
+                            Label {
+                                id: statValue
+                                width: parent.width
+                                visible: !parent.parent.modelData.waiting
+                                elide: Text.ElideRight
+                                mono: true
+                                font.pixelSize: Theme.fontSizeSmall + 1
+                                font.weight: Font.DemiBold
+                                text: parent.parent.modelData.value
+                            }
+                            Spinner {
+                                anchors.verticalCenter: parent.verticalCenter
+                                visible: parent.parent.modelData.waiting
+                                size: 12
+                            }
                         }
                         Label {
                             Layout.fillWidth: true
@@ -179,6 +193,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Caption { Layout.fillWidth: true; text: Tr.t("Nearby") }
+                Spinner { visible: root.networks.filter(n => !n.connected).length === 0; size: 12 }
                 Label {
                     visible: root.networks.filter(n => !n.connected).length === 0
                     caps: true; color: Theme.overlay0; font.pixelSize: Theme.fontSizeSmall - 1; text: Tr.t("Scanning…")
@@ -285,8 +300,14 @@ Item {
                         color: Theme.textOnAccent
                     }
 
+                    Spinner {
+                        visible: row.busy
+                        size: 16
+                        color: row.modelData.connected ? Theme.textOnAccent : Theme.accent
+                    }
+
                     Icon {
-                        visible: !row.modelData.connected && row.modelData.security !== WifiSecurityType.Open
+                        visible: !row.busy && !row.modelData.connected && row.modelData.security !== WifiSecurityType.Open
                         name: "lock"
                         size: 14
                         color: Theme.overlay1
