@@ -23,7 +23,7 @@ trap 'rm -f "$tmp"' EXIT
 dest=""
 ext="${wp##*.}"; ext="${ext,,}"
 case "$ext" in
-    heic|heif) read_picture() { runuser -u "$user" -- magick "$wp[0]" -quality 92 jpg:-; }; ext=jpg ;;
+    heic|heif) read_picture() { runuser -u "$user" -- magick "${wp}[0]" -quality 92 jpg:-; }; ext=jpg ;;
     *) read_picture() { runuser -u "$user" -- cat -- "$wp"; } ;;
 esac
 if [ -n "$wp" ] && read_picture > "$tmp" 2>/dev/null &&
