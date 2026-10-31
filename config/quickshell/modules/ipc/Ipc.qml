@@ -151,6 +151,13 @@ Scope {
     }
 
     IpcHandler {
+        target: "wiki"
+        function open(): void { Panels.wiki() }
+        function toggle(): void { if (Panels.wikiOpen) Panels.wikiOpen = false; else Panels.wiki() }
+        function search(query: string): void { Panels.wiki(query) }
+    }
+
+    IpcHandler {
         target: "vpn"
         function toggle(): void { Panels.vpnOpen = !Panels.vpnOpen }
     }

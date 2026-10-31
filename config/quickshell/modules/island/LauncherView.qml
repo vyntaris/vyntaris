@@ -113,6 +113,8 @@ Item {
                 .map(e => ({ kind: "emoji", char: e[0], name: e[1] }));
         }
 
+        if (raw.startsWith("?"))
+            return ArchWiki.results.slice(0, 8).map(p => ({ kind: "wiki", page: p }));
         if (raw.startsWith("/")) {
             return root.fileResults.map(f => ({ kind: "file", path: f.path, dir: f.dir, inside: f.inside, query: raw.slice(1).trim() }));
         }
@@ -193,6 +195,7 @@ Item {
         if (category === "All")
             for (const f of root.docResults.slice(0, 4))
                 withActions.push({ kind: "file", path: f.path, dir: f.dir, inside: f.inside, query: raw });
+        if (appCount < 3 && q.length >= 2 && ArchWiki.installed) withActions.push({ kind: "wiki-search", query: raw });
         if (appCount < 3 && q.length >= 2 && out.length === 0) withActions.push({ kind: "store", query: raw });
         return out.concat(withActions);
     }
@@ -224,6 +227,11 @@ Item {
             Chrono.startTimer(r.seconds);
         } else if (r.kind === "stopwatch") {
             if (!Chrono.swRunning) Chrono.toggleStopwatch();
+        } else if (r.kind === "wiki") {
+            ArchWiki.open(r.page);
+            Panels.launcherOpen = false;
+        } else if (r.kind === "wiki-search") {
+            Panels.wiki(r.query);
         } else if (r.kind === "store") {
             Panels.store(r.query);
         } else if (r.kind === "setting") {
@@ -365,7 +373,7 @@ Item {
         inset: root.gap
         icon: "search"
         title: search.text.startsWith(">") ? Tr.t("Run") : search.text.startsWith(":") ? Tr.t("Clipboard")
-            : search.text.startsWith("/") ? Tr.t("Files") : search.text.startsWith(";") ? Tr.t("Emoji") : Tr.t("Search")
+            : search.text.startsWith("/") ? Tr.t("Files") : search.text.startsWith(";") ? Tr.t("Emoji") : search.text.startsWith("?") ? Tr.t("Arch Wiki") : Tr.t("Search")
     }
 
     PanelSurface {
@@ -423,6 +431,7 @@ Item {
 
             onTextChanged: {
                 if (text === "" && !root.applying && root.active) { root.backToStart(); return; }
+                if (text.startsWith("?")) ArchWiki.setQuery(text.slice(1));
                 list.currentIndex = 0;
                 if (text === ":") Clipboard.refresh();
                 if (text.startsWith("/")) fileDebounce.restart(); else root.fileResults = [];
@@ -615,8 +624,8 @@ Item {
                         }
                         Icon {
                             anchors.centerIn: parent
-                            visible: entry.kind === "file" || entry.kind === "store"
-                            name: entry.kind === "store" ? "package" : entry.modelData.dir ? "folder" : entry.modelData.inside ? "search" : "external"
+                            visible: entry.kind === "file" || entry.kind === "store" || entry.kind === "wiki" || entry.kind === "wiki-search"
+                            name: entry.kind === "store" ? "package" : entry.kind === "wiki" || entry.kind === "wiki-search" ? "info" : entry.modelData.dir ? "folder" : entry.modelData.inside ? "search" : "external"
                             size: 16
                             color: entry.selected ? Theme.textOnAccent : Theme.subtext0
                         }
@@ -650,6 +659,8 @@ Item {
                                 : entry.kind === "timer" ? Tr.t("Timer") + " · " + Chrono.format(entry.modelData.seconds * 1000)
                                 : entry.kind === "stopwatch" ? Tr.t("Stopwatch")
                                 : entry.kind === "command" ? entry.modelData.title
+                                : entry.kind === "wiki" ? entry.modelData.page.title + (entry.modelData.page.section ? "  \u203a  " + entry.modelData.page.section : "")
+                                : entry.kind === "wiki-search" ? Tr.t("Search the Arch Wiki for \u201c") + entry.modelData.query + "\u201d"
                                 : entry.kind === "store" ? Tr.t("Search the Store for \u201c") + entry.modelData.query + "\u201d"
                                 : entry.kind === "run" ? entry.modelData.command
                                 : entry.kind === "emoji" ? entry.modelData.name
@@ -670,6 +681,8 @@ Item {
                                 : entry.kind === "window" ? Tr.t("Open window") + " · " + (entry.modelData.toplevel.workspace ? Tr.t("Workspace") + " " + entry.modelData.toplevel.workspace.id : entry.modelData.appId)
                                 : entry.kind === "timer" ? Tr.t("Start a timer")
                                 : entry.kind === "stopwatch" ? Tr.t("Start the stopwatch")
+                                : entry.kind === "wiki" ? (ArchWiki.plain(entry.modelData.page.snippet) || Tr.t("Arch Wiki, also without internet"))
+                                : entry.kind === "wiki-search" ? Tr.t("Arch Wiki, also without internet")
                                 : entry.kind === "store" ? Tr.t("Apps from Arch and the AUR, installed with a click")
                                 : entry.kind === "run" ? Tr.t("Shell command")
                                 : entry.kind === "emoji" ? ""

@@ -7,7 +7,7 @@ url="https://vyntarisos.com/"
 license=(GPL-3.0-or-later)
 install=vyntaris.install
 depends=(
-    hyprland quickshell kitty zsh zsh-autosuggestions zsh-syntax-highlighting
+    hyprland quickshell kitty zsh zsh-autosuggestions zsh-syntax-highlighting python
     pipewire pipewire-pulse wireplumber networkmanager networkmanager-openvpn bluez bluez-obex
     xdg-desktop-portal-hyprland xdg-desktop-portal-gtk adw-gtk-theme papirus-icon-theme qt6ct
     inter-font ttf-jetbrains-mono ttf-nerd-fonts-symbols-mono noto-fonts noto-fonts-emoji
@@ -21,6 +21,7 @@ depends=(
     gtk4 libadwaita libheif btop
 )
 optdepends=(
+    'arch-wiki-docs: the Arch Wiki without internet (SUPER+SHIFT+H, or ? in the launcher)'
     'thunar: files (SUPER+E)'
     'firefox: web browser (SUPER+B)'
     'code: code editor (SUPER+C)'

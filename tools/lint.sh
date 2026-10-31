@@ -11,7 +11,7 @@ for f in install.sh iso/build.sh iso/airootfs/usr/local/bin/* system/*.sh system
         *) shells+=("$f") ;;
     esac
 done
-pythons+=(system/lib/*.py tools/*.py)
+pythons+=(system/lib/*.py tools/*.py config/quickshell/scripts/*.py)
 packaging=(pkg/PKGBUILD pkg/vyntaris.install)
 
 for f in "${shells[@]}" "${packaging[@]}"; do bash -n "$f" || bad=1; done

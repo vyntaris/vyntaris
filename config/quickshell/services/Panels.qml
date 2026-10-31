@@ -24,6 +24,8 @@ Singleton {
     property bool wifiOpen: false
     property bool wifiTyping: false
     property bool vpnOpen: false
+    property bool wikiOpen: false
+    property string wikiQuery: ""
     property bool keyboardOpen: false
     property bool bluetoothOpen: false
     property bool phoneOpen: false
@@ -42,13 +44,14 @@ Singleton {
 
     readonly property var islandPanels: [
         "launcher", "system", "battery", "wallpaper", "control", "media", "updates", "packages", "cloud", "night", "game", "sound", "overview",
-        "awake", "apps", "wifi", "vpn", "keyboard", "bluetooth", "phone", "capture", "power", "privacy", "gpu", "timer",
+        "awake", "apps", "wiki", "wifi", "vpn", "keyboard", "bluetooth", "phone", "capture", "power", "privacy", "gpu", "timer",
     ]
 
     function only(name) {
         for (const p of islandPanels)
             if (p !== name && root[p + "Open"]) root[p + "Open"] = false;
     }
+    function wiki(query) { wikiQuery = query ?? ""; wikiOpen = true; }
     function closeAll() { only(""); }
 
     onLauncherOpenChanged: if (launcherOpen) only("launcher")
@@ -68,6 +71,7 @@ Singleton {
     onAppsOpenChanged: if (appsOpen) only("apps")
     onWifiOpenChanged: if (wifiOpen) only("wifi")
     onVpnOpenChanged: if (vpnOpen) only("vpn")
+    onWikiOpenChanged: if (wikiOpen) only("wiki")
     onKeyboardOpenChanged: if (keyboardOpen) only("keyboard")
     onBluetoothOpenChanged: if (bluetoothOpen) only("bluetooth")
     onPhoneOpenChanged: if (phoneOpen) only("phone")
@@ -159,5 +163,5 @@ Singleton {
     property Timer commitExpiry: Timer { interval: 500; onTriggered: root.overviewCommitPending = false }
 
     readonly property bool anyIslandPanel: islandPanels.some(p => root[p + "Open"])
-    readonly property bool needsKeyboard: wifiTyping || launcherOpen || appsOpen || powerOpen || wallpaperOpen || overviewOpen || keyboardOpen || captureOpen || timerOpen || nightOpen
+    readonly property bool needsKeyboard: wifiTyping || launcherOpen || appsOpen || wikiOpen || powerOpen || wallpaperOpen || overviewOpen || keyboardOpen || captureOpen || timerOpen || nightOpen
 }

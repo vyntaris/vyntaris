@@ -93,6 +93,38 @@ case_startup() {
     check "the login screen gets the same picture" "$(cmp -s "$H/.cache/vyntaris/accent-wallpaper/current.jpg" "$H/.cache/vyntaris/accent-wallpaper/a6e3a1.jpg" && echo same)" same
 }
 
+case_wiki() {
+    sleep 11
+    pointer 5 1000
+    ipc wiki open; sleep 1.5; shot wiki-home
+    wtype pacman; sleep 0.8; shot wiki-title
+    wtype -k Return; sleep 1.5
+    check "a page opens" "$(tail -1 "$H/opened" 2>/dev/null | sed 's|.*/vyntaris/wiki/||')" "en/Pacman.html"
+    check "in the desktop's colours" "$(grep -c -- '--wiki-accent: #cba6f7' "$H/.cache/vyntaris/wiki/ArchWikiOffline.css")" 1
+    ipc wiki search dkms; sleep 1.5; shot wiki-text
+    ipc wiki search "parallel downloads"; sleep 1.5; shot wiki-section; wtype -k Return; sleep 1.5
+    check "a section opens at its heading" "$(tail -1 "$H/opened" | sed 's|.*/vyntaris/wiki/||')" "en/Pacman.html#Parallel_downloads"
+    ipc wiki search pacmna; sleep 1.5; shot wiki-typo
+    wtype -k Tab; sleep 0.8; shot wiki-languages; wtype -k Escape; sleep 0.5; wtype -k Escape; sleep 1
+    ipc launcher open; sleep 1.2; wtype '?systemd'; sleep 0.8; shot launcher-wiki; wtype -k Return; sleep 1.5
+    check "the launcher's ? opens one too" "$(tail -1 "$H/opened" | sed 's|.*/vyntaris/wiki/||')" "en/Systemd.html"
+    ipc launcher open; sleep 1.2; wtype 'wireguard'; sleep 0.8; shot launcher-offer; wtype -k Escape; sleep 1
+    # What try-here.sh does: a link in the home folder wins over the installed shell.
+    kill "$QS"; sleep 1
+    ln -s "$Q" "$H/.config/quickshell/vyntaris"
+    qs -c vyntaris > "$S/shell-link.log" 2>&1 &
+    QS=$!
+    sleep 10
+    qs -c vyntaris ipc call wiki open >> "$S/ipc.log" 2>&1
+    check "the link overrides the installed shell" "$?" 0
+    sleep 1.5; shot wiki-through-link
+}
+
+case_wikinone() {
+    sleep 11
+    ipc wiki open; sleep 1.5; shot wiki-not-installed
+}
+
 if [ "${1:-}" = "--inside" ]; then
     S="$2"; Q="$S/q"; H="$S/home"; PID_AWWW=""
     awww-daemon > "$S/awww.log" 2>&1 &
@@ -123,6 +155,9 @@ run() {
     cp -r "$R/config/quickshell" "$Q"
     grep -rl '/usr/share/backgrounds/vyntaris' "$Q/config" "$Q/modules" | xargs sed -i "s|/usr/share/backgrounds/vyntaris|$Q/assets/wallpapers|g"
     printf '%s\n' "$3" > "$H/.config/quickshell/settings.json"
+    # Nothing leaves the test: a page that would open is only written down, and the wiki can be absent.
+    sed -i 's|Config.launch(\["xdg-open", target\])|Quickshell.execDetached(["sh", "-c", "echo \\"$1\\" >> \\"$HOME/opened\\"", "sh", target])|' "$Q/services/ArchWiki.qml"
+    [ "$1" = wikinone ] && sed -i 's|^root=.*|root=/nonexistent|' "$Q/scripts/wiki.sh"
     touch "$H/.local/state/quickshell/by-shell/vyntaris/welcome-done"
     ln -s "$HOME/.local/share/applications" "$H/.local/share/applications"
     ln -s "$HOME/.local/share/icons" "$H/.local/share/icons"
@@ -158,13 +193,15 @@ import json,os,sys
     sleep 1
 }
 
-which="${2:-panels screenshot pointer accent startup}"
+which="${2:-panels screenshot pointer accent startup wiki wikinone}"
 for c in $which; do
     case "$c" in
         panels) run panels 120 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         screenshot) run screenshot 90 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         pointer) run pointer 70 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         accent) run accent 70 "{\"theme\":{$BASE,\"wallpaperAccent\":true},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
+        wiki) run wiki 90 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
+        wikinone) run wikinone 40 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         startup) run startup 60 "{\"theme\":{$BASE,\"accent\":\"green\"},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
     esac
 done

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Arch Wiki
+GenericName=Documentation
+Comment=Search and read the Arch Wiki, also without internet
+Icon=help-browser
+Exec=qs -c vyntaris ipc call wiki open
+Categories=System;Documentation;
+Keywords=arch;wiki;help;docs;documentation;manual;how to;
