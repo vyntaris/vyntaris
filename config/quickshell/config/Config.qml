@@ -115,6 +115,7 @@ Singleton {
         return Quickshell.shellPath("assets/sounds/notification" + (n === "ding" ? "" : "-" + n) + ".wav");
     }
 
+    property bool loaded: false
     readonly property string defaultWallpaper: "/usr/share/backgrounds/vyntaris/default.jpg"
     SystemClock { id: wallpaperClock; precision: SystemClock.Minutes }
     readonly property int minuteOfDay: wallpaperClock.date.getHours() * 60 + wallpaperClock.date.getMinutes()
@@ -125,6 +126,11 @@ Singleton {
     }
     function wallpaperFile() {
         return wallpaperFileOf(wallpaperPath);
+    }
+    function wallpaperPending() {
+        if (!loaded) return true;
+        const path = wallpaperPath;
+        return path === defaultWallpaper ? AccentWallpaper.pending : path.startsWith("heic:") && !DynamicWallpaper.known(path);
     }
 
     function expandHome(p) {
@@ -149,9 +155,11 @@ Singleton {
             if (root.leader) hyprReload.restart();
         }
         onLoadFailed: error => {
+            root.loaded = true;
             if (error === FileViewError.FileNotFound) writeAdapter();
         }
         onLoaded: {
+            root.loaded = true;
             let ok = false;
             try { const d = JSON.parse(text()); ok = d !== null && typeof d === "object" && !Array.isArray(d); } catch (e) {}
             if (ok) { if (root.leader) Qt.callLater(root.dropDim); return; }

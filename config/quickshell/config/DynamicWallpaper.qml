@@ -16,6 +16,10 @@ Singleton {
         return dir + "/" + h.toString(16);
     }
 
+    function known(path) {
+        return sets[path] !== undefined;
+    }
+
     function fileAt(path, minute) {
         const set = sets[path];
         if (!set) {

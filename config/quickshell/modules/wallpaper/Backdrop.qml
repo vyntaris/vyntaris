@@ -9,7 +9,8 @@ Scope {
     readonly property string file: Config.wallpaperFile()
     readonly property string resize: ({ crop: "crop", fit: "fit", stretch: "stretch" })[Config.wallpaper.fillMode] ?? "crop"
     readonly property string fill: String(Theme.crust).slice(1, 7)
-    readonly property string picture: [file, resize, fill].join("\n")
+    readonly property bool waiting: Config.wallpaperPending()
+    readonly property string picture: [file, resize, fill, waiting].join("\n")
 
     property bool started: false
     onPictureChanged: showSoon.restart()
@@ -17,6 +18,7 @@ Scope {
     Timer { id: showSoon; interval: 40; onTriggered: root.show() }
 
     function show() {
+        if (waiting) return;
         const timed = Walls.isDynamic(Config.wallpaperPath);
         const ms = !started ? 0 : timed ? 3000 : Theme.duration(950);
         started = true;

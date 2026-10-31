@@ -11,6 +11,9 @@ Singleton {
     readonly property string baked: "#cba6f7"
     readonly property string accent: String(Theme.accent)
     property string ready: ""
+    property bool failed: false
+    // Until the first picture in this accent is painted there is nothing right to show.
+    readonly property bool pending: !ready && !failed && accent !== baked
     readonly property string file: !ready || ready === baked ? Config.defaultWallpaper : dir + "/" + ready.slice(1) + ".jpg"
 
     onAccentChanged: paint.restart()
@@ -32,5 +35,6 @@ Singleton {
             + 'cp "$out" "$d/current.tmp" && mv "$d/current.tmp" "$d/current.jpg"; printf "%s" "$hex"',
             "sh", root.accent, root.dir, Config.defaultWallpaper, root.baked]
         stdout: StdioCollector { onStreamFinished: if (text.trim() === root.accent) root.ready = root.accent }
+        onExited: code => { if (code !== 0) root.failed = true; }
     }
 }
