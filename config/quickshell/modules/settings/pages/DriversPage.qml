@@ -18,13 +18,13 @@ SettingsPage {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: 14
+        spacing: Theme.space14
         ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1000
-            spacing: 2
+            spacing: Theme.space2
             Label {
-                font.pixelSize: Theme.fontSize + 3
+                font.pixelSize: Theme.fontSizeLarge
                 font.weight: Font.DemiBold
                 text: Drivers.installing ? Tr.t("Installing…")
                     : Drivers.surveying && Drivers.devices.length === 0 ? Tr.t("Looking at the hardware…")
@@ -61,7 +61,7 @@ SettingsPage {
         Layout.fillWidth: true
         wrapMode: Text.Wrap
         color: Theme.subtext0
-        font.pixelSize: Theme.fontSizeSmall + 1
+        font.pixelSize: Theme.fontSizeLabel
         text: Drivers.nvidiaAtStart
             ? Tr.t("A monitor on the card's ports (HDMI on most laptops) works as soon as it's plugged in. Turned off, about 370 MB of memory stay free; games and prime-run start the driver themselves.")
             : Tr.t("About 370 MB of memory stay free. Games and prime-run start the driver themselves; for a monitor on the card's ports (HDMI on most laptops), turn this on and restart.")
@@ -75,17 +75,17 @@ SettingsPage {
             required property var modelData
             readonly property bool ready: modelData.missing.length === 0 && modelData.unavailable.length === 0
             Layout.fillWidth: true
-            spacing: 12
+            spacing: Theme.space12
             Icon {
                 Layout.alignment: Qt.AlignTop
-                Layout.topMargin: 2
+                Layout.topMargin: Theme.space2
                 name: page.icon(row.modelData.kind)
                 size: 16
-                color: row.ready ? Theme.accent : Theme.warning
+                color: row.ready ? Theme.accentInk : Theme.warning
             }
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: Theme.space2
                 Label { Layout.fillWidth: true; wrapMode: Text.Wrap; font.weight: Font.DemiBold; text: row.modelData.name }
                 Caption {
                     text: row.modelData.kind + " · "
@@ -98,7 +98,7 @@ SettingsPage {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     color: Theme.subtext0
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     text: row.modelData.note
                 }
             }

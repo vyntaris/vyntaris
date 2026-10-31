@@ -50,7 +50,7 @@ function page(id) {
 }
 
 var rows = [
-    { page: "appearance", title: "Flavor" },
+    { page: "appearance", title: "Theme" },
     { page: "appearance", title: "Light from" },
     { page: "appearance", title: "Dark from" },
     { page: "appearance", title: "Accent" },
@@ -61,7 +61,7 @@ var rows = [
     { page: "appearance", title: "Windows open" },
     { page: "appearance", title: "Workspace switch" },
     { page: "appearance", title: "Login sound" },
-    { page: "appearance", title: "Theme apps" },
+    { page: "appearance", title: "Match apps to theme" },
     { page: "appearance", title: "Font" },
     { page: "appearance", title: "Monospace font" },
     { page: "wallpaper", title: "Wallpaper" },
@@ -143,6 +143,8 @@ var rows = [
     { page: "lock", title: "Widgets" },
     { page: "drivers", title: "Start its driver with the system" },
     { page: "access", title: "High contrast" },
+    { page: "access", title: "Text size" },
+    { page: "access", title: "Animations" },
     { page: "access", title: "Volume above 100%" },
     { page: "access", title: "Cursor size" },
     { page: "about", title: "System" },

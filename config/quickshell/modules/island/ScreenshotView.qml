@@ -18,9 +18,9 @@ Item {
     PanelHeader {
         icon: "image"
         title: Tr.t("Screenshot")
-        Icon { name: "check"; size: 13; stroke: 2.2; color: Theme.accent }
-        Label { caps: true; color: Theme.accent; text: Tr.t("Copied") }
-        HeaderButton { icon: "close"; onClicked: Screenshot.dismiss() }
+        Icon { name: "check"; size: 13; stroke: 2.2; color: Theme.accentInk }
+        Label { overline: true; color: Theme.accentInk; text: Tr.t("Copied") }
+        HeaderButton { icon: "close"; label: Tr.t("Close"); onClicked: Screenshot.dismiss() }
     }
 
     PanelBody {
@@ -28,7 +28,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 14
+            spacing: Theme.space14
 
             ClippingRectangle {
                 implicitWidth: 152
@@ -48,7 +48,7 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: Theme.space8
 
                 Field {
                     Layout.fillWidth: true
@@ -60,11 +60,11 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: Theme.space6
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "image"; text: Tr.t("Edit"); onClicked: Screenshot.editShot() }
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "external"; text: Tr.t("Open"); onClicked: Screenshot.open() }
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "folder"; text: Tr.t("Folder"); onClicked: Screenshot.openFolder() }
-                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "trash"; text: Tr.t("Delete"); danger: true; onClicked: Screenshot.remove() }
+                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "trash"; text: Tr.t("Trash"); danger: true; onClicked: Screenshot.remove() }
                 }
             }
         }

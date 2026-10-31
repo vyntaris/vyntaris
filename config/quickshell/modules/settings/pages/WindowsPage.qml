@@ -10,7 +10,7 @@ SettingsPage {
         title: Tr.t("Rounding")
         Choice {
             enabled: Config.bar.corners !== "square" && Config.bar.inside !== "sharp"
-            opacity: enabled ? 1 : 0.4
+            opacity: enabled ? 1 : Theme.disabledOpacity
             options: [{ value: 0, label: Tr.t("None") }, { value: 10, label: Tr.t("Normal") }, { value: 16, label: Tr.t("Large") }]
             current: Config.windows.rounding
             onPicked: v => { Config.windows.rounding = v; Config.saveSoon(); }

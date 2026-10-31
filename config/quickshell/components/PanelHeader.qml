@@ -15,10 +15,10 @@ RowLayout {
     x: inset - flare
     width: parent.width - 2 * inset + 2 * flare
     height: Theme.barHeight
-    spacing: 8
+    spacing: Theme.space8
 
-    Icon { visible: root.icon !== ""; name: root.icon; size: 14; color: root.tint }
-    Label { caps: true; color: root.tint; text: root.title }
+    Icon { visible: root.icon !== ""; name: root.icon; size: 14; color: Theme.ink(root.tint) }
+    Label { overline: true; color: Theme.ink(root.tint); text: root.title }
     Item { Layout.fillWidth: true }
-    RowLayout { id: trail; spacing: 6 }
+    RowLayout { id: trail; spacing: Theme.space6 }
 }

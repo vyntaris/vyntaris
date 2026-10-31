@@ -22,7 +22,7 @@ Item {
 
     component Value: Label {
         mono: true
-        font.pixelSize: Theme.fontSizeSmall + 1
+        font.pixelSize: Theme.fontSizeLabel
         horizontalAlignment: Text.AlignRight
         Layout.minimumWidth: 58
     }
@@ -34,10 +34,10 @@ Item {
         property string valueText
         property color tint: value > 0.85 ? Theme.error : value > 0.65 ? Theme.warning : Theme.accent
         Layout.fillWidth: true
-        spacing: 10
+        spacing: Theme.space10
 
         Icon { name: parent.icon; size: 16; color: Theme.overlay1 }
-        Label { Layout.preferredWidth: 64; caps: true; color: Theme.overlay1; text: parent.label }
+        Label { Layout.preferredWidth: Theme.fontSizeSmall * 6.5; overline: true; color: Theme.overlay1; text: parent.label }
         Meter {
             Layout.fillWidth: true
             visible: parent.value >= 0
@@ -54,15 +54,16 @@ Item {
         title: Tr.t("System")
         HeaderButton {
             icon: "terminal"
+            label: Tr.t("Terminal")
             onClicked: { Panels.systemOpen = false; Quickshell.execDetached(["vyntaris-monitor"]); }
         }
-        Label { caps: true; color: Theme.overlay1; text: Tr.t("Up") }
-        Label { mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: root.uptimeText(root.s.uptime) }
+        Label { overline: true; color: Theme.overlay1; text: Tr.t("Uptime") }
+        Label { mono: true; font.pixelSize: Theme.fontSizeLabel; text: root.uptimeText(root.s.uptime) }
     }
 
     PanelBody {
         id: content
-        spacing: 10
+        spacing: Theme.space10
 
         StatRow {
             icon: "cpu"
@@ -96,22 +97,22 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: Theme.space10
 
             Icon { name: "wifi"; size: 16; color: Theme.overlay1 }
-            Label { Layout.preferredWidth: 64; caps: true; color: Theme.overlay1; text: Tr.t("Network") }
+            Label { Layout.preferredWidth: Theme.fontSizeSmall * 6.5; overline: true; color: Theme.overlay1; text: Tr.t("Network") }
             Item { Layout.fillWidth: true }
-            Icon { name: "arrow-down"; size: 13; color: Theme.accent }
+            Icon { name: "arrow-down"; size: 13; color: Theme.accentInk }
             Label {
                 mono: true
-                font.pixelSize: Theme.fontSizeSmall + 1
+                font.pixelSize: Theme.fontSizeLabel
                 Layout.minimumWidth: 72
                 text: root.s.formatBytes(root.s.rxRate) + "/s"
             }
             Icon { name: "arrow-up"; size: 13; color: Theme.overlay1 }
             Label {
                 mono: true
-                font.pixelSize: Theme.fontSizeSmall + 1
+                font.pixelSize: Theme.fontSizeLabel
                 Layout.minimumWidth: 72
                 horizontalAlignment: Text.AlignRight
                 text: root.s.formatBytes(root.s.txRate) + "/s"

@@ -7,7 +7,7 @@ import qs.services
 
 Item {
     id: root
-    readonly property real hang: 92
+    readonly property real hang: actionRow.implicitHeight + 20
     readonly property bool active: Panels.powerOpen
 
     width: fullWidth
@@ -23,9 +23,10 @@ Item {
     ]
 
     readonly property var actions: allActions.filter(a => a.id !== "hibernate" || Sleep.canHibernate)
-    readonly property real fullWidth: Math.max(480, actions.length * 76 + 40)
+    readonly property real fullWidth: Math.max(480, actions.length * 84 + 40)
 
-    property int current: actions.length - 1
+    // Never starts on what ends the session: Enter alone only ever locks.
+    property int current: 0
     property string pending: ""
 
     function enabled(a) { return a.id !== "hibernate" || Sleep.canHibernate; }
@@ -50,7 +51,7 @@ Item {
     Component.onCompleted: if (active) activeChanged()
     onActiveChanged: {
         pending = "";
-        if (active) { current = actions.length - 1; uptimeFile.reload(); focusTimer.restart(); }
+        if (active) { current = 0; uptimeFile.reload(); focusTimer.restart(); }
     }
     Timer { id: focusTimer; interval: 30; onTriggered: keys.forceActiveFocus() }
     Connections {
@@ -83,16 +84,17 @@ Item {
 
     PanelHeader {
         icon: "power"
-        title: root.pending ? Tr.t("Press again to confirm") : Tr.t("Goodbye, ") + Quickshell.env("USER")
+        title: root.pending ? Tr.t("Press again to confirm") : Tr.f("Goodbye, {0}", Quickshell.env("USER"))
         tint: root.pending ? Theme.error : Theme.accent
-        Label { caps: true; color: Theme.overlay1; text: Tr.t("Up") }
-        Label { mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: root.uptime }
+        Label { overline: true; color: Theme.overlay1; text: Tr.t("Uptime") }
+        Label { mono: true; font.pixelSize: Theme.fontSizeLabel; text: root.uptime }
     }
 
     Row {
+        id: actionRow
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.barHeight + 8
-        spacing: 12
+        spacing: Theme.space12
 
         Repeater {
             model: root.actions
@@ -106,11 +108,11 @@ Item {
                 readonly property bool arming: root.pending === modelData.id
 
                 icon: modelData.icon
-                label: arming ? Tr.t("Confirm") : modelData.label
+                label: arming ? Tr.f("{0}?", modelData.label) : modelData.label
                 tint: arming ? Theme.error : Theme.accent
                 on: arming || selected
                 enabled: usable
-                opacity: usable ? 1 : 0.35
+                opacity: usable ? 1 : Theme.disabledOpacity
                 onEntered: { if (root.current !== btn.index) root.pending = ""; root.current = btn.index; }
                 onClicked: root.activate(btn.index)
 

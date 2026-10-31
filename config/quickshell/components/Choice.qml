@@ -7,7 +7,29 @@ Item {
     property var current
     // Every option the same share of a width given from outside, instead of just wide enough for its word.
     property bool stretch: false
+    property string label: {
+        for (let p = parent; p; p = p.parent)
+            if (p.isOption === true) return p.title;
+        return "";
+    }
     signal picked(var value)
+
+    function shift(by) {
+        const next = (Math.max(0, index) + by + options.length) % options.length;
+        if (options.length > 0) picked(options[next].value);
+    }
+    activeFocusOnTab: enabled
+    Keys.onLeftPressed: shift(-1)
+    Keys.onUpPressed: shift(-1)
+    Keys.onRightPressed: shift(1)
+    Keys.onDownPressed: shift(1)
+    Accessible.role: Accessible.List
+    Accessible.name: label
+    Accessible.description: options[index]?.label ?? ""
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    FocusRing { ringRadius: Theme.r(height / 2) }
+    opacity: enabled ? 1 : Theme.disabledOpacity
 
     readonly property int index: options.findIndex(o => o.value === current)
 
@@ -51,7 +73,7 @@ Item {
                 Label {
                     id: optLabel
                     anchors.centerIn: parent
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     font.weight: root.index === index ? Font.DemiBold : Font.Normal
                     color: root.index === index ? Theme.textOnAccent : optArea.containsMouse ? Theme.text : Theme.subtext0
                     text: modelData.label

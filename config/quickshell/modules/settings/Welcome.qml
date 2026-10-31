@@ -108,16 +108,16 @@ Scope {
         scale: tileArea.pressed ? 0.96 : tileArea.containsMouse ? 1.02 : 1
         Behavior on scale { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
         Behavior on color { ColorAnim {} }
-        Item { id: tileBody; anchors { fill: parent; margins: 8; bottomMargin: tile.label ? 30 : 8 } }
+        Item { id: tileBody; anchors { fill: parent; margins: Theme.space8; bottomMargin: tile.label ? 30 : 8 } }
         Label {
             visible: tile.label !== ""
-            anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 8 }
-            font.pixelSize: Theme.fontSizeSmall + 1
+            anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space8 }
+            font.pixelSize: Theme.fontSizeLabel
             font.weight: tile.selected ? Font.DemiBold : Font.Normal
             color: tile.selected ? Theme.text : Theme.subtext0
             text: tile.label
         }
-        MouseArea { id: tileArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: tile.clicked() }
+        PressArea { label: tile.label; role: Accessible.RadioButton; checked: tile.selected; id: tileArea; anchors.fill: parent; onClicked: tile.clicked() }
     }
 
     component OptionRow: RowLayout {
@@ -126,7 +126,7 @@ Scope {
         property string icon
         default property alias control: optSlot.data
         Layout.fillWidth: true
-        spacing: 14
+        spacing: Theme.space14
         Rectangle {
             implicitWidth: 34; implicitHeight: 34; radius: 17
             color: Theme.accent
@@ -147,7 +147,7 @@ Scope {
         ColumnLayout {
             id: pageBody
             anchors.fill: parent
-            spacing: 16
+            spacing: Theme.space16
         }
     }
 
@@ -155,8 +155,8 @@ Scope {
         property string title
         property string sub
         Layout.fillWidth: true
-        spacing: 4
-        Label { font.pixelSize: Theme.fontSize + 13; font.weight: Font.Bold; text: parent.title }
+        spacing: Theme.space4
+        Label { font.pixelSize: Theme.fontSizeDisplay; font.weight: Font.Bold; text: parent.title }
         Label { visible: parent.sub !== ""; color: Theme.subtext0; text: parent.sub }
     }
 
@@ -212,7 +212,7 @@ Scope {
                     anchors.centerIn: parent
                     width: Math.min(1000, parent.width - 80)
                     height: Math.min(660, parent.height - 80)
-                    radius: Theme.r(26)
+                    radius: Theme.r(24)
                     clip: true
 
                     readonly property real islandY: -(parent.height / 2 - Theme.barHeight / 2)
@@ -255,12 +255,12 @@ Scope {
                             Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: rail.radius; color: rail.color }
 
                             ColumnLayout {
-                                anchors { fill: parent; margins: 26 }
-                                spacing: 4
+                                anchors { fill: parent; margins: Theme.space24 }
+                                spacing: Theme.space4
 
-                                Icon { name: Distro.glyph; size: 30; color: Theme.accent }
-                                Label { Layout.topMargin: 10; font.pixelSize: Theme.fontSize + 5; font.weight: Font.Bold; text: Tr.t("Setup") }
-                                Caption { Layout.bottomMargin: 22; text: Distro.name }
+                                Icon { name: Distro.glyph; size: 30; color: Theme.accentInk }
+                                Label { Layout.topMargin: Theme.space10; font.pixelSize: Theme.fontSizeTitle; font.weight: Font.Bold; text: Tr.t("Setup") }
+                                Caption { Layout.bottomMargin: Theme.space24; text: Distro.name }
 
                                 Item {
                                     Layout.fillWidth: true
@@ -276,7 +276,7 @@ Scope {
                                     }
                                     Column {
                                         width: parent.width
-                                        spacing: 4
+                                        spacing: Theme.space4
                                         Repeater {
                                             model: root.steps
                                             Item {
@@ -288,15 +288,15 @@ Scope {
                                                 width: parent.width
                                                 height: 36
                                                 RowLayout {
-                                                    anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                                                    spacing: 12
+                                                    anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                                                    spacing: Theme.space12
                                                     Rectangle {
                                                         implicitWidth: 22; implicitHeight: 22; radius: 11
                                                         color: stepItem.done ? Theme.accent : "transparent"
                                                         border { width: 1.5; color: stepItem.current ? Theme.textOnAccent : stepItem.done ? Theme.accent : Theme.overlay0 }
                                                         Behavior on color { ColorAnim {} }
                                                         Icon { anchors.centerIn: parent; visible: stepItem.done; name: "check"; size: 12; stroke: 2.4; color: Theme.textOnAccent }
-                                                        Label { anchors.centerIn: parent; visible: !stepItem.done; mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: stepItem.current ? Theme.textOnAccent : stepItem.current ? Theme.accent : Theme.overlay1; text: stepItem.index + 1 }
+                                                        Label { anchors.centerIn: parent; visible: !stepItem.done; mono: true; font.pixelSize: Theme.fontSizeSmall; color: stepItem.current ? Theme.textOnAccent : stepItem.current ? Theme.accentInk : Theme.overlay1; text: stepItem.index + 1 }
                                                     }
                                                     Label {
                                                         Layout.fillWidth: true
@@ -305,7 +305,7 @@ Scope {
                                                         text: stepItem.modelData.label
                                                     }
                                                 }
-                                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.step = stepItem.index }
+                                                PressArea { label: stepItem.modelData.label; anchors.fill: parent; onClicked: root.step = stepItem.index }
                                             }
                                         }
                                     }
@@ -318,8 +318,8 @@ Scope {
                         ColumnLayout {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            Layout.margins: 34
-                            spacing: 20
+                            Layout.margins: Theme.space36
+                            spacing: Theme.space20
 
                             Item {
                                 Layout.fillWidth: true
@@ -368,8 +368,8 @@ Scope {
                                     }
                                     Repeater {
                                         model: [
-                                            { text: Tr.t("Welcome") + (root.greetName ? ", " + root.greetName : ""), size: Theme.fontSize + 21, bold: true, color: Theme.text },
-                                            { text: Tr.t("Let's make ") + Distro.name + Tr.t(" yours."), size: Theme.fontSize + 3, bold: false, color: Theme.subtext0 },
+                                            { text: Tr.t("Welcome") + (root.greetName ? ", " + root.greetName : ""), size: Theme.fontSizeHero, bold: true, color: Theme.text },
+                                            { text: Tr.f("Let's make {0} yours.", Distro.name), size: Theme.fontSizeLarge, bold: false, color: Theme.subtext0 },
                                         ]
                                         Label {
                                             required property var modelData
@@ -394,7 +394,7 @@ Scope {
                                     Caption { text: Tr.t("Mode") }
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        spacing: 12
+                                        spacing: Theme.space12
                                         Repeater {
                                             model: [{ value: "mocha", label: Tr.t("Dark") }, { value: "latte", label: Tr.t("Light") }]
                                             Tile {
@@ -413,14 +413,14 @@ Scope {
                                                     Rectangle { x: 0; y: 0; width: parent.width; height: 10; radius: 10; color: modeTile.pal.crust }
                                                     Rectangle { x: 10; y: 20; width: parent.width * 0.5; height: 6; radius: 3; color: modeTile.pal.text; opacity: 0.8 }
                                                     Rectangle { x: 10; y: 32; width: parent.width * 0.35; height: 6; radius: 3; color: modeTile.pal.overlay1 }
-                                                    Rectangle { anchors { right: parent.right; bottom: parent.bottom; margins: 10 } width: 26; height: 12; radius: 6; color: Theme.accentIn(modeTile.pal) }
+                                                    Rectangle { anchors { right: parent.right; bottom: parent.bottom; margins: Theme.space10 } width: 26; height: 12; radius: 6; color: Theme.accentIn(modeTile.pal) }
                                                 }
                                             }
                                         }
                                     }
-                                    Caption { Layout.topMargin: 4; text: Tr.t("Accent") }
+                                    Caption { Layout.topMargin: Theme.space4; text: Tr.t("Accent") }
                                     Row {
-                                        spacing: 8
+                                        spacing: Theme.space8
                                         Repeater {
                                             model: Palettes.accentChoices
                                             AccentSwatch { required property string modelData; accent: modelData }
@@ -430,10 +430,10 @@ Scope {
                                             color: Config.theme.wallpaperAccent ? Theme.accent : Theme.alpha(Theme.text, 0.06)
                                             border { width: Config.theme.wallpaperAccent ? 2 : 1; color: Config.theme.wallpaperAccent ? Theme.accent : Theme.glassRim }
                                             Icon { anchors.centerIn: parent; name: "image"; size: 14; color: Config.theme.wallpaperAccent ? Theme.textOnAccent : Theme.subtext0 }
-                                            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { Config.theme.wallpaperAccent = !Config.theme.wallpaperAccent; root.changed(); } }
+                                            PressArea { label: Tr.t("Accent from wallpaper"); role: Accessible.CheckBox; checked: Config.theme.wallpaperAccent; anchors.fill: parent; onClicked: { Config.theme.wallpaperAccent = !Config.theme.wallpaperAccent; root.changed(); } }
                                         }
                                     }
-                                    Caption { Layout.topMargin: 4; text: Tr.t("Wallpaper") }
+                                    Caption { Layout.topMargin: Theme.space4; text: Tr.t("Wallpaper") }
                                     GridLayout {
                                         Layout.fillWidth: true
                                         Layout.fillHeight: true
@@ -474,7 +474,7 @@ Scope {
                                     Caption { text: Tr.t("Bar") }
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        spacing: 12
+                                        spacing: Theme.space12
                                         Repeater {
                                             model: BarStyles.styles
                                             Tile {
@@ -507,7 +507,7 @@ Scope {
                                         }
                                     }
                                     OptionRow {
-                                        Layout.topMargin: 6
+                                        Layout.topMargin: Theme.space6
                                         icon: "windows"; title: Tr.t("Bar height")
                                         Choice {
                                             options: [{ value: 28, label: Tr.t("Compact") }, { value: 32, label: Tr.t("Normal") }, { value: 36, label: Tr.t("Tall") }]
@@ -540,7 +540,7 @@ Scope {
                                     Caption { text: Tr.t("Layouts") }
                                     Flow {
                                         Layout.fillWidth: true
-                                        spacing: 8
+                                        spacing: Theme.space8
                                         Repeater {
                                             model: Keyboard.entries
                                             Rectangle {
@@ -548,19 +548,19 @@ Scope {
                                                 required property int index
                                                 implicitWidth: kbRow.implicitWidth + 24
                                                 implicitHeight: 36
-                                                radius: Theme.r(18)
+                                                radius: Theme.r(16)
                                                 color: Theme.accent
                                                 RowLayout {
                                                     id: kbRow
                                                     anchors.centerIn: parent
-                                                    spacing: 8
+                                                    spacing: Theme.space8
                                                     Label { mono: true; font.weight: Font.DemiBold; color: Theme.textOnAccent; text: modelData.code }
                                                     Label { color: Theme.textOnAccent; text: modelData.name }
                                                     Icon {
                                                         visible: Keyboard.entries.length > 1
                                                         name: "close"; size: 12
                                                         color: Theme.textOnAccent
-                                                        MouseArea { id: kbX; anchors.fill: parent; anchors.margins: -5; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Keyboard.remove(index) }
+                                                        PressArea { label: Tr.t("Remove"); id: kbX; anchors.fill: parent; anchors.margins: -5; onClicked: Keyboard.remove(index) }
                                                     }
                                                 }
                                             }
@@ -569,7 +569,7 @@ Scope {
                                     Field { id: kbSearch; Layout.fillWidth: true; placeholder: Tr.t("Add a layout") }
                                     Flow {
                                         Layout.fillWidth: true
-                                        spacing: 8
+                                        spacing: Theme.space8
                                         visible: kbSearch.text !== ""
                                         Repeater {
                                             model: Keyboard.search(kbSearch.text, 6)
@@ -581,7 +581,7 @@ Scope {
                                             }
                                         }
                                     }
-                                    Caption { Layout.topMargin: 6; text: Tr.t("Time zone · ") + TimeZone.city(TimeZone.current) + ", " + TimeZone.country(TimeZone.current) }
+                                    Caption { Layout.topMargin: Theme.space6; text: Tr.f("Time zone · {0}", TimeZone.city(TimeZone.current) + ", " + TimeZone.country(TimeZone.current)) }
                                     SearchField { id: tzField; Layout.fillWidth: true; placeholder: Tr.t("A city or a country…") }
                                     PickList {
                                         maxRows: 4
@@ -590,7 +590,7 @@ Scope {
                                         onPicked: z => { TimeZone.set(z); tzField.text = ""; }
                                     }
                                     OptionRow {
-                                        Layout.topMargin: 6
+                                        Layout.topMargin: Theme.space6
                                         icon: "timer"; title: Tr.t("Clock")
                                         Choice {
                                             options: [{ value: "HH:mm", label: "24-hour" }, { value: "h:mm AP", label: "12-hour" }, { value: "HH:mm:ss", label: Tr.t("Seconds") }]
@@ -615,8 +615,8 @@ Scope {
                                         }
                                     }
                                     Caption {
-                                        Layout.topMargin: 6
-                                        text: Tr.t("Weather for · ") + (Config.weather.city || (TimeZone.current ? TimeZone.city(TimeZone.current) + Tr.t(" (time zone)") : Tr.t("the time zone's city")))
+                                        Layout.topMargin: Theme.space6
+                                        text: Tr.f("Weather for · {0}", Config.weather.city || (TimeZone.current ? TimeZone.city(TimeZone.current) + Tr.t(" (time zone)") : Tr.t("the time zone's city")))
                                     }
                                     CityPicker { Layout.fillWidth: true; maxRows: 4; onChosen: root.changed() }
                                     Item { Layout.fillHeight: true }
@@ -677,10 +677,10 @@ Scope {
                                         Behavior on scale { Anim { duration: Theme.durationSlow * 1.5; easing.bezierCurve: Theme.curveSpring } }
                                         Icon { anchors.centerIn: parent; name: "check"; size: 42; stroke: 2.6; color: Theme.textOnAccent }
                                     }
-                                    Label { Layout.alignment: Qt.AlignHCenter; Layout.topMargin: 8; font.pixelSize: Theme.fontSize + 17; font.weight: Font.Bold; text: Tr.t("All set") }
+                                    Label { Layout.alignment: Qt.AlignHCenter; Layout.topMargin: Theme.space8; font.pixelSize: Theme.fontSizeDisplay; font.weight: Font.Bold; text: Tr.t("All set") }
                                     GridLayout {
                                         Layout.alignment: Qt.AlignHCenter
-                                        Layout.topMargin: 12
+                                        Layout.topMargin: Theme.space12
                                         columns: 2
                                         columnSpacing: 18
                                         rowSpacing: 10
@@ -692,7 +692,7 @@ Scope {
                                             ]
                                             RowLayout {
                                                 required property var modelData
-                                                spacing: 10
+                                                spacing: Theme.space10
                                                 Rectangle {
                                                     implicitWidth: keyText.implicitWidth + 18; implicitHeight: 28; radius: 8
                                                     color: Theme.alpha(Theme.text, 0.07)
@@ -709,7 +709,7 @@ Scope {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 10
+                                spacing: Theme.space10
                                 Button { visible: root.step > 0; text: Tr.t("Back"); onClicked: root.step-- }
                                 Item { Layout.fillWidth: true }
                                 Button {

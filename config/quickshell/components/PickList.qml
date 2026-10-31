@@ -19,6 +19,7 @@ ListView {
         id: row
         required property var modelData
         readonly property bool chosen: modelData.value === root.current
+        required property int index
         width: root.width
         height: root.rowHeight
         radius: Theme.r(12)
@@ -26,8 +27,8 @@ ListView {
         Behavior on fill { ColorAnim {} }
 
         RowLayout {
-            anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
-            spacing: 12
+            anchors { fill: parent; leftMargin: Theme.space14; rightMargin: Theme.space14 }
+            spacing: Theme.space12
             Label {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
@@ -37,17 +38,19 @@ ListView {
             }
             Label {
                 visible: text !== ""
-                font.pixelSize: Theme.fontSizeSmall + 1
+                font.pixelSize: Theme.fontSizeLabel
                 color: row.chosen ? Theme.alpha(Theme.textOnAccent, 0.75) : Theme.overlay1
                 text: row.modelData.caption ?? ""
             }
             Icon { visible: row.chosen; name: "check"; size: 16; color: Theme.textOnAccent }
         }
-        MouseArea {
+        PressArea {
             id: area
             anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
+            label: row.modelData.title
+            role: Accessible.RadioButton
+            checked: row.chosen
+            onActiveFocusChanged: if (activeFocus) root.positionViewAtIndex(row.index, ListView.Contain)
             onClicked: root.picked(row.modelData.value)
         }
     }

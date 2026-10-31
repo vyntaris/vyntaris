@@ -14,9 +14,9 @@ Item {
     height: Theme.barHeight + hang
 
     RowLayout {
-        anchors { left: parent.left; right: parent.right; leftMargin: 22; rightMargin: 22 }
+        anchors { left: parent.left; right: parent.right; leftMargin: Theme.space24; rightMargin: Theme.space24 }
         y: (Theme.barHeight + root.hang - height) / 2 - 2
-        spacing: 14
+        spacing: Theme.space14
 
         Rectangle {
             implicitWidth: 40; implicitHeight: 40; radius: 20
@@ -28,11 +28,11 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 3
+            spacing: Theme.space4
             Label {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
-                font.pixelSize: Theme.fontSize + 1
+                font.pixelSize: Theme.fontSizeMedium
                 font.weight: Font.DemiBold
                 text: root.view.title
             }
@@ -46,7 +46,7 @@ Item {
             }
             Meter {
                 Layout.fillWidth: true
-                Layout.topMargin: 2
+                Layout.topMargin: Theme.space2
                 visible: root.view.progress >= 0
                 value: root.view.progress
                 fillColor: root.view.color

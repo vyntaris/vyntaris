@@ -13,14 +13,17 @@ TileSurface {
     signal moreClicked()
 
     implicitHeight: 58
-    radius: Theme.r(18)
-    opacity: enabled ? 1 : 0.45
+    radius: Theme.r(16)
+    opacity: enabled ? 1 : Theme.disabledOpacity
     acceptedButtons: Qt.LeftButton | Qt.RightButton
-    onActivated: mouse => mouse.button === Qt.RightButton && root.more ? root.moreClicked() : root.clicked()
+    label: subtitle ? title + ", " + subtitle : title
+    role: Accessible.CheckBox
+    checked: on
+    onActivated: mouse => mouse?.button === Qt.RightButton && root.more ? root.moreClicked() : root.clicked()
 
     RowLayout {
-        anchors { fill: parent; leftMargin: 10; rightMargin: root.more ? 4 : 14 }
-        spacing: 10
+        anchors { fill: parent; leftMargin: Theme.space10; rightMargin: root.more ? 4 : 14 }
+        spacing: Theme.space10
 
         Rectangle {
             implicitWidth: 38
@@ -32,7 +35,7 @@ TileSurface {
         }
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 1
+            spacing: Theme.space2
             Label {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
@@ -51,15 +54,14 @@ TileSurface {
             visible: root.more
             implicitWidth: 32
             implicitHeight: 42
-            radius: Theme.r(13)
+            radius: Theme.r(12)
             color: moreArea.containsMouse ? Theme.alpha(Theme.text, 0.1) : "transparent"
             Behavior on color { ColorAnim {} }
             Icon { anchors.centerIn: parent; name: "chevron-right"; size: 14; color: root.on ? Theme.subtext1 : Theme.overlay1 }
-            MouseArea {
+            PressArea {
                 id: moreArea
                 anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
+                label: Tr.f("More about {0}", root.title)
                 onClicked: root.moreClicked()
             }
         }

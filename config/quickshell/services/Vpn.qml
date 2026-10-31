@@ -57,7 +57,7 @@ Singleton {
             else if (code !== 0)
                 root.error = /plugin for openvpn|openvpn.*not (installed|available)/i.test(why)
                     ? Tr.t("OpenVPN's support for NetworkManager isn't installed (networkmanager-openvpn).")
-                    : why.split("\n")[0] || Tr.t("It didn't work.");
+                    : why.split("\n")[0] || Tr.t("The VPN couldn't connect. Check your connection and try again.");
             root.busy = "";
             root.refresh();
         }

@@ -204,7 +204,7 @@ PanelWindow {
         visible: Leaving.backingUp
         anchors.horizontalCenter: parent.horizontalCenter
         y: (root.height - root.size) / 2 - 20 * root.px + root.size + 84 * root.px
-        spacing: 14
+        spacing: Theme.space14
         opacity: bg.opacity
         focus: Leaving.backingUp
         Keys.onEscapePressed: Leaving.skipBackup()
@@ -213,7 +213,7 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             color: root.text
             font.family: Theme.fontFamily
-            font.pixelSize: 15
+            font.pixelSize: Theme.fontSizeLarge
             text: CloudBackup.backingUp ? Tr.f("Backing up to Google Drive · {0} {1}%", CloudBackup.folder, Math.round(CloudBackup.progress * 100))
                 : Tr.t("Backing up to Google Drive…")
         }

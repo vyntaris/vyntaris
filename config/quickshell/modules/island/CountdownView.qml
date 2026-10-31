@@ -15,14 +15,15 @@ Item {
     RowLayout {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -2
-        spacing: 16
+        spacing: Theme.space16
 
         Rectangle {
             implicitWidth: 14; implicitHeight: 14; radius: 7
             color: Theme.red
             SequentialAnimation on opacity {
-                running: Recorder.counting
+                running: Recorder.counting && Theme.speed > 0
                 loops: Animation.Infinite
+                alwaysRunToEnd: true
                 NumberAnimation { to: 0.3; duration: 500 }
                 NumberAnimation { to: 1; duration: 500 }
             }
@@ -44,7 +45,7 @@ Item {
 
         ColumnLayout {
             spacing: 0
-            Label { caps: true; color: Theme.red; text: Tr.t("Recording in") }
+            Label { overline: true; color: Theme.error; text: Tr.t("Recording in") }
             Label { font.pixelSize: Theme.fontSizeSmall; color: Theme.overlay1; text: Tr.t("Click to cancel") }
         }
     }

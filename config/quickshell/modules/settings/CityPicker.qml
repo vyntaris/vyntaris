@@ -8,7 +8,7 @@ ColumnLayout {
     id: root
     property int maxRows: 5
     signal chosen()
-    spacing: 8
+    spacing: Theme.space8
 
     SearchField {
         id: search
@@ -35,8 +35,8 @@ ColumnLayout {
     }
     RowLayout {
         visible: search.text.trim().length >= 2 && Weather.found.length === 0
-        Layout.leftMargin: 14
-        spacing: 8
+        Layout.leftMargin: Theme.space14
+        spacing: Theme.space8
         Spinner { visible: Weather.looking; size: 14 }
         Label {
             color: Theme.overlay1

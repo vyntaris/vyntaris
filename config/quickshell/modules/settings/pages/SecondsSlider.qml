@@ -7,7 +7,7 @@ RowLayout {
     id: sec
     property int value
     signal edited(int v)
-    spacing: 10
+    spacing: Theme.space10
     implicitWidth: 254
     Slider {
         implicitWidth: 180

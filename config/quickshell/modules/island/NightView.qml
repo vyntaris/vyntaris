@@ -16,7 +16,7 @@ Item {
         property alias text: name.text
         Layout.fillWidth: true
         Layout.minimumHeight: 32
-        spacing: 12
+        spacing: Theme.space12
         Label { id: name; Layout.fillWidth: true; font.weight: Font.DemiBold }
     }
 
@@ -25,7 +25,7 @@ Item {
         title: Tr.t("Night light")
         Label {
             visible: NightLight.active
-            caps: true
+            overline: true
             color: Theme.overlay1
             text: Config.nightLight.temperature + Tr.t(" K")
         }
@@ -46,12 +46,13 @@ Item {
             visible: Config.nightLight.automatic
             text: Tr.t("From")
             Field { implicitWidth: 90; mono: true; text: Config.nightLight.start; onCommitted: t => { Config.nightLight.start = t.trim(); Config.saveSoon(); } }
-            Label { text: "until" ; color: Theme.subtext0 }
+            Label { text: Tr.t("until") ; color: Theme.subtext0 }
             Field { implicitWidth: 90; mono: true; text: Config.nightLight.end; onCommitted: t => { Config.nightLight.end = t.trim(); Config.saveSoon(); } }
         }
         Row_ {
             text: Tr.t("Warmth")
             Slider {
+                label: Tr.t("Warmth")
                 implicitWidth: 170
                 value: (6500 - Config.nightLight.temperature) / 4000
                 onMoved: v => { Config.nightLight.temperature = Math.round((6500 - v * 4000) / 100) * 100; Config.saveSoon(); }

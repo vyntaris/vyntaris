@@ -10,6 +10,11 @@ PanelSurface {
     property bool canReveal: false
     property bool invalid: false
     property bool revealed: false
+    property string label: {
+        for (let p = parent; p; p = p.parent)
+            if (p.isOption === true) return p.title;
+        return placeholder;
+    }
     readonly property alias input: input
     signal committed(string text)
 
@@ -18,13 +23,17 @@ PanelSurface {
     radius: Theme.r(height / 2)
     fill: Theme.alpha(Theme.text, input.activeFocus ? 0.09 : 0.05)
     edgeWidth: input.activeFocus ? 2 : 1
-    edge: invalid ? Theme.error : input.activeFocus ? Theme.accent : Theme.alpha(Theme.text, 0.16)
+    edge: invalid ? Theme.error : input.activeFocus ? Theme.accentInk : Theme.controlEdge
     Behavior on fill { ColorAnim {} }
     Behavior on edge { ColorAnim {} }
 
     TextInput {
         id: input
-        anchors { fill: parent; leftMargin: 16; rightMargin: root.canReveal ? 44 : 16 }
+        anchors { fill: parent; leftMargin: Theme.space16; rightMargin: root.canReveal ? 44 : 16 }
+        activeFocusOnTab: true
+        Accessible.role: Accessible.EditableText
+        Accessible.name: root.label
+        Accessible.passwordEdit: root.secret
         verticalAlignment: TextInput.AlignVCenter
         color: Theme.text
         selectionColor: Theme.accent
@@ -46,9 +55,10 @@ PanelSurface {
 
     IconButton {
         visible: root.canReveal
-        anchors { right: parent.right; rightMargin: 5; verticalCenter: parent.verticalCenter }
+        anchors { right: parent.right; rightMargin: Theme.space6; verticalCenter: parent.verticalCenter }
         size: 30
         icon: root.revealed ? "eye-off" : "eye"
+        label: root.revealed ? Tr.t("Hide password") : Tr.t("Show password")
         on: root.revealed
         onClicked: { root.revealed = !root.revealed; input.forceActiveFocus(); }
     }

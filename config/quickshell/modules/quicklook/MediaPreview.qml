@@ -17,7 +17,7 @@ Item {
     }
     VideoOutput {
         id: video
-        anchors { left: parent.left; right: parent.right; top: parent.top; bottom: bar.top; bottomMargin: 10 }
+        anchors { left: parent.left; right: parent.right; top: parent.top; bottom: bar.top; bottomMargin: Theme.space10 }
         MouseArea { anchors.fill: parent; onClicked: player.playbackState === MediaPlayer.PlayingState ? player.pause() : player.play() }
     }
     Icon {
@@ -25,14 +25,15 @@ Item {
         visible: !player.hasVideo
         name: "music"
         size: 96
-        color: Theme.accent
+        color: Theme.accentInk
     }
     RowLayout {
         id: bar
         anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        spacing: 12
+        spacing: Theme.space12
         IconButton {
             icon: player.playbackState === MediaPlayer.PlayingState ? "pause" : "play"
+            label: player.playbackState === MediaPlayer.PlayingState ? Tr.t("Pause") : Tr.t("Play")
             onClicked: player.playbackState === MediaPlayer.PlayingState ? player.pause() : player.play()
         }
         Meter {

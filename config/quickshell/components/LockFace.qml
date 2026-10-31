@@ -81,45 +81,45 @@ Item {
     Row {
         x: 22
         height: Theme.barHeight
-        spacing: 10
-        Icon { anchors.verticalCenter: parent.verticalCenter; name: "vyntaris"; size: 18; color: Theme.accent }
-        Label { anchors.verticalCenter: parent.verticalCenter; caps: true; color: Theme.subtext0; text: root.t(root.title) }
+        spacing: Theme.space10
+        Icon { anchors.verticalCenter: parent.verticalCenter; name: "vyntaris"; size: 18; color: Theme.accentInk }
+        Label { anchors.verticalCenter: parent.verticalCenter; overline: true; color: Theme.subtext0; text: root.t(root.title) }
     }
     Row {
         anchors.right: parent.right
-        anchors.rightMargin: 22
+        anchors.rightMargin: Theme.space24
         height: Theme.barHeight
-        spacing: 16
+        spacing: Theme.space16
         Label {
             visible: root.layoutCode !== ""
             anchors.verticalCenter: parent.verticalCenter
             mono: true
             font.weight: Font.DemiBold
-            color: Theme.accent
+            color: Theme.accentInk
             text: root.layoutCode
-            MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: root.layoutClicked() }
+            PressArea { label: root.t(Tr.t("Keyboard layout")); anchors.fill: parent; anchors.margins: -6; onClicked: root.layoutClicked() }
         }
         Row {
             visible: root.battery >= 0
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 4
+            spacing: Theme.space4
             Icon {
                 anchors.verticalCenter: parent.verticalCenter
                 name: "battery"
                 level: Math.min(7, Math.round(root.battery / 100 * 7))
                 size: 22
                 filled: true
-                color: root.charging ? Theme.accent : root.battery <= 15 ? Theme.error : root.battery <= 30 ? Theme.warning : Theme.accent
+                color: root.charging ? Theme.accentInk : root.battery <= 15 ? Theme.error : root.battery <= 30 ? Theme.warning : Theme.accentInk
             }
-            Icon { visible: root.charging; anchors.verticalCenter: parent.verticalCenter; name: "bolt"; filled: true; size: 13; color: Theme.accent }
-            Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: root.battery }
+            Icon { visible: root.charging; anchors.verticalCenter: parent.verticalCenter; name: "bolt"; filled: true; size: 13; color: Theme.accentInk }
+            Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.pixelSize: Theme.fontSizeLabel; text: root.battery }
         }
     }
 
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         height: Theme.barHeight + Theme.notchDepth
-        spacing: 8
+        spacing: Theme.space8
         opacity: root.reveal
         Label { anchors.verticalCenter: parent.verticalCenter; font.weight: Font.DemiBold; text: Qt.formatDateTime(clock.date, "ddd d MMM") }
         Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.weight: Font.DemiBold; text: Qt.formatDateTime(clock.date, root.timeFormat) }
@@ -129,8 +129,8 @@ Item {
         id: islandContent
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: card.top
-        anchors.bottomMargin: 36
-        spacing: 2
+        anchors.bottomMargin: Theme.space36
+        spacing: Theme.space2
         opacity: root.reveal
         Text {
             Layout.alignment: Qt.AlignHCenter
@@ -142,7 +142,7 @@ Item {
         }
         Label {
             Layout.alignment: Qt.AlignHCenter
-            caps: true
+            overline: true
             color: Theme.text
             text: root.dateOf(clock.date)
             layer.enabled: true
@@ -153,10 +153,10 @@ Item {
     property real shakeX: 0
     SequentialAnimation {
         id: shake
-        NumberAnimation { target: root; property: "shakeX"; to: -14; duration: 50 }
-        NumberAnimation { target: root; property: "shakeX"; to: 12; duration: 70 }
-        NumberAnimation { target: root; property: "shakeX"; to: -7; duration: 70 }
-        NumberAnimation { target: root; property: "shakeX"; to: 0; duration: 100; easing.type: Easing.OutBack }
+        NumberAnimation { target: root; property: "shakeX"; to: -14; duration: Theme.paced(50) }
+        NumberAnimation { target: root; property: "shakeX"; to: 12; duration: Theme.paced(70) }
+        NumberAnimation { target: root; property: "shakeX"; to: -7; duration: Theme.paced(70) }
+        NumberAnimation { target: root; property: "shakeX"; to: 0; duration: Theme.paced(100); easing.type: Easing.OutBack }
     }
 
     Rectangle {
@@ -167,7 +167,7 @@ Item {
         opacity: root.reveal
         width: 400
         height: cardColumn.implicitHeight + 44
-        radius: Theme.r(21)
+        radius: Theme.r(20)
         border { width: 1; color: root.wrong ? Theme.alpha(Theme.error, 0.6) : Theme.glassEdge }
         color: Theme.isDark ? Theme.crust : Theme.base
         Behavior on border.color { ColorAnim {} }
@@ -176,24 +176,24 @@ Item {
             id: cardColumn
             anchors.centerIn: parent
             width: parent.width - 48
-            spacing: 14
+            spacing: Theme.space14
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: Theme.space12
                 Avatar { size: 44; name: root.fullName || root.user; source: root.face; version: root.faceVersion }
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 0
-                    Label { caps: true; font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.accent; text: root.t(root.showPower ? Tr.t("Welcome") : Tr.t("Locked")) }
-                    Label { Layout.fillWidth: true; elide: Text.ElideRight; font.pixelSize: Theme.fontSize + 4; font.weight: Font.DemiBold; text: root.fullName || root.user }
+                    Label { overline: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.accentInk; text: root.t(root.showPower ? Tr.t("Welcome") : Tr.t("Locked")) }
+                    Label { Layout.fillWidth: true; elide: Text.ElideRight; font.pixelSize: Theme.fontSizeLarge; font.weight: Font.DemiBold; text: root.fullName || root.user }
                 }
                 Icon { name: "lock"; size: 16; color: Theme.overlay1 }
             }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: Theme.space12
 
                 PasswordCells {
                     id: input
@@ -209,6 +209,7 @@ Item {
 
                 IconButton {
                     icon: root.showPassword ? "eye-off" : "eye"
+                    label: root.showPassword ? root.t(Tr.t("Hide password")) : root.t(Tr.t("Show password"))
                     on: root.showPassword
                     onClicked: { root.showPassword = !root.showPassword; input.forceActiveFocus(); }
                 }
@@ -216,6 +217,7 @@ Item {
                     size: 40
                     primary: true
                     icon: "chevron-right"
+                    label: root.t(Tr.t("unlock"))
                     active: !root.busy && input.text !== ""
                     onClicked: root.send()
                 }
@@ -230,8 +232,8 @@ Item {
                     width: Math.min(implicitWidth, parent.width)
                     elide: Text.ElideRight
                     visible: root.status !== ""
-                    caps: true
-                    font.pixelSize: Theme.fontSizeSmall - 1
+                    overline: true
+                    font.pixelSize: Theme.fontSizeSmall
                     color: root.wrong ? Theme.error : Theme.overlay1
                     text: root.wrong ? root.t(Tr.t("Wrong password")) : root.busy ? root.t(Tr.t("Checking…")) : root.status
                 }
@@ -247,12 +249,12 @@ Item {
 
     Row {
         visible: root.showPower
-        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 32 }
-        spacing: 10
+        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space32 }
+        spacing: Theme.space10
         Repeater {
             model: [{ id: "reboot", icon: "restart", label: Tr.t("Restart") }, { id: "poweroff", icon: "power", label: Tr.t("Shut down") }]
             Button {
-                radius: Theme.r(13)
+                radius: Theme.r(12)
                 required property var modelData
                 icon: modelData.icon
                 text: root.t(modelData.label)

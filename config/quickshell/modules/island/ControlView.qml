@@ -41,14 +41,14 @@ Item {
     PanelHeader {
         icon: "control"
         title: Tr.t("Control center")
-        HeaderButton { icon: "apps"; onClicked: Panels.appsOpen = true }
-        HeaderButton { icon: "lock"; onClicked: { Panels.controlOpen = false; Quickshell.execDetached(["loginctl", "lock-session"]); } }
-        HeaderButton { icon: "power"; onClicked: Panels.powerOpen = true }
+        HeaderButton { icon: "apps"; label: Tr.t("Apps"); onClicked: Panels.appsOpen = true }
+        HeaderButton { icon: "lock"; label: Tr.t("Lock"); onClicked: { Panels.controlOpen = false; Quickshell.execDetached(["loginctl", "lock-session"]); } }
+        HeaderButton { icon: "power"; label: Tr.t("Power"); onClicked: Panels.powerOpen = true }
     }
 
     PanelBody {
         id: content
-        spacing: 10
+        spacing: Theme.space10
 
         Rectangle {
             id: mediaCard
@@ -75,8 +75,8 @@ Item {
 
             RowLayout {
                 id: mediaRow
-                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
-                spacing: 12
+                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                spacing: Theme.space12
 
                 ClippingRectangle {
                     implicitWidth: 52; implicitHeight: 52; radius: Theme.r(12)
@@ -94,7 +94,7 @@ Item {
 
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 4
+                    spacing: Theme.space4
                     Label {
                         Layout.fillWidth: true
                         elide: Text.ElideRight
@@ -117,7 +117,7 @@ Item {
                             anchors.fill: parent
                             readonly property int count: 22
                             readonly property int lit: mediaCard.length > 0 ? Math.round(Math.max(0, Math.min(1, (mediaCard.player?.position ?? 0) / mediaCard.length)) * count) : 0
-                            spacing: 3
+                            spacing: Theme.space4
                             Repeater {
                                 model: progCells.count
                                 Rectangle {
@@ -143,17 +143,17 @@ Item {
                 }
 
                 Row {
-                    spacing: 4
-                    IconButton { size: 30; anchors.verticalCenter: parent.verticalCenter; icon: "previous"; active: mediaCard.player?.canGoPrevious ?? false; onClicked: mediaCard.player.previous() }
-                    IconButton { anchors.verticalCenter: parent.verticalCenter; primary: true; size: 38; icon: mediaCard.player?.isPlaying ? "pause" : "play"; active: mediaCard.player?.canTogglePlaying ?? false; onClicked: mediaCard.player.togglePlaying() }
-                    IconButton { size: 30; anchors.verticalCenter: parent.verticalCenter; icon: "next"; active: mediaCard.player?.canGoNext ?? false; onClicked: mediaCard.player.next() }
+                    spacing: Theme.space4
+                    IconButton { size: 30; anchors.verticalCenter: parent.verticalCenter; icon: "previous"; label: Tr.t("Previous"); active: mediaCard.player?.canGoPrevious ?? false; onClicked: mediaCard.player.previous() }
+                    IconButton { anchors.verticalCenter: parent.verticalCenter; primary: true; size: 38; icon: mediaCard.player?.isPlaying ? "pause" : "play"; label: mediaCard.player?.isPlaying ? Tr.t("Pause") : Tr.t("Play"); active: mediaCard.player?.canTogglePlaying ?? false; onClicked: mediaCard.player.togglePlaying() }
+                    IconButton { size: 30; anchors.verticalCenter: parent.verticalCenter; icon: "next"; label: Tr.t("Next"); active: mediaCard.player?.canGoNext ?? false; onClicked: mediaCard.player.next() }
                 }
             }
         }
 
         GridLayout {
             Layout.fillWidth: true
-            Layout.topMargin: 2
+            Layout.topMargin: Theme.space2
             columns: 2
             rowSpacing: 8
             columnSpacing: 8
@@ -175,7 +175,7 @@ Item {
                 title: Tr.t("Bluetooth")
                 subtitle: !(root.adapter?.enabled ?? false) ? Tr.t("Off")
                     : root.btConnected.length === 1 ? (root.btConnected[0].name || root.btConnected[0].deviceName || Tr.t("1 device"))
-                    : root.btConnected.length > 1 ? root.btConnected.length + Tr.t(" devices") : Tr.t("On")
+                    : root.btConnected.length > 1 ? Tr.f("{0} devices", root.btConnected.length) : Tr.t("On")
                 on: root.adapter?.enabled ?? false
                 enabled: root.adapter !== null
                 more: true
@@ -187,7 +187,7 @@ Item {
                 icon: "sunset"
                 title: Tr.t("Night light")
                 subtitle: NightLight.active ? Config.nightLight.temperature + Tr.t(" K")
-                    : Config.nightLight.automatic ? Tr.t("From ") + Config.nightLight.start : Tr.t("Off")
+                    : Config.nightLight.automatic ? Tr.f("From {0}", Config.nightLight.start) : Tr.t("Off")
                 on: NightLight.active
                 more: true
                 onClicked: NightLight.toggle()
@@ -209,7 +209,7 @@ Item {
                 icon: root.source?.audio?.muted ? "mic-off" : "mic"
                 title: Tr.t("Microphone")
                 subtitle: root.source?.audio?.muted ?? true ? Tr.t("Muted")
-                    : NoiseSuppression.level > 0 ? Tr.t("Noise ") + NoiseSuppression.labels[NoiseSuppression.level].toLowerCase() : root.nodeName(root.source)
+                    : NoiseSuppression.level > 0 ? Tr.f("Noise {0}", NoiseSuppression.labels[NoiseSuppression.level].toLowerCase()) : root.nodeName(root.source)
                 on: !(root.source?.audio?.muted ?? true)
                 enabled: root.source !== null
                 more: true
@@ -238,15 +238,17 @@ Item {
             ColumnLayout {
                 id: inner
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: parent.pad }
-                spacing: 12
+                spacing: Theme.space12
             }
         }
 
         Card {
             SegmentSlider {
                 Layout.fillWidth: true
-                Layout.topMargin: 2
+                Layout.topMargin: Theme.space2
                 icon: root.sink?.audio?.muted ? "volume-x" : "volume"
+                label: Tr.t("Volume")
+                iconLabel: Tr.t("Mute")
                 iconLevel: Icons.volumeLevel(root.sink?.audio?.volume ?? 0)
                 value: root.sink?.audio?.volume ?? 0
                 maximum: Config.maxVolume
@@ -259,6 +261,7 @@ Item {
                 Layout.fillWidth: true
                 visible: Brightness.available
                 icon: "sun"
+                label: Tr.t("Brightness")
                 value: Brightness.value
                 onMoved: v => Brightness.set(v)
             }
@@ -280,7 +283,7 @@ Item {
                     Layout.fillWidth: true
                     implicitHeight: 62
                     Ring { id: ring; anchors.centerIn: parent; scale: gArea.containsMouse ? 1.06 : 1; Behavior on scale { Anim { duration: Theme.durationFast } } }
-                    MouseArea { id: gArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: g.clicked() }
+                    PressArea { label: ring.caption + " " + ring.text; id: gArea; anchors.fill: parent; onClicked: g.clicked() }
                 }
                 function tint(v) { return v > 0.9 ? Theme.error : v > 0.75 ? Theme.warning : Theme.accent; }
 
@@ -321,11 +324,11 @@ Item {
             pad: 12
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: Theme.space12
                 TodayWeather {
                     Layout.fillWidth: true
                     Layout.minimumWidth: Theme.fontSize * 7
-                    Layout.leftMargin: 4
+                    Layout.leftMargin: Theme.space4
                     titleY: calendar.titleY
                     datesBaseline: calendar.datesBaseline
                 }

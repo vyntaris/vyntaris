@@ -83,12 +83,12 @@ Item {
                 RowLayout {
                     id: content
                     anchors.centerIn: parent
-                    spacing: 4
+                    spacing: Theme.space4
 
                     Label {
                         mono: true
                         text: ws.modelData.id
-                        font.pixelSize: Theme.fontSizeSmall + 1
+                        font.pixelSize: Theme.fontSizeLabel
                         font.weight: ws.focused ? Font.Bold : Font.Medium
                         color: ws.focused ? Theme.textOnAccent : Theme.subtext1
                     }

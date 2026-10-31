@@ -16,7 +16,7 @@ Item {
         property alias text: name.text
         Layout.fillWidth: true
         Layout.minimumHeight: 32
-        spacing: 12
+        spacing: Theme.space12
         Label { id: name; Layout.fillWidth: true; font.weight: Font.DemiBold }
     }
 
@@ -24,7 +24,7 @@ Item {
         icon: "gamepad"
         title: Tr.t("Game mode")
         Label {
-            caps: true
+            overline: true
             color: Theme.overlay1
             text: GameMode.active ? Tr.t("On") : Config.gameMode.auto ? Tr.t("Starts with games") : Tr.t("Off")
         }

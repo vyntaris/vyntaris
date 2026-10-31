@@ -213,7 +213,7 @@ PanelWindow {
         RowLayout {
             id: row
             anchors.centerIn: parent
-            spacing: 7
+            spacing: Theme.space8
             layer.enabled: mod.active
             layer.effect: MultiEffect { colorization: 1; colorizationColor: Theme.textOnAccent; brightness: -0.4 }
         }
@@ -268,6 +268,7 @@ PanelWindow {
         Item {
             id: islandClip
             z: 2
+            Keys.onEscapePressed: bar.closePopups()
             x: (bar.width - bar.islandWidth) / 2 - parent.islandLean
             width: bar.islandWidth + 2 * parent.islandLean
             height: Theme.barHeight + bar.islandHang
@@ -338,9 +339,9 @@ PanelWindow {
         }
 
         RowLayout {
-            anchors { left: parent.left; leftMargin: 8 }
+            anchors { left: parent.left; leftMargin: Theme.space8 }
             height: Theme.barHeight
-            spacing: 10
+            spacing: Theme.space10
 
             Workspaces { window: bar }
 
@@ -350,7 +351,7 @@ PanelWindow {
                 Icon {
                     name: Distro.glyph
                     size: 20
-                    color: logoArea.containsMouse ? Theme.accentBright : Theme.accent
+                    color: logoArea.containsMouse ? Theme.accentBright : Theme.accentInk
                 }
                 MouseArea {
                     id: logoArea
@@ -371,7 +372,7 @@ PanelWindow {
                 Layout.maximumWidth: Math.max(0, islandStart - start)
                 elide: Text.ElideRight
                 color: Theme.subtext0
-                font.pixelSize: Theme.fontSizeSmall + 1
+                font.pixelSize: Theme.fontSizeLabel
                 text: ToplevelManager.activeToplevel?.title ?? ""
 
                 onTextChanged: titleSwap.restart()
@@ -389,14 +390,14 @@ PanelWindow {
         }
 
         RowLayout {
-            anchors { right: parent.right; rightMargin: 8 }
+            anchors { right: parent.right; rightMargin: Theme.space8 }
             height: Theme.barHeight
-            spacing: 2
+            spacing: Theme.space2
 
             Module {
                 visible: GameMode.active
                 onClicked: GameMode.toggle()
-                Icon { name: "gamepad"; size: 16; color: Theme.accent }
+                Icon { name: "gamepad"; size: 16; color: Theme.accentInk }
             }
 
             Module {
@@ -443,20 +444,20 @@ PanelWindow {
                 visible: Updates.total > 0
                 active: Panels.updatesOpen
                 onClicked: Panels.updatesOpen = !Panels.updatesOpen
-                Icon { name: "package-update"; size: 16; color: Theme.accent }
-                Label { mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: Updates.total }
+                Icon { name: "package-update"; size: 16; color: Theme.accentInk }
+                Label { mono: true; font.pixelSize: Theme.fontSizeLabel; text: Updates.total }
             }
 
             Module {
                 visible: KeepAwake.active
                 active: Panels.awakeOpen
                 onClicked: Panels.awakeOpen = !Panels.awakeOpen
-                Icon { name: KeepAwake.icon; size: 15; color: Theme.accent }
+                Icon { name: KeepAwake.icon; size: 15; color: Theme.accentInk }
                 Label {
                     visible: KeepAwake.minutes > 0
                     mono: true
                     font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.accent
+                    color: Theme.accentInk
                     text: KeepAwake.format(KeepAwake.remaining)
                 }
             }
@@ -468,8 +469,8 @@ PanelWindow {
                 Label {
                     mono: true
                     font.weight: Font.DemiBold
-                    font.pixelSize: Theme.fontSizeSmall + 1
-                    color: Theme.accent
+                    font.pixelSize: Theme.fontSizeLabel
+                    color: Theme.accentInk
                     text: Keyboard.code
                 }
             }
@@ -481,19 +482,20 @@ PanelWindow {
                     implicitWidth: 9; implicitHeight: 9; radius: 4.5
                     color: Theme.red
                     SequentialAnimation on opacity {
-                        running: Recorder.recording
+                        running: Recorder.recording && Theme.speed > 0
                         loops: Animation.Infinite
+                        alwaysRunToEnd: true
                         NumberAnimation { to: 0.35; duration: 700 }
                         NumberAnimation { to: 1; duration: 700 }
                     }
                 }
-                Label { mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.red; text: Recorder.format(Recorder.seconds) }
+                Label { mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.error; text: Recorder.format(Recorder.seconds) }
             }
 
             Module {
                 visible: Hardware.airplane
                 onClicked: Hardware.setAirplane(false)
-                Icon { name: "airplane"; color: Theme.accent }
+                Icon { name: "airplane"; color: Theme.accentInk }
             }
             Module {
                 visible: !Hardware.touchpad
@@ -509,7 +511,7 @@ PanelWindow {
             Module {
                 visible: bar.mic?.muted ?? false
                 onClicked: bar.mic.muted = false
-                Icon { name: "mic-off"; color: Theme.accent }
+                Icon { name: "mic-off"; color: Theme.accentInk }
             }
 
             Module {
@@ -518,11 +520,11 @@ PanelWindow {
                 visible: Phone.enabled && (phone !== null || Phone.asking.length > 0)
                 active: Panels.phoneOpen
                 onClicked: Panels.phoneOpen = !Panels.phoneOpen
-                Icon { name: "smartphone"; color: Theme.accent }
+                Icon { name: "smartphone"; color: Theme.accentInk }
                 Label {
                     visible: (phoneModule.phone?.battery ?? -1) >= 0
                     mono: true
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     color: phoneModule.phone?.battery <= 20 && !phoneModule.phone?.charging ? Theme.warning : Theme.text
                     text: phoneModule.phone?.battery ?? ""
                 }
@@ -545,12 +547,12 @@ PanelWindow {
                 readonly property int level: withBattery && withBattery.battery > 0 ? Math.round(withBattery.battery * 100) : -1
                 Icon {
                     name: btModule.withBattery && /audio|headset|headphone/.test(btModule.withBattery.icon ?? "") ? "headphones" : "bluetooth"
-                    color: Theme.accent
+                    color: Theme.accentInk
                 }
                 Label {
                     visible: btModule.level >= 0
                     mono: true
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     color: btModule.level <= 20 ? Theme.warning : Theme.text
                     text: btModule.level
                 }
@@ -572,14 +574,14 @@ PanelWindow {
 
                 Icon {
                     name: Networking.wifiEnabled && bar.wifiNetwork ? "wifi" : "wifi-off"
-                    color: bar.wifiNetwork ? Theme.accent : Theme.overlay1
+                    color: bar.wifiNetwork ? Theme.accentInk : Theme.overlay1
                     level: Icons.wifiLevel(bar.wifiNetwork?.signalStrength ?? 0)
                 }
                 Label {
                     visible: bar.wifiNetwork !== null
                     Layout.maximumWidth: 120
                     elide: Text.ElideRight
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     text: bar.wifiNetwork?.name ?? ""
                 }
             }
@@ -587,8 +589,8 @@ PanelWindow {
             Module {
                 visible: bar.wired && !bar.wifiNetwork
                 onClicked: Panels.controlOpen = !Panels.controlOpen
-                Icon { name: "ethernet"; color: Theme.accent }
-                Label { font.pixelSize: Theme.fontSizeSmall + 1; text: Tr.t("Wired") }
+                Icon { name: "ethernet"; color: Theme.accentInk }
+                Label { font.pixelSize: Theme.fontSizeLabel; text: Tr.t("Wired") }
             }
 
             Divider { visible: Battery.available }
@@ -610,7 +612,7 @@ PanelWindow {
                 }
                 Label {
                     mono: true
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     text: Battery.percent + "%"
                 }
             }

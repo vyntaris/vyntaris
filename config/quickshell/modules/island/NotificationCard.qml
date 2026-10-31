@@ -70,15 +70,6 @@ Item {
         Slanted { id: cardSlant; fill: card.fill; stroke: card.edge; radius: card.radius }
         Behavior on color { ColorAnim {} }
 
-        Rectangle {
-            visible: root.critical
-            x: 0
-            y: 14
-            width: 3
-            height: card.height - 28
-            radius: 1.5
-            color: Theme.error
-        }
 
         HoverHandler { id: hover }
         TapHandler { onTapped: root.clicked() }
@@ -98,8 +89,8 @@ Item {
 
         RowLayout {
             id: body
-            anchors { left: parent.left; right: parent.right; top: parent.top; margins: 11; leftMargin: 12; rightMargin: 12 }
-            spacing: 11
+            anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space12; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+            spacing: Theme.space12
 
             Rectangle {
                 Layout.alignment: Qt.AlignTop
@@ -117,54 +108,54 @@ Item {
                 Icon {
                     anchors.centerIn: parent
                     visible: root.iconPath === ""
-                    name: "bell"
+                    name: root.critical ? "alert" : "bell"
                     size: 16
-                    color: Theme.textOnAccent
+                    color: Theme.on(root.tint)
                 }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: Theme.space2
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: Theme.space6
                     Label {
                         Layout.maximumWidth: 180
-                        caps: true
+                        overline: true
                         elide: Text.ElideRight
-                        font.pixelSize: Theme.fontSizeSmall - 1
+                        font.pixelSize: Theme.fontSizeSmall
                         color: root.critical ? Theme.error : Theme.overlay1
-                        text: root.entry.appName || Tr.t("System")
+                        text: (root.critical ? Tr.t("Critical") + " · " : "") + (root.entry.appName || Tr.t("System"))
                     }
                     Rectangle { implicitWidth: 3; implicitHeight: 3; radius: 1.5; color: Theme.overlay0 }
-                    Label { font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.overlay0; text: root.ago }
+                    Label { font.pixelSize: Theme.fontSizeSmall; color: Theme.overlay0; text: root.ago }
                     Item { Layout.fillWidth: true }
                     Rectangle {
                         visible: root.more > 0
                         implicitWidth: moreText.implicitWidth + 14
                         implicitHeight: 18
-                        radius: Theme.r(9)
+                        radius: Theme.r(10)
                         color: Theme.accent
-                        Label { id: moreText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.textOnAccent; text: "+" + root.more }
+                        Label { id: moreText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.textOnAccent; text: "+" + root.more }
                     }
                     Rectangle {
                         implicitWidth: 20
                         implicitHeight: 20
                         radius: 10
-                        opacity: hover.hovered ? 1 : 0
+                        opacity: hover.hovered || closeArea.activeFocus ? 1 : 0
                         Behavior on opacity { Anim { duration: Theme.durationFast } }
                         color: closeArea.containsMouse ? Theme.alpha(Theme.error, 0.2) : Theme.alpha(Theme.text, 0.07)
                         Icon { anchors.centerIn: parent; name: "close"; size: 10; stroke: 2.2; color: closeArea.containsMouse ? Theme.error : Theme.subtext0 }
-                        MouseArea { id: closeArea; anchors.fill: parent; anchors.margins: -4; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: away.start() }
+                        PressArea { label: Tr.t("Dismiss"); id: closeArea; anchors.fill: parent; anchors.margins: -4; onClicked: away.start() }
                     }
                 }
                 Label {
                     Layout.fillWidth: true
                     elide: Text.ElideRight
                     font.weight: Font.DemiBold
-                    font.pixelSize: Theme.fontSize - 1
+                    font.pixelSize: Theme.fontSizeLabel
                     text: root.entry.summary
                 }
                 Label {

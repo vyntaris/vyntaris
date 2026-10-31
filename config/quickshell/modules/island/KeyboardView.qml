@@ -33,6 +33,7 @@ Item {
     component Badge: Rectangle {
         id: badge
         property string icon
+        property string label
         property color fill
         signal clicked()
         width: 18; height: 18; radius: 9
@@ -40,7 +41,7 @@ Item {
         border { width: 1; color: Theme.glassRim }
         Behavior on color { ColorAnim {} }
         Icon { anchors.centerIn: parent; name: badge.icon; size: 10; stroke: 2.2; color: badgeArea.containsMouse ? Theme.textOnAccent : Theme.text }
-        MouseArea { id: badgeArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: badge.clicked() }
+        PressArea { label: badge.label; id: badgeArea; anchors.fill: parent; onClicked: badge.clicked() }
     }
 
     function choose(i) { Keyboard.select(i); }
@@ -76,7 +77,7 @@ Item {
 
         Row {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 8
+            spacing: Theme.space8
 
             Repeater {
                 model: root.entries
@@ -92,13 +93,13 @@ Item {
                     Badge {
                         visible: root.adding && root.entries.length > 1
                         x: parent.width / 2 + 12; y: -3
-                        icon: "close"; fill: Theme.error
+                        icon: "close"; label: Tr.t("Remove"); fill: Theme.error
                         onClicked: Keyboard.remove(key.index)
                     }
                     Badge {
                         visible: root.adding && key.index > 0
                         x: parent.width / 2 - 30; y: -3
-                        icon: "arrow-up"; fill: Theme.accent
+                        icon: "arrow-up"; label: Tr.t("Move up"); fill: Theme.accent
                         onClicked: Keyboard.makeDefault(key.index)
                     }
                 }
@@ -115,7 +116,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.adding
-            spacing: 8
+            spacing: Theme.space8
 
             PanelSurface {
                 Layout.fillWidth: true
@@ -126,9 +127,9 @@ Item {
                 Behavior on edge { ColorAnim {} }
                 MouseArea { anchors.fill: parent; cursorShape: Qt.IBeamCursor; onClicked: search.forceActiveFocus() }
                 RowLayout {
-                    anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                    spacing: 8
-                    Icon { name: "search"; size: 13; color: search.activeFocus ? Theme.accent : Theme.overlay1 }
+                    anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                    spacing: Theme.space8
+                    Icon { name: "search"; size: 13; color: search.activeFocus ? Theme.accentInk : Theme.overlay1 }
                     TextInput {
                         id: search
                         Layout.fillWidth: true
@@ -170,13 +171,13 @@ Item {
                         edgeWidth: 1; edge: index === 0 ? Theme.accent : Theme.glassRim
                         Behavior on fill { ColorAnim {} }
                         RowLayout {
-                            anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
-                            spacing: 10
-                            Label { mono: true; font.weight: Font.DemiBold; color: hit.index === 0 ? Theme.textOnAccent : Theme.accent; text: hit.modelData.layout.toUpperCase() }
+                            anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space10 }
+                            spacing: Theme.space10
+                            Label { mono: true; font.weight: Font.DemiBold; color: hit.index === 0 ? Theme.textOnAccent : Theme.accentInk; text: hit.modelData.layout.toUpperCase() }
                             Label { Layout.fillWidth: true; elide: Text.ElideRight; color: hit.index === 0 ? Theme.textOnAccent : Theme.text; text: hit.modelData.name }
-                            Icon { name: "plus"; size: 13; color: hit.index === 0 ? Theme.textOnAccent : hitArea.containsMouse ? Theme.accent : Theme.overlay1 }
+                            Icon { name: "plus"; size: 13; color: hit.index === 0 ? Theme.textOnAccent : hitArea.containsMouse ? Theme.accentInk : Theme.overlay1 }
                         }
-                        MouseArea { id: hitArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.addHit(hit.modelData) }
+                        PressArea { label: hit.modelData.name; id: hitArea; anchors.fill: parent; onClicked: root.addHit(hit.modelData) }
                     }
                 }
             }

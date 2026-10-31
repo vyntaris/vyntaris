@@ -7,7 +7,7 @@ import qs.components
 SettingsPage {
     id: startupPage
     pageId: "startup"
-    spacing: 8
+    spacing: Theme.space8
 
     function add(item) {
         const list = (Config.startup.apps ?? []).slice();
@@ -28,7 +28,7 @@ SettingsPage {
             required property int index
             readonly property var entry: modelData.id ? DesktopEntries.byId(modelData.id) : null
             Layout.fillWidth: true
-            spacing: 12
+            spacing: Theme.space12
             Image {
                 Layout.preferredWidth: 24; Layout.preferredHeight: 24
                 sourceSize: Qt.size(48, 48)
@@ -40,7 +40,7 @@ SettingsPage {
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: startRow.entry?.name ?? startRow.modelData.name }
                 Label {
                     Layout.fillWidth: true; elide: Text.ElideRight; mono: true
-                    font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.overlay1
+                    font.pixelSize: Theme.fontSizeSmall; color: Theme.overlay1
                     text: startRow.modelData.command || (startRow.entry ? startRow.entry.command.join(" ") : Tr.t("not installed any more"))
                 }
             }
@@ -59,7 +59,7 @@ SettingsPage {
     Field { id: startSearch; Layout.fillWidth: true; placeholder: Tr.t("Search") }
     Flow {
         Layout.fillWidth: true
-        spacing: 6
+        spacing: Theme.space6
         Repeater {
             model: {
                 const q = startSearch.text.trim().toLowerCase();
@@ -79,7 +79,7 @@ SettingsPage {
     SettingsSection { text: Tr.t("Command") }
     RowLayout {
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Theme.space8
         Field { id: startCmd; Layout.fillWidth: true; mono: true; placeholder: "discord --start-minimized" }
         Button {
             icon: "check"; text: Tr.t("Add"); primary: true

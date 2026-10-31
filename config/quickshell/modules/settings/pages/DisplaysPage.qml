@@ -37,7 +37,7 @@ SettingsPage {
         visible: Hyprland.monitors.values.length > 1
         Layout.fillWidth: true
         implicitHeight: 220
-        radius: Theme.r(14)
+        radius: Theme.r(12)
         color: Theme.alpha(Theme.crust, 0.45)
         border { width: 1; color: Theme.glassRim }
 
@@ -89,7 +89,7 @@ SettingsPage {
                 Column {
                     anchors.centerIn: parent
                     Label { anchors.horizontalCenter: parent.horizontalCenter; font.weight: Font.DemiBold; color: Theme.textOnAccent; text: monBox.modelData.name }
-                    Label { anchors.horizontalCenter: parent.horizontalCenter; mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.textOnAccent; text: Math.round(monBox.modelData.w) + "×" + Math.round(monBox.modelData.h) }
+                    Label { anchors.horizontalCenter: parent.horizontalCenter; mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.textOnAccent; text: Math.round(monBox.modelData.w) + "×" + Math.round(monBox.modelData.h) }
                 }
                 DragHandler {
                     id: drag
@@ -113,7 +113,7 @@ SettingsPage {
             required property int index
             readonly property var ipc: modelData.lastIpcObject ?? {}
             Layout.fillWidth: true
-            spacing: 10
+            spacing: Theme.space10
 
             SettingsSection {
                 text: mon.modelData.name + (mon.ipc.model ? "  ·  " + mon.ipc.model : "")

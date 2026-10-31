@@ -58,7 +58,7 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Pointer speed")
         RowLayout {
-            spacing: 10
+            spacing: Theme.space10
             Slider { implicitWidth: 180; value: (Config.input.sensitivity + 1) / 2; onMoved: v => { Config.input.sensitivity = Math.round((v * 2 - 1) * 10) / 10; Config.saveSoon(); } }
             Label { mono: true; Layout.preferredWidth: 40; text: (Config.input.sensitivity > 0 ? "+" : "") + Config.input.sensitivity.toFixed(1) }
         }

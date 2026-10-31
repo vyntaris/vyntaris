@@ -15,10 +15,10 @@ Item {
     height: Theme.barHeight + hang
 
     readonly property var actions: [
-        { id: "shot-region", icon: "image", label: Tr.t("Region"), group: "Picture" },
-        { id: "shot-screen", icon: "windows", label: Tr.t("Screen"), group: "Picture" },
-        { id: "rec-region", icon: "record", label: Tr.t("Region"), group: "Video" },
-        { id: "rec-screen", icon: "record", label: Tr.t("Screen"), group: "Video" },
+        { id: "shot-region", icon: "image", label: Tr.t("Region"), group: Tr.t("Picture") },
+        { id: "shot-screen", icon: "windows", label: Tr.t("Screen"), group: Tr.t("Picture") },
+        { id: "rec-region", icon: "record", label: Tr.t("Region"), group: Tr.t("Video") },
+        { id: "rec-screen", icon: "record", label: Tr.t("Screen"), group: Tr.t("Video") },
     ]
     property int current: 0
 
@@ -50,7 +50,7 @@ Item {
     PanelHeader {
         icon: "image"
         title: Tr.t("Capture")
-        HeaderButton { icon: "folder"; onClicked: { Panels.captureOpen = false; Screenshot.openFolder(); } }
+        HeaderButton { icon: "folder"; label: Tr.t("Folder"); onClicked: { Panels.captureOpen = false; Screenshot.openFolder(); } }
     }
 
     PanelBody {
@@ -59,17 +59,17 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             visible: Recorder.recording
-            spacing: 12
+            spacing: Theme.space12
             Rectangle {
                 implicitWidth: 12; implicitHeight: 12; radius: 6
                 color: Theme.red
-                SequentialAnimation on opacity { running: Recorder.recording; loops: Animation.Infinite; NumberAnimation { to: 0.35; duration: 700 } NumberAnimation { to: 1; duration: 700 } }
+                SequentialAnimation on opacity { running: Recorder.recording && Theme.speed > 0; loops: Animation.Infinite; alwaysRunToEnd: true; NumberAnimation { to: 0.35; duration: 700 } NumberAnimation { to: 1; duration: 700 } }
             }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
-                Label { caps: true; color: Theme.red; font.pixelSize: Theme.fontSizeSmall - 1; text: Tr.t("Recording") }
-                Label { mono: true; font.pixelSize: Theme.fontSize + 8; font.weight: Font.Light; text: Recorder.format(Recorder.seconds) }
+                Label { overline: true; color: Theme.error; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("Recording") }
+                Label { mono: true; font.pixelSize: Theme.fontSizeHeading; font.weight: Font.Light; text: Recorder.format(Recorder.seconds) }
             }
             Button { primary: true; icon: "stop"; text: Tr.t("Stop"); onClicked: { Recorder.stop(); Panels.captureOpen = false; } }
         }
@@ -78,7 +78,7 @@ Item {
             id: options
             Layout.fillWidth: true
             visible: !Recorder.recording
-            spacing: 8
+            spacing: Theme.space8
             Repeater {
                 model: root.actions
                 TileSurface {
@@ -96,7 +96,7 @@ Item {
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: Theme.space6
                         Icon {
                             Layout.alignment: Qt.AlignHCenter
                             name: opt.modelData.icon
@@ -104,7 +104,7 @@ Item {
                             stroke: 1.6
                             color: opt.marked ? Theme.textOnAccent : Theme.subtext0
                         }
-                        Label { Layout.alignment: Qt.AlignHCenter; caps: true; font.pixelSize: Theme.fontSizeSmall - 2; color: opt.marked ? Theme.textOnAccent : Theme.overlay1; text: opt.modelData.group }
+                        Label { Layout.alignment: Qt.AlignHCenter; overline: true; font.pixelSize: Theme.fontSizeSmall; color: opt.marked ? Theme.textOnAccent : Theme.overlay1; text: opt.modelData.group }
                         Label { Layout.alignment: Qt.AlignHCenter; font.weight: Font.DemiBold; color: opt.marked ? Theme.textOnAccent : Theme.text; text: opt.modelData.label }
                     }
                 }

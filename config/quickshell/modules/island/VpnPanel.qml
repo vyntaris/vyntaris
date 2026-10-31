@@ -19,8 +19,8 @@ Item {
         title: Tr.t("VPN")
         Label {
             visible: Vpn.active !== null
-            caps: true
-            color: Theme.accent
+            overline: true
+            color: Theme.accentInk
             text: Vpn.active?.place || Vpn.active?.name || ""
         }
         Switch {
@@ -35,7 +35,7 @@ Item {
         Label {
             Layout.fillWidth: true
             visible: Vpn.places.length === 0 && Vpn.error === ""
-            caps: true
+            overline: true
             color: Theme.overlay1
             horizontalAlignment: Text.AlignHCenter
             text: Tr.t("Looking…")
@@ -62,18 +62,18 @@ Item {
                     onActivated: Vpn.place(tile.modelData.name)
 
                     Spinner {
-                        anchors { top: parent.top; right: parent.right; margins: 8 }
+                        anchors { top: parent.top; right: parent.right; margins: Theme.space8 }
                         visible: tile.busy
                         size: 14
                         color: tile.on ? Theme.textOnAccent : Theme.accent
                     }
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 4
+                        spacing: Theme.space4
                         Label {
                             Layout.alignment: Qt.AlignHCenter
                             text: tile.modelData.country
-                            font.pixelSize: Theme.fontSize + 4
+                            font.pixelSize: Theme.fontSizeLarge
                             font.weight: Font.DemiBold
                             color: tile.on ? Theme.textOnAccent : Theme.subtext0
                         }

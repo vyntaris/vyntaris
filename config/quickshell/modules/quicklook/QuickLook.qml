@@ -158,7 +158,7 @@ Scope {
             anchors.centerIn: parent
             width: Math.min(parent.width * 0.72, 1300)
             height: Math.min(parent.height * 0.82, 1000)
-            radius: Theme.r(22)
+            radius: Theme.r(24)
             color: Theme.base
             border { width: 1; color: Theme.glassRim }
             focus: true
@@ -174,8 +174,8 @@ Scope {
 
             RowLayout {
                 id: head
-                anchors { left: parent.left; right: parent.right; top: parent.top; margins: 18 }
-                spacing: 12
+                anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space20 }
+                spacing: Theme.space12
                 Image {
                     Layout.preferredWidth: 28; Layout.preferredHeight: 28
                     sourceSize: Qt.size(56, 56)
@@ -184,21 +184,21 @@ Scope {
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 1
-                    Label { Layout.fillWidth: true; elide: Text.ElideMiddle; font.weight: Font.DemiBold; font.pixelSize: Theme.fontSize + 2; text: root.name }
+                    spacing: Theme.space2
+                    Label { Layout.fillWidth: true; elide: Text.ElideMiddle; font.weight: Font.DemiBold; font.pixelSize: Theme.fontSizeLarge; text: root.name }
                     Caption {
-                        text: (info.dir ? root.folder.length + Tr.t(" items") : root.size(info.size))
+                        text: (info.dir ? Tr.f("{0} items", root.folder.length) : root.size(info.size))
                             + (info.modified ? " · " + Qt.formatDateTime(new Date(info.modified * 1000), "d MMM yyyy, hh:mm") : "")
                             + (info.mime ? " · " + info.mime : "")
                     }
                 }
                 Button { icon: "external"; text: Tr.t("Open"); primary: true; onClicked: root.open() }
-                IconButton { icon: "close"; onClicked: root.close() }
+                IconButton { icon: "close"; label: Tr.t("Close"); onClicked: root.close() }
             }
 
             Item {
                 id: body
-                anchors { left: parent.left; right: parent.right; top: head.bottom; bottom: parent.bottom; margins: 18; topMargin: 14 }
+                anchors { left: parent.left; right: parent.right; top: head.bottom; bottom: parent.bottom; margins: Theme.space20; topMargin: Theme.space14 }
                 clip: true
 
                 Image {
@@ -220,7 +220,7 @@ Scope {
                     anchors.fill: parent
                     visible: root.kind === "pdf"
                     model: root.pages
-                    spacing: 12
+                    spacing: Theme.space12
                     clip: true
                     delegate: Image {
                         required property string modelData
@@ -261,7 +261,7 @@ Scope {
                         color: Theme.text
                         selectionColor: Theme.accent
                         font.family: root.kind === "text" ? Theme.monoFamily : Theme.fontFamily
-                        font.pixelSize: root.kind === "text" ? Theme.fontSize : Theme.fontSize + 1
+                        font.pixelSize: root.kind === "text" ? Theme.fontSize : Theme.fontSizeMedium
                         text: root.text
                     }
                 }
@@ -310,12 +310,12 @@ Scope {
                                         color: "transparent"
                                         border { width: 1; color: Theme.hairline }
                                         Label {
-                                            anchors { fill: parent; leftMargin: 6; rightMargin: 6 }
+                                            anchors { fill: parent; leftMargin: Theme.space6; rightMargin: Theme.space6 }
                                             verticalAlignment: Text.AlignVCenter
                                             horizontalAlignment: /^-?[\d.,]+%?$/.test(parent.value) ? Text.AlignRight : Text.AlignLeft
                                             elide: Text.ElideRight
                                             textFormat: Text.PlainText
-                                            font.pixelSize: Theme.fontSizeSmall + 1
+                                            font.pixelSize: Theme.fontSizeLabel
                                             text: parent.value
                                         }
                                     }
@@ -334,7 +334,7 @@ Scope {
                         required property string modelData
                         width: ListView.view.width
                         height: 30
-                        spacing: 10
+                        spacing: Theme.space10
                         Icon { name: modelData.endsWith("/") ? "folder" : "copy"; size: 14; color: Theme.overlay1 }
                         Label { Layout.fillWidth: true; elide: Text.ElideRight; text: modelData.replace(/\/$/, "") }
                     }
@@ -345,7 +345,7 @@ Scope {
                     visible: root.kind === "other" || (root.kind === "document" && root.text === "" && !docText.running)
                         || (root.kind === "sheet" && root.rows.length === 0 && !sheet.running)
                         || (root.kind === "pdf" && root.pages.length === 0 && !render.running)
-                    spacing: 10
+                    spacing: Theme.space10
                     Image {
                         Layout.alignment: Qt.AlignHCenter
                         Layout.preferredWidth: 96; Layout.preferredHeight: 96
@@ -357,7 +357,7 @@ Scope {
                 Column {
                     anchors.centerIn: parent
                     visible: render.running || docText.running || sheet.running
-                    spacing: 10
+                    spacing: Theme.space10
                     Spinner { anchors.horizontalCenter: parent.horizontalCenter; size: 28 }
                     Label {
                         anchors.horizontalCenter: parent.horizontalCenter

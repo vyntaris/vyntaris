@@ -52,7 +52,7 @@ Scope {
         onLayoutClicked: Keyboard.next()
     }
     component Widgets: LockWidgets {
-        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 36 }
+        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space36 }
     }
 
     Variants {

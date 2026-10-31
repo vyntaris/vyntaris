@@ -26,7 +26,7 @@ Item {
 
     Row {
         Layout.alignment: Qt.AlignHCenter
-        spacing: 16
+        spacing: Theme.space16
 
         Repeater {
             model: root.kinds
@@ -50,13 +50,13 @@ Item {
             required property var modelData
             readonly property var kind: root.kinds.find(k => k.id === modelData.kind)
             Layout.fillWidth: true
-            spacing: 10
-            Icon { name: use.kind?.icon ?? "eye"; size: 15; color: use.kind?.color ?? Theme.accent }
+            spacing: Theme.space10
+            Icon { name: use.kind?.icon ?? "eye"; size: 15; color: use.kind?.color ?? Theme.accentInk }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: use.modelData.app }
-                Caption { text: Tr.t("Uses the ") + (use.kind?.label ?? "").toLowerCase() }
+                Caption { text: Tr.f("Uses the {0}", (use.kind?.label ?? "").toLowerCase()) }
             }
             ChipButton { visible: Privacy.canClose(use.modelData); danger: true; text: Tr.t("Close"); onClicked: Privacy.close(use.modelData) }
         }

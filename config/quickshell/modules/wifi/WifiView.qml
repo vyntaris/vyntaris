@@ -81,22 +81,22 @@ Item {
     PanelBody {
         id: content
         y: root.showHeader ? 14 : 6
-        spacing: 10
+        spacing: Theme.space10
 
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.showHeader && !root.asking
-            spacing: 10
+            spacing: Theme.space10
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: Theme.space10
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.preferredWidth: 1000
-                    spacing: 2
-                    Label { caps: true; text: Tr.t("Wi-Fi"); color: Theme.overlay1 }
+                    spacing: Theme.space2
+                    Label { overline: true; text: Tr.t("Wi-Fi"); color: Theme.overlay1 }
                     Label {
                         text: !Networking.wifiEnabled ? Tr.t("Off")
                             : root.networks.find(n => n.connected)?.name ?? Tr.t("Not connected")
@@ -115,8 +115,8 @@ Item {
 
         Label {
             Layout.fillWidth: true
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
+            Layout.topMargin: Theme.space4
+            Layout.bottomMargin: Theme.space4
             visible: !root.asking && root.device !== null && !Networking.wifiEnabled
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
@@ -125,10 +125,10 @@ Item {
 
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
+            Layout.topMargin: Theme.space4
+            Layout.bottomMargin: Theme.space4
             visible: !root.asking && (root.device === null || (Networking.wifiEnabled && root.networks.length === 0))
-            spacing: 8
+            spacing: Theme.space8
             Spinner { visible: root.device !== null; size: 14 }
             Label {
                 text: root.device === null ? Tr.t("No adapter") : Tr.t("Scanning…")
@@ -139,7 +139,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: !root.asking && !root.showHeader && Networking.wifiEnabled && root.connected !== null
-            spacing: 8
+            spacing: Theme.space8
 
             ConnectionSummary {
                 Layout.fillWidth: true
@@ -153,8 +153,8 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.topMargin: 2
-                spacing: 8
+                Layout.topMargin: Theme.space2
+                spacing: Theme.space8
                 Repeater {
                     model: [
                         { value: link.speed(link.down), label: Tr.t("Download"), waiting: link.down < 0 },
@@ -166,7 +166,7 @@ Item {
                         required property var modelData
                         Layout.fillWidth: true
                         Layout.preferredWidth: 1
-                        spacing: 1
+                        spacing: Theme.space2
                         Item {
                             Layout.fillWidth: true
                             implicitHeight: statValue.implicitHeight
@@ -176,7 +176,7 @@ Item {
                                 visible: !parent.parent.modelData.waiting
                                 elide: Text.ElideRight
                                 mono: true
-                                font.pixelSize: Theme.fontSizeSmall + 1
+                                font.pixelSize: Theme.fontSizeLabel
                                 font.weight: Font.DemiBold
                                 text: parent.parent.modelData.value
                             }
@@ -189,7 +189,7 @@ Item {
                         Label {
                             Layout.fillWidth: true
                             elide: Text.ElideRight
-                            font.pixelSize: Theme.fontSizeSmall - 1
+                            font.pixelSize: Theme.fontSizeSmall
                             color: Theme.overlay1
                             text: parent.modelData.label
                         }
@@ -197,14 +197,14 @@ Item {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; implicitHeight: 1; color: Theme.hairline }
+            Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.space4; implicitHeight: 1; color: Theme.hairline }
             RowLayout {
                 Layout.fillWidth: true
                 Caption { Layout.fillWidth: true; text: Tr.t("Nearby") }
                 Spinner { visible: root.networks.filter(n => !n.connected).length === 0; size: 12 }
                 Label {
                     visible: root.networks.filter(n => !n.connected).length === 0
-                    caps: true; color: Theme.overlay0; font.pixelSize: Theme.fontSizeSmall - 1; text: Tr.t("Scanning…")
+                    overline: true; color: Theme.overlay0; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("Scanning…")
                 }
             }
         }
@@ -215,7 +215,7 @@ Item {
             implicitHeight: Math.min(contentHeight, 7 * 42)
             visible: !root.asking && Networking.wifiEnabled && model.length > 0
             clip: true
-            spacing: 2
+            spacing: Theme.space2
             boundsBehavior: Flickable.StopAtBounds
             model: root.showHeader ? root.networks : root.networks.filter(n => !n.connected)
 
@@ -245,27 +245,26 @@ Item {
                             root.error = Tr.t("Wrong or missing password");
                             Qt.callLater(() => password.input.forceActiveFocus());
                         } else {
-                            root.error = "Connection failed: " + ConnectionFailReason.toString(reason);
+                            root.error = Tr.t("Couldn't connect to this network. Check that it's in range and try again.");
                         }
                     }
                 }
 
-                MouseArea {
+                PressArea {
+                    label: row.modelData.name
                     id: hover
                     anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
                     onClicked: root.choose(row.modelData)
                 }
 
                 RowLayout {
-                    anchors { fill: parent; leftMargin: 10; rightMargin: 8 }
-                    spacing: 10
+                    anchors { fill: parent; leftMargin: Theme.space10; rightMargin: Theme.space8 }
+                    spacing: Theme.space10
 
                     Row {
                         id: mini
                         readonly property int lit: Math.max(1, Math.round(Icons.signal(row.modelData.signalStrength) * 5))
-                        spacing: 2
+                        spacing: Theme.space2
                         Repeater {
                             model: 5
                             Rectangle {
@@ -329,11 +328,11 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.asking
-            spacing: 14
+            spacing: Theme.space14
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: Theme.space12
 
                 Rectangle {
                     implicitWidth: 38
@@ -344,11 +343,11 @@ Item {
                 }
                 ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 1
+                    spacing: Theme.space2
                     Label {
                         Layout.fillWidth: true
                         elide: Text.ElideRight
-                        font.pixelSize: Theme.fontSize + 3
+                        font.pixelSize: Theme.fontSizeLarge
                         font.weight: Font.DemiBold
                         text: root.pending?.name ?? ""
                     }
@@ -388,7 +387,7 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             visible: root.asking
-            spacing: 8
+            spacing: Theme.space8
 
             Button {
                 Layout.fillWidth: true

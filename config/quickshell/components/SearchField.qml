@@ -12,12 +12,12 @@ PanelSurface {
     implicitHeight: Theme.controlHeight
     radius: Theme.r(height / 2)
     fill: Theme.alpha(Theme.crust, 0.45)
-    edgeWidth: 1; edge: field.activeFocus ? Theme.accent : Theme.glassRim
+    edgeWidth: field.activeFocus ? 2 : 1; edge: field.activeFocus ? Theme.accentInk : Theme.controlEdge
     Behavior on edge { ColorAnim {} }
 
     Rectangle {
         id: disc
-        anchors { left: parent.left; leftMargin: 5; verticalCenter: parent.verticalCenter }
+        anchors { left: parent.left; leftMargin: Theme.space6; verticalCenter: parent.verticalCenter }
         width: parent.height - 10
         height: width
         radius: width / 2
@@ -26,11 +26,14 @@ PanelSurface {
     }
     TextInput {
         id: field
-        anchors { left: disc.right; leftMargin: 12; right: parent.right; rightMargin: 16; verticalCenter: parent.verticalCenter }
+        activeFocusOnTab: true
+        Accessible.role: Accessible.EditableText
+        Accessible.name: root.placeholder
+        anchors { left: disc.right; leftMargin: Theme.space12; right: parent.right; rightMargin: Theme.space16; verticalCenter: parent.verticalCenter }
         color: Theme.text
         selectionColor: Theme.accent
         selectedTextColor: Theme.textOnAccent
-        font { family: Theme.fontFamily; pixelSize: Theme.fontSize + 1 }
+        font { family: Theme.fontFamily; pixelSize: Theme.fontSizeMedium }
         clip: true
         onAccepted: root.accepted()
         Label {

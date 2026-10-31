@@ -15,7 +15,7 @@ Item {
     Row {
         id: cells
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 3
+        spacing: Theme.space4
         Repeater {
             model: root.count
             Rectangle {

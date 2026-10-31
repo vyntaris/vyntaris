@@ -22,15 +22,15 @@ Rectangle {
     color: Theme.mantle
 
     ColumnLayout {
-        anchors { fill: parent; margins: 12 }
-        spacing: 4
+        anchors { fill: parent; margins: Theme.space12 }
+        spacing: Theme.space4
 
         RowLayout {
             id: header
-            Layout.bottomMargin: 12
-            Layout.leftMargin: 6
-            spacing: 10
-            Icon { name: root.icon; size: 22; color: Theme.accent }
+            Layout.bottomMargin: Theme.space12
+            Layout.leftMargin: Theme.space6
+            spacing: Theme.space10
+            Icon { name: root.icon; size: 22; color: Theme.accentInk }
             ColumnLayout {
                 spacing: 0
                 Label { font.weight: Font.Bold; text: root.title }
@@ -41,7 +41,7 @@ Rectangle {
         Field {
             id: searchField
             Layout.fillWidth: true
-            Layout.bottomMargin: 8
+            Layout.bottomMargin: Theme.space8
         }
 
         Flickable {
@@ -63,20 +63,21 @@ Rectangle {
                         readonly property bool current: root.current === modelData.id
                         Layout.fillWidth: true
                         implicitHeight: root.itemHeight
-                        radius: Theme.r(9)
+                        radius: Theme.r(10)
                         color: current ? Theme.accent : navArea.containsMouse ? Theme.hover : "transparent"
                         Behavior on color { ColorAnim {} }
                         RowLayout {
-                            anchors { fill: parent; leftMargin: 11 }
-                            spacing: 9
+                            anchors { fill: parent; leftMargin: Theme.space12 }
+                            spacing: Theme.space10
                             Icon { name: item.modelData.icon; size: 15; filled: item.current; color: item.current ? Theme.textOnAccent : Theme.overlay1 }
-                            Label { Layout.fillWidth: true; color: item.current ? Theme.textOnAccent : Theme.subtext0; text: Tr.t(item.modelData.label) }
+                            Label { Layout.fillWidth: true; elide: Text.ElideRight; color: item.current ? Theme.textOnAccent : Theme.subtext0; text: Tr.t(item.modelData.label) }
                         }
-                        MouseArea {
+                        PressArea {
                             id: navArea
                             anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
+                            label: Tr.t(item.modelData.label)
+                            role: Accessible.RadioButton
+                            checked: item.current
                             onClicked: root.picked(item.modelData.id)
                         }
                     }

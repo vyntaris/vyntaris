@@ -88,18 +88,18 @@ Scope {
                     x: 30
                     y: 24
                     width: parent.width - 60
-                    spacing: 11
+                    spacing: Theme.space12
 
                     Label {
-                        font.pixelSize: 20
+                        font.pixelSize: Theme.fontSizeHeading
                         font.weight: Font.Bold
                         text: root.query.trim() !== "" ? Tr.t("Search") : Tr.t(root.pages.find(p => p.id === root.page)?.label ?? "")
                     }
                     Label {
                         visible: root.shown.length === 0
-                        Layout.topMargin: 10
+                        Layout.topMargin: Theme.space10
                         color: Theme.overlay1
-                        text: root.query.trim() !== "" ? Tr.t("No shortcut matches “") + root.query.trim() + "”" : Tr.t("No shortcuts here")
+                        text: root.query.trim() !== "" ? Tr.f("No shortcut matches “{0}”", root.query.trim()) : Tr.t("No shortcuts here")
                     }
 
                     Repeater {
@@ -109,12 +109,12 @@ Scope {
                             required property var modelData
                             required property int index
                             Layout.fillWidth: true
-                            spacing: 11
+                            spacing: Theme.space12
                             Label {
                                 visible: root.sections.length > 1
                                 Layout.topMargin: section.index > 0 ? 10 : 0
-                                caps: true
-                                color: Theme.accent
+                                overline: true
+                                color: Theme.accentInk
                                 text: Tr.t(section.modelData.label)
                             }
                             Repeater {
@@ -123,18 +123,18 @@ Scope {
                                     id: row
                                     required property var modelData
                                     Layout.fillWidth: true
-                                    spacing: 16
+                                    spacing: Theme.space16
                                     Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: row.modelData.what }
                                     Row {
                                         Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                                        spacing: 6
+                                        spacing: Theme.space6
                                         Repeater {
                                             model: row.modelData.keys
                                             Rectangle {
                                                 required property string modelData
                                                 width: Math.max(30, key.implicitWidth + 18)
                                                 height: 30
-                                                radius: Theme.r(9)
+                                                radius: Theme.r(10)
                                                 color: Theme.alpha(Theme.text, 0.04)
                                                 border { width: 1; color: Theme.glassRim }
                                                 Label {

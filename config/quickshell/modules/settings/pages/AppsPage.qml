@@ -21,7 +21,7 @@ SettingsPage {
         Layout.fillWidth: true
         wrapMode: Text.Wrap
         color: Theme.subtext0
-        font.pixelSize: Theme.fontSizeSmall + 1
+        font.pixelSize: Theme.fontSizeLabel
         text: Tr.t("The AUR holds recipes anyone can upload, and Arch doesn't check them: one could install something harmful. The Store shows each one's votes and when it last changed, and asks before it builds one.")
     }
 }

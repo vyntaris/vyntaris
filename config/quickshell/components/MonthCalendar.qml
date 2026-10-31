@@ -44,21 +44,21 @@ Item {
         id: body
         anchors.horizontalCenter: parent.horizontalCenter
         width: root.cell * 7
-        spacing: 4
+        spacing: Theme.space4
 
         RowLayout {
             id: header
             Layout.fillWidth: true
-            spacing: 4
+            spacing: Theme.space4
             Label {
                 id: title
                 Layout.fillWidth: true
-                Layout.leftMargin: 10
-                caps: true
-                font.pixelSize: Theme.fontSizeSmall - 1
-                color: Theme.accent
+                Layout.leftMargin: Theme.space10
+                overline: true
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.accentInk
                 text: root.en.toString(new Date(root.year, root.month, 1), "MMMM yyyy")
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.reset() }
+                PressArea { label: Tr.t("Back to this month"); anchors.fill: parent; onClicked: root.reset() }
             }
             component Arrow: Rectangle {
                 id: ar
@@ -69,7 +69,7 @@ Item {
                 radius: root.arrow / 2
                 color: arArea.containsMouse ? Theme.hover : "transparent"
                 Icon { anchors.centerIn: parent; name: ar.icon; size: Math.round(root.arrow * 0.55); color: Theme.subtext1 }
-                MouseArea { id: arArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: ar.clicked() }
+                PressArea { label: ar.icon === "chevron-left" ? Tr.t("Previous month") : Tr.t("Next month"); id: arArea; anchors.fill: parent; onClicked: ar.clicked() }
             }
             Arrow { icon: "chevron-left"; onClicked: root.step(-1) }
             Arrow { icon: "chevron-right"; onClicked: root.step(1) }
@@ -87,8 +87,8 @@ Item {
                     required property string modelData
                     Layout.preferredWidth: root.cell
                     horizontalAlignment: Text.AlignHCenter
-                    caps: true
-                    font.pixelSize: Theme.fontSizeSmall - 3
+                    overline: true
+                    font.pixelSize: Theme.fontSizeSmall
                     color: Theme.overlay0
                     text: modelData
                 }
@@ -116,7 +116,7 @@ Item {
                         mono: true
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: day.isToday || day.isPicked ? Font.Bold : Font.Normal
-                        color: day.isPicked ? Theme.textOnAccent : day.isToday ? Theme.accent : day.inMonth ? Theme.text : Theme.overlay0
+                        color: day.isPicked ? Theme.textOnAccent : day.isToday ? Theme.accentInk : day.inMonth ? Theme.text : Theme.overlay0
                         text: day.modelData.getDate()
                     }
                     MouseArea {
@@ -135,7 +135,7 @@ Item {
 
         Caption {
             Layout.fillWidth: true
-            Layout.topMargin: 2
+            Layout.topMargin: Theme.space2
             visible: !root.same(root.picked, root.today)
             horizontalAlignment: Text.AlignHCenter
             text: {

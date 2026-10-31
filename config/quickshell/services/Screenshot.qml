@@ -63,7 +63,7 @@ Singleton {
     }
 
     function remove() {
-        if (lastPath) Quickshell.execDetached(["rm", "-f", lastPath]);
+        if (lastPath) Quickshell.execDetached(["gio", "trash", lastPath]);
         lastPath = "";
         shown = false;
     }

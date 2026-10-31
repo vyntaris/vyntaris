@@ -11,18 +11,18 @@ SettingsPage {
     SettingsSection { text: Tr.t("Google Drive") }
     RowLayout {
         Layout.fillWidth: true
-        spacing: 12
+        spacing: Theme.space12
         Icon {
             Layout.alignment: Qt.AlignTop
-            Layout.topMargin: 2
+            Layout.topMargin: Theme.space2
             name: CloudBackup.result === "failed" ? "alert" : CloudBackup.connected ? "check" : "cloud"
             size: 16
-            color: CloudBackup.result === "failed" ? Theme.error : CloudBackup.connected ? Theme.accent : Theme.overlay1
+            color: CloudBackup.result === "failed" ? Theme.error : CloudBackup.connected ? Theme.accentInk : Theme.overlay1
         }
         ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
-            spacing: 3
+            spacing: Theme.space4
             Label { font.weight: Font.DemiBold; text: !CloudBackup.known ? "" : CloudBackup.connected ? Tr.t("On") : Tr.t("Off") }
             Label {
                 Layout.fillWidth: true
@@ -51,18 +51,18 @@ SettingsPage {
     SettingsSection { text: Tr.t("Safe updates") }
     RowLayout {
         Layout.fillWidth: true
-        spacing: 12
+        spacing: Theme.space12
         Icon {
             Layout.alignment: Qt.AlignTop
-            Layout.topMargin: 2
+            Layout.topMargin: Theme.space2
             name: UpdateGuard.guarded ? "check" : "info"
             size: 16
-            color: UpdateGuard.guarded ? Theme.accent : Theme.overlay1
+            color: UpdateGuard.guarded ? Theme.accentInk : Theme.overlay1
         }
         ColumnLayout {
             Layout.fillWidth: true
             Layout.preferredWidth: 1
-            spacing: 3
+            spacing: Theme.space4
             Label { font.weight: Font.DemiBold; text: UpdateGuard.guarded ? Tr.t("On") : Tr.t("Off") }
             Label {
                 Layout.fillWidth: true
@@ -82,7 +82,7 @@ SettingsPage {
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
                 visible: UpdateGuard.rollback !== null
-                color: Theme.accent
+                color: Theme.accentInk
                 text: Tr.t("An update was undone · ") + UpdateGuard.when(UpdateGuard.rollback?.at ?? "")
             }
         }
@@ -105,7 +105,7 @@ SettingsPage {
 
     SettingsSection { text: Tr.t("Snapshots") }
     RowLayout {
-        spacing: 10
+        spacing: Theme.space10
         Button { icon: "check"; text: Tr.t("Snapshot"); primary: true; onClicked: Snapshots.create() }
         Button { icon: "refresh"; text: Tr.t("Restore"); onClicked: Snapshots.openTimeshift() }
     }
@@ -116,8 +116,8 @@ SettingsPage {
         RowLayout {
             required property var modelData
             Layout.fillWidth: true
-            spacing: 12
-            Label { mono: true; font.pixelSize: Theme.fontSizeSmall + 1; text: modelData.date }
+            spacing: Theme.space12
+            Label { mono: true; font.pixelSize: Theme.fontSizeLabel; text: modelData.date }
             Label { Layout.fillWidth: true; color: Theme.subtext0; elide: Text.ElideRight; text: modelData.comment }
             Caption {
                 text: modelData.comment === "before upgrade" ? "upgrade"

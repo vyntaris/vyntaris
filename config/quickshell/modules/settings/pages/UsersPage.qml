@@ -21,12 +21,12 @@ SettingsPage {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: 14
+        spacing: Theme.space14
         Avatar { size: 56; name: Accounts.self.full; source: Accounts.hasFace ? Accounts.face : ""; version: Accounts.faceVersion }
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
-            Label { font.pixelSize: Theme.fontSize + 3; font.weight: Font.DemiBold; text: Accounts.self.full }
+            spacing: Theme.space2
+            Label { font.pixelSize: Theme.fontSizeLarge; font.weight: Font.DemiBold; text: Accounts.self.full }
             Caption { text: Accounts.self.name + (Accounts.self.admin ? Tr.t(" · administrator") : "") }
         }
     }
@@ -42,7 +42,7 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Picture")
         RowLayout {
-            spacing: 8
+            spacing: Theme.space8
             Button { text: picking.visible ? Tr.t("Done") : Tr.t("Choose"); onClicked: { picking.visible = !picking.visible; if (picking.visible) Accounts.findPictures(); } }
             Button { visible: Accounts.hasFace; text: Tr.t("Remove"); onClicked: Accounts.clearFace() }
         }
@@ -51,7 +51,7 @@ SettingsPage {
         id: picking
         Layout.fillWidth: true
         visible: false
-        spacing: 8
+        spacing: Theme.space8
         Label { visible: Accounts.pictures.length === 0; color: Theme.overlay1; text: Tr.t("No pictures in Pictures yet") }
         Repeater {
             model: Accounts.pictures
@@ -62,11 +62,10 @@ SettingsPage {
                 source: modelData
                 scale: pickArea.pressed ? 0.94 : pickArea.containsMouse ? 1.06 : 1
                 Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
-                MouseArea {
+                PressArea {
+                    label: Tr.t("Use this picture")
                     id: pickArea
                     anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
                     onClicked: { Accounts.setFace(choice.modelData); picking.visible = false; }
                 }
             }
@@ -80,7 +79,7 @@ SettingsPage {
         id: passwordBox
         Layout.fillWidth: true
         visible: false
-        spacing: 8
+        spacing: Theme.space8
         Field { id: newPw; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("New password") }
         Field { id: againPw; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("Once more") }
         Button {
@@ -103,11 +102,11 @@ SettingsPage {
             id: other
             required property var modelData
             Layout.fillWidth: true
-            spacing: 12
+            spacing: Theme.space12
             Avatar { name: other.modelData.full }
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 1
+                spacing: Theme.space2
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: other.modelData.full }
                 Caption { text: other.modelData.name }
             }
@@ -131,7 +130,7 @@ SettingsPage {
     SettingsSection { text: Tr.t("Add someone") }
     RowLayout {
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Theme.space8
         Field {
             id: newFull
             Layout.fillWidth: true
@@ -149,7 +148,7 @@ SettingsPage {
     }
     RowLayout {
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Theme.space8
         Field { id: newPass; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("Password") }
         Caption { text: Tr.t("Administrator") }
         Switch { id: newAdmin }

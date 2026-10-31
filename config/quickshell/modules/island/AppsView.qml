@@ -93,7 +93,7 @@ Item {
         x: root.gap
         y: field.y
         width: root.sideWidth
-        spacing: 4
+        spacing: Theme.space4
         Repeater {
             model: root.categories
             Item {
@@ -113,8 +113,8 @@ Item {
                     Behavior on fill { ColorAnim {} }
                 }
                 RowLayout {
-                    anchors { fill: parent; leftMargin: 14; rightMargin: 12 }
-                    spacing: 10
+                    anchors { fill: parent; leftMargin: Theme.space14; rightMargin: Theme.space12 }
+                    spacing: Theme.space10
                     Icon { name: root.categoryIcon(nav.modelData); size: 16; color: nav.current ? Theme.textOnAccent : Theme.overlay1 }
                     Label {
                         Layout.fillWidth: true
@@ -152,7 +152,7 @@ Item {
         }
         Rectangle {
             id: disc
-            anchors { left: parent.left; leftMargin: 5; verticalCenter: parent.verticalCenter }
+            anchors { left: parent.left; leftMargin: Theme.space6; verticalCenter: parent.verticalCenter }
             width: parent.height - 10
             height: width
             radius: width / 2
@@ -166,7 +166,7 @@ Item {
         }
         Rectangle {
             id: fieldCount
-            anchors { right: parent.right; rightMargin: 5; verticalCenter: parent.verticalCenter }
+            anchors { right: parent.right; rightMargin: Theme.space6; verticalCenter: parent.verticalCenter }
             width: Math.max(disc.width, countText.implicitWidth + 16)
             height: disc.height
             radius: Theme.r(height / 2)
@@ -183,11 +183,11 @@ Item {
         }
         TextInput {
             id: search
-            anchors { left: disc.right; leftMargin: 12; right: fieldCount.left; rightMargin: 12; verticalCenter: parent.verticalCenter }
+            anchors { left: disc.right; leftMargin: Theme.space12; right: fieldCount.left; rightMargin: Theme.space12; verticalCenter: parent.verticalCenter }
             color: Theme.text
             selectionColor: Theme.accent
             selectedTextColor: Theme.textOnAccent
-            font { family: Theme.fontFamily; pixelSize: Theme.fontSize + 2 }
+            font { family: Theme.fontFamily; pixelSize: Theme.fontSizeLarge }
             clip: true
             onTextChanged: grid.currentIndex = 0
             Keys.onEscapePressed: Panels.appsOpen = false
@@ -262,7 +262,7 @@ Item {
                     ColumnLayout {
                         anchors.centerIn: parent
                         width: parent.width - 12
-                        spacing: 4
+                        spacing: Theme.space4
                         AppIcon {
                             Layout.alignment: Qt.AlignHCenter
                             implicitSize: 40
@@ -272,7 +272,7 @@ Item {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
-                            font.pixelSize: Theme.fontSizeSmall + 1
+                            font.pixelSize: Theme.fontSizeLabel
                             color: tile.picked ? Theme.textOnAccent : Theme.subtext1
                             text: tile.modelData.name
                         }

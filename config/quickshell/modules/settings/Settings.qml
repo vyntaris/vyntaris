@@ -95,6 +95,21 @@ Scope {
 
     readonly property var pages: SettingsIndex.pages.filter(p => !p.panel)
 
+    // The keyboard can go to a row below the fold, and it comes into view.
+    function reveal(item) {
+        let inside = false;
+        for (let p = item; p; p = p.parent) if (p === pageColumn) inside = true;
+        if (!inside) return;
+        const y = item.mapToItem(pageColumn, 0, 0).y + pageColumn.y, margin = 24;
+        if (y < flick.contentY + margin) flick.contentY = Math.max(0, y - margin);
+        else if (y + item.height > flick.contentY + flick.height - margin)
+            flick.contentY = Math.min(flick.contentHeight - flick.height, y + item.height + margin - flick.height);
+    }
+    Connections {
+        target: flick.Window
+        function onActiveFocusItemChanged() { if (flick.Window.activeFocusItem) root.reveal(flick.Window.activeFocusItem); }
+    }
+
     component Page: Loader {
         required property string pageId
         Layout.fillWidth: true
@@ -117,6 +132,11 @@ Scope {
         RowLayout {
             anchors.fill: parent
             spacing: 0
+            focus: true
+            Keys.onEscapePressed: {
+                if (root.query !== "") side.search.text = "";
+                else Panels.settingsOpen = false;
+            }
 
             SideNav {
                 id: side
@@ -151,15 +171,15 @@ Scope {
                     id: resultColumn
                     x: 30
                     y: 24
-                    width: parent.width - 60
-                    spacing: 6
+                    width: Math.min(parent.width - 60, 720)
+                    spacing: Theme.space6
 
-                    Label { font.pixelSize: 20; font.weight: Font.Bold; text: Tr.t("Search") }
+                    Label { font.pixelSize: Theme.fontSizeHeading; font.weight: Font.Bold; text: Tr.t("Search") }
                     Label {
                         visible: root.results.length === 0
-                        Layout.topMargin: 10
+                        Layout.topMargin: Theme.space10
                         color: Theme.overlay1
-                        text: Tr.t("No settings match") + Tr.t(" \u201c") + root.query.trim() + "\u201d"
+                        text: Tr.f("No settings match \u201c{0}\u201d", root.query.trim())
                     }
                     Repeater {
                         model: root.results
@@ -172,13 +192,13 @@ Scope {
                             border { width: 1; color: resArea.containsMouse ? Theme.accent : Theme.glassRim }
                             RowLayout {
                                 id: resRow
-                                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 14; rightMargin: 14 }
-                                spacing: 12
-                                Icon { name: root.pages.find(p => p.id === modelData.page)?.icon ?? "settings"; size: 15; color: Theme.accent }
+                                anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: Theme.space14; rightMargin: Theme.space14 }
+                                spacing: Theme.space12
+                                Icon { name: root.pages.find(p => p.id === modelData.page)?.icon ?? "settings"; size: 15; color: Theme.accentInk }
                                 Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: Tr.t(modelData.title) }
-                                Label { caps: true; color: Theme.overlay1; text: Tr.t(root.pages.find(p => p.id === modelData.page)?.label ?? "") }
+                                Label { overline: true; color: Theme.overlay1; text: Tr.t(root.pages.find(p => p.id === modelData.page)?.label ?? "") }
                             }
-                            MouseArea { id: resArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.openResult(modelData) }
+                            PressArea { label: Tr.t(modelData.title); id: resArea; anchors.fill: parent; onClicked: root.openResult(modelData) }
                         }
                     }
                 }
@@ -197,12 +217,12 @@ Scope {
                     id: pageColumn
                     x: 30
                     y: 24
-                    width: parent.width - 60
-                    spacing: 11
+                    width: Math.min(parent.width - 60, 720)
+                    spacing: Theme.space12
 
                     Label {
                         id: pageTitle
-                        font.pixelSize: 20
+                        font.pixelSize: Theme.fontSizeHeading
                         font.weight: Font.Bold
                         text: Tr.t(root.pages.find(p => p.id === Panels.settingsPage)?.label ?? "")
                     }

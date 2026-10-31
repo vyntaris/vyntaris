@@ -29,12 +29,12 @@ Item {
 
     PanelBody {
         id: content
-        spacing: 10
+        spacing: Theme.space10
 
         Label {
             Layout.fillWidth: true
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
+            Layout.topMargin: Theme.space4
+            Layout.bottomMargin: Theme.space4
             visible: !Phone.enabled
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
@@ -55,14 +55,13 @@ Item {
             Layout.fillWidth: true
             implicitHeight: 40
             radius: Theme.r(12)
-            opacity: enabled ? 1 : 0.4
+            opacity: enabled ? 1 : Theme.disabledOpacity
             fill: hover.containsMouse ? Theme.hover : "transparent"
             Behavior on fill { ColorAnim {} }
-            MouseArea {
+            PressArea {
+                label: row.title
                 id: hover
                 anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
                 onExited: row.asking = false
                 onClicked: {
                     if (row.sure && !row.asking) { row.asking = true; return; }
@@ -71,8 +70,8 @@ Item {
                 }
             }
             RowLayout {
-                anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                spacing: 12
+                anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                spacing: Theme.space12
                 Icon { name: row.icon; size: 16; color: Theme.text }
                 ColumnLayout {
                     Layout.fillWidth: true
@@ -81,17 +80,17 @@ Item {
                     Label {
                         Layout.fillWidth: true
                         visible: row.note !== ""
-                        caps: true
-                        font.pixelSize: Theme.fontSizeSmall - 1
+                        overline: true
+                        font.pixelSize: Theme.fontSizeSmall
                         color: Theme.overlay1
                         text: row.note
                     }
                 }
                 Label {
                     visible: hover.containsMouse ? row.action !== "" : row.status !== ""
-                    caps: true
-                    font.pixelSize: Theme.fontSizeSmall - 1
-                    color: row.asking ? Theme.error : hover.containsMouse || row.lit ? Theme.accent : Theme.overlay1
+                    overline: true
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: row.asking ? Theme.error : hover.containsMouse || row.lit ? Theme.accentInk : Theme.overlay1
                     text: row.asking ? Tr.t("Sure?") : hover.containsMouse ? row.action : row.status
                 }
             }
@@ -100,7 +99,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: Phone.enabled
-            spacing: 8
+            spacing: Theme.space8
 
             Repeater {
                 model: Phone.asking
@@ -113,18 +112,18 @@ Item {
                     fill: Theme.alpha(Theme.text, 0.05)
                     edgeWidth: 1; edge: Theme.accent
                     RowLayout {
-                        anchors { fill: parent; leftMargin: 12; rightMargin: 8 }
-                        spacing: 10
-                        Icon { name: Phone.iconFor(ask.modelData); size: 16; color: Theme.accent }
+                        anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space8 }
+                        spacing: Theme.space10
+                        Icon { name: Phone.iconFor(ask.modelData); size: 16; color: Theme.accentInk }
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 0
                             Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: ask.modelData.name }
                             Label {
-                                caps: true
-                                font.pixelSize: Theme.fontSizeSmall - 1
-                                color: Theme.accent
-                                text: Tr.t("Wants to pair · code ") + ask.modelData.code
+                                overline: true
+                                font.pixelSize: Theme.fontSizeSmall
+                                color: Theme.accentInk
+                                text: Tr.f("Wants to pair · code {0}", ask.modelData.code)
                             }
                         }
                         ChipButton { text: Tr.t("Reject"); onClicked: Phone.reject(ask.modelData.id) }
@@ -142,13 +141,13 @@ Item {
                 details: !root.mine ? Tr.t("KDE Connect on the phone, on the same Wi-Fi")
                     : !root.phone ? Tr.t("Not in reach · on the same Wi-Fi?")
                     : [root.phone.charging ? Tr.t("Charging") : "", root.phone.network,
-                       root.phone.signal >= 0 ? Tr.t("Signal ") + root.phone.signal + "/4" : ""].filter(s => s).join("  ·  ")
+                       root.phone.signal >= 0 ? Tr.f("Signal {0}/4", root.phone.signal) : ""].filter(s => s).join("  ·  ")
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 visible: root.phone !== null
-                spacing: 2
+                spacing: Theme.space2
                 PanelRow {
                     icon: "phone-ring"; title: Tr.t("Find it"); action: Tr.t("Ring")
                     enabled: root.phone?.can.includes("ring") ?? false
@@ -178,9 +177,9 @@ Item {
             ColumnLayout {
                 Layout.fillWidth: true
                 visible: root.mine !== null
-                spacing: 2
-                Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; Layout.bottomMargin: 6; implicitHeight: 1; color: Theme.hairline }
-                Caption { Layout.bottomMargin: 4; text: Tr.t("Shared") }
+                spacing: Theme.space2
+                Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.space4; Layout.bottomMargin: Theme.space6; implicitHeight: 1; color: Theme.hairline }
+                Caption { Layout.bottomMargin: Theme.space4; text: Tr.t("Shared") }
                 component Share: PanelRow {
                     property string key
                     visible: key in (root.mine?.features ?? {})
@@ -195,12 +194,12 @@ Item {
                 Share { key: "clipboard"; icon: "copy"; title: Tr.t("One clipboard") }
                 Share { key: "pausemusic"; icon: "pause"; title: Tr.t("Pause music during calls") }
                 PanelRow {
-                    icon: "close"; title: Tr.t("Unpair ") + (root.mine?.name ?? ""); action: Tr.t("Unpair"); sure: true
+                    icon: "close"; title: Tr.f("Unpair {0}", root.mine?.name ?? ""); action: Tr.t("Unpair"); sure: true
                     onChosen: Phone.unpair(root.mine.id)
                 }
             }
 
-            Caption { visible: root.away.length > 0; Layout.topMargin: 4; text: Tr.t("Paired") }
+            Caption { visible: root.away.length > 0; Layout.topMargin: Theme.space4; text: Tr.t("Paired") }
             Repeater {
                 model: root.away
                 PanelRow {
@@ -210,7 +209,7 @@ Item {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; implicitHeight: 1; color: Theme.hairline; visible: Phone.running }
+            Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.space4; implicitHeight: 1; color: Theme.hairline; visible: Phone.running }
             RowLayout {
                 Layout.fillWidth: true
                 visible: Phone.running

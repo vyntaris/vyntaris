@@ -9,7 +9,7 @@ SettingsPage {
 
     Label { visible: !Printers.available; color: Theme.error; text: Tr.t("CUPS is off") }
     RowLayout {
-        spacing: 10
+        spacing: Theme.space10
         Button { icon: "printer"; text: Tr.t("Add"); onClicked: Printers.addPrinter() }
         Button { icon: "refresh"; text: Tr.t("Refresh"); onClicked: Printers.refresh() }
     }
@@ -19,8 +19,8 @@ SettingsPage {
         RowLayout {
             required property var modelData
             Layout.fillWidth: true
-            spacing: 12
-            Icon { name: "printer"; size: 16; color: modelData.default ? Theme.accent : Theme.overlay1 }
+            spacing: Theme.space12
+            Icon { name: "printer"; size: 16; color: modelData.default ? Theme.accentInk : Theme.overlay1 }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0

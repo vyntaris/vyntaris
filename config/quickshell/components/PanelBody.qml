@@ -23,7 +23,7 @@ ColumnLayout {
     x: Theme.panelInset - widest
     y: Theme.panelTop
     width: parent.width - 2 * Theme.panelInset + 2 * widest
-    spacing: 12
+    spacing: Theme.space12
 
     property var blocks: []
     property var kept: []
@@ -76,6 +76,8 @@ ColumnLayout {
     function refit() { Qt.callLater(fit); fitAgain.restart(); }
     Timer { id: fitAgain; interval: 60; onTriggered: root.fit() }
     onHeightChanged: refit()
+    // A list whose rows are replaced keeps its height, and the new rows still need their margins.
+    onChildrenChanged: refit()
     onWidestChanged: refit()
     onVisibleChanged: refit()
     Component.onCompleted: refit()

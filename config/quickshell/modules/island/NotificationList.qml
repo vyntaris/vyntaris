@@ -8,7 +8,7 @@ import qs.services
 ColumnLayout {
     id: root
     property int maxListHeight: 260
-    spacing: 10
+    spacing: Theme.space10
 
     SystemClock { id: clock; precision: SystemClock.Minutes }
     function ago(t) {
@@ -38,25 +38,25 @@ ColumnLayout {
 
     RowLayout {
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Theme.space8
 
-        Label { caps: true; color: Theme.overlay1; text: Tr.t("Notifications") }
+        Label { overline: true; color: Theme.overlay1; text: Tr.t("Notifications") }
         Rectangle {
             visible: root.count > 0
             implicitWidth: countText.implicitWidth + 14
             implicitHeight: 18
-            radius: Theme.r(9)
+            radius: Theme.r(10)
             color: Theme.accent
-            Label { id: countText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.textOnAccent; text: root.count }
+            Label { id: countText; anchors.centerIn: parent; mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.textOnAccent; text: root.count }
         }
         Item { Layout.fillWidth: true }
         Label {
             visible: root.count > 0
-            caps: true
-            font.pixelSize: Theme.fontSizeSmall - 1
+            overline: true
+            font.pixelSize: Theme.fontSizeSmall
             color: clearArea.containsMouse ? Theme.error : Theme.overlay0
             text: Tr.t("Clear all")
-            MouseArea { id: clearArea; anchors.fill: parent; anchors.margins: -6; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Notifications.clearHistory() }
+            PressArea { label: Tr.t("Clear all"); id: clearArea; anchors.fill: parent; anchors.margins: -6; onClicked: Notifications.clearHistory() }
         }
         Rectangle {
             implicitWidth: 28
@@ -66,7 +66,7 @@ ColumnLayout {
             border { width: 1; color: Notifications.dnd ? Theme.accent : Theme.glassRim }
             Behavior on color { ColorAnim {} }
             Icon { anchors.centerIn: parent; name: Notifications.dnd ? "bell-off" : "bell"; size: 14; color: Notifications.dnd ? Theme.textOnAccent : Theme.subtext0 }
-            MouseArea { id: silentArea; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Notifications.dnd = !Notifications.dnd }
+            PressArea { label: Tr.t("Do not disturb"); role: Accessible.CheckBox; checked: Notifications.dnd; id: silentArea; anchors.fill: parent; onClicked: Notifications.dnd = !Notifications.dnd }
         }
     }
 
@@ -82,7 +82,7 @@ ColumnLayout {
         implicitHeight: Math.min(contentHeight, root.maxListHeight)
         visible: root.count > 0
         clip: true
-        spacing: 8
+        spacing: Theme.space8
         model: root.groups
         boundsBehavior: Flickable.StopAtBounds
 
@@ -93,29 +93,29 @@ ColumnLayout {
             readonly property bool many: items.length > 1
             readonly property bool open: many && (root.opened[modelData.app] ?? false)
             width: list.width
-            spacing: 6
+            spacing: Theme.space6
 
             RowLayout {
                 Layout.fillWidth: true
-                Layout.leftMargin: 4
+                Layout.leftMargin: Theme.space4
                 visible: group.open
-                spacing: 8
-                Label { caps: true; font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.subtext0; text: group.modelData.app }
-                Label { mono: true; font.pixelSize: Theme.fontSizeSmall - 1; color: Theme.overlay0; text: group.items.length }
+                spacing: Theme.space8
+                Label { overline: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.subtext0; text: group.modelData.app }
+                Label { mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.overlay0; text: group.items.length }
                 Item { Layout.fillWidth: true }
                 Label {
-                    caps: true
-                    font.pixelSize: Theme.fontSizeSmall - 1
-                    color: lessArea.containsMouse ? Theme.accentBright : Theme.accent
+                    overline: true
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: lessArea.containsMouse ? Theme.accentBright : Theme.accentInk
                     text: Tr.t("Show less")
-                    MouseArea { id: lessArea; anchors.fill: parent; anchors.margins: -6; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.toggle(group.modelData.app) }
+                    PressArea { label: Tr.t("Show less"); id: lessArea; anchors.fill: parent; anchors.margins: -6; onClicked: root.toggle(group.modelData.app) }
                 }
                 Label {
-                    caps: true
-                    font.pixelSize: Theme.fontSizeSmall - 1
+                    overline: true
+                    font.pixelSize: Theme.fontSizeSmall
                     color: groupClear.containsMouse ? Theme.error : Theme.overlay0
                     text: Tr.t("Clear")
-                    MouseArea { id: groupClear; anchors.fill: parent; anchors.margins: -6; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Notifications.removeIndexes(group.items) }
+                    PressArea { label: Tr.t("Clear"); id: groupClear; anchors.fill: parent; anchors.margins: -6; onClicked: Notifications.removeIndexes(group.items) }
                 }
             }
 

@@ -37,7 +37,7 @@ Item {
         id: row
         anchors.horizontalCenter: parent.horizontalCenter
         y: (Theme.barHeight + Theme.notchDepth - height) / 2
-        spacing: 8
+        spacing: Theme.space8
 
         Label {
             visible: Config.bar.clockShow !== "time"
@@ -53,7 +53,7 @@ Item {
 
         Bars {
             visible: Visualizer.wanted
-            Layout.leftMargin: 2
+            Layout.leftMargin: Theme.space2
             implicitWidth: 22
             implicitHeight: 14
             values: Visualizer.group(5)
@@ -79,7 +79,7 @@ Item {
 
         Item {
             visible: root.activity !== null
-            Layout.leftMargin: 4
+            Layout.leftMargin: Theme.space4
             implicitWidth: 16; implicitHeight: 16
             Ring {
                 anchors.fill: parent
@@ -91,14 +91,14 @@ Item {
                 anchors.centerIn: parent
                 name: root.activity?.icon ?? ""
                 size: (root.activity?.progress ?? -1) >= 0 ? 9 : 13
-                color: root.activity?.color ?? Theme.accent
+                color: root.activity?.color ?? Theme.accentInk
             }
             MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: root.openActivity() }
         }
         Label {
             id: activityText
             visible: root.activity !== null
-            Layout.leftMargin: 4
+            Layout.leftMargin: Theme.space4
             Layout.maximumWidth: 120
             elide: Text.ElideRight
             mono: true

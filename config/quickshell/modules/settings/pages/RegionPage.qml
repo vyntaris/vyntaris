@@ -29,7 +29,7 @@ SettingsPage {
         signal picked(string value)
         Layout.fillWidth: true
         visible: page.open === which
-        spacing: 8
+        spacing: Theme.space8
         onVisibleChanged: if (visible) { search.text = ""; search.input.forceActiveFocus(); }
         SearchField {
             id: search
@@ -64,10 +64,10 @@ SettingsPage {
 
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 2
+        spacing: Theme.space2
         Label {
             mono: true
-            font.pixelSize: 28
+            font.pixelSize: Theme.fontSizeDisplay
             font.weight: Font.DemiBold
             text: Qt.formatTime(page.now, Config.bar.clockFormat)
         }
@@ -177,7 +177,7 @@ SettingsPage {
         Layout.fillWidth: true
         wrapMode: Text.Wrap
         color: Theme.overlay1
-        font.pixelSize: Theme.fontSizeSmall + 1
+        font.pixelSize: Theme.fontSizeLabel
         text: Language.busy ? Tr.t("Setting it up…") : Tr.t("Formats: how dates, numbers and money are written. Both show fully at the next login.")
     }
 }

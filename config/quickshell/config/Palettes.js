@@ -186,3 +186,43 @@ function nearest(pal, color) {
     }
     return best;
 }
+
+function luminance(hex) {
+    function lin(v) { return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+    return 0.2126 * lin(parseInt(hex.substr(1, 2), 16) / 255) + 0.7152 * lin(parseInt(hex.substr(3, 2), 16) / 255)
+        + 0.0722 * lin(parseInt(hex.substr(5, 2), 16) / 255);
+}
+
+function contrast(a, b) {
+    var la = luminance(a), lb = luminance(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+function mix(a, b, t) {
+    var out = "#";
+    for (var i = 1; i < 7; i += 2) {
+        var x = parseInt(a.substr(i, 2), 16), y = parseInt(b.substr(i, 2), 16);
+        out += ("0" + Math.round(x + (y - x) * t).toString(16)).slice(-2);
+    }
+    return out;
+}
+
+// The colour moved towards another, only as far as it takes to read on this background.
+function ensure(color, background, ratio, towards) {
+    for (var t = 0; t <= 1; t += 0.02) {
+        var c = mix(color, towards, t);
+        if (contrast(c, background) >= ratio) return c;
+    }
+    return towards;
+}
+
+// A fill some text has to read on: darkened just enough where neither black nor white would.
+function settled(fill) {
+    if (contrast("#ffffff", fill) >= 4.5 || contrast("#11111b", fill) >= 4.5) return fill;
+    return ensure(fill, "#ffffff", 4.5, "#000000");
+}
+
+function readableOn(fill, light, dark) {
+    if (contrast(light, fill) >= 4.5) return light;
+    return contrast("#ffffff", fill) >= contrast(dark, fill) ? "#ffffff" : dark;
+}

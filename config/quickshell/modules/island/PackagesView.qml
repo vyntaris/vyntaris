@@ -19,12 +19,12 @@ Item {
         icon: "package-update"
         tint: root.pk?.state === "failed" ? Theme.red : Theme.accent
         title: !root.pk ? Tr.t("Packages")
-            : Activities.removing ? Tr.t("Removing · ") + root.pk.count
-            : Activities.installing ? (root.pk.count > 0 ? Tr.t("Installing · ") + root.pk.count : Tr.t("Installing"))
+            : Activities.removing ? Tr.f("Removing · {0}", root.pk.count)
+            : Activities.installing ? (root.pk.count > 0 ? Tr.f("Installing · {0}", root.pk.count) : Tr.t("Installing"))
             : root.pk.state === "failed" ? Tr.t("Installation failed")
             : root.pk.state === "done" && root.pk.count > 0 && root.pk.removed === root.pk.count
-                ? (root.pk.count === 1 ? Tr.t("1 package removed") : root.pk.count + Tr.t(" packages removed"))
-            : root.pk.state === "done" ? (root.pk.count === 1 ? Tr.t("1 package installed") : root.pk.count + Tr.t(" packages installed"))
+                ? (root.pk.count === 1 ? Tr.t("1 package removed") : Tr.f("{0} packages removed", root.pk.count))
+            : root.pk.state === "done" ? (root.pk.count === 1 ? Tr.t("1 package installed") : Tr.f("{0} packages installed", root.pk.count))
             : Tr.t("Nothing changed")
         Label {
             visible: Activities.installing && (root.pk?.name ?? "") !== ""
@@ -43,7 +43,7 @@ Item {
 
         ListView {
             id: log
-            anchors { fill: parent; margins: 10 }
+            anchors { fill: parent; margins: Theme.space10 }
             clip: true
             model: ListModel { id: shown }
             readonly property var lines: root.pk?.lines ?? []
@@ -65,9 +65,9 @@ Item {
                 wrapMode: root.pk?.source === "log" ? Text.WrapAnywhere : Text.NoWrap
                 elide: root.pk?.source === "log" ? Text.ElideNone : Text.ElideRight
                 font.family: Theme.monoFamily
-                font.pixelSize: Theme.fontSizeSmall - 1
+                font.pixelSize: Theme.fontSizeSmall
                 text: modelData
-                color: root.pk?.source !== "log" ? (/error|failed/i.test(modelData) ? Theme.red : /^::/.test(modelData) ? Theme.accent : Theme.text)
+                color: root.pk?.source !== "log" ? (/error|failed/i.test(modelData) ? Theme.error : /^::/.test(modelData) ? Theme.accentInk : Theme.text)
                     : /\[ALPM\] transaction (failed|interrupted)|error|failed/i.test(modelData) ? Theme.red
                     : /\[ALPM\] (installed|upgraded|reinstalled|downgraded) /.test(modelData) ? Theme.green
                     : /\[ALPM\] removed /.test(modelData) ? Theme.peach

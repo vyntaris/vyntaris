@@ -142,6 +142,25 @@ case_volume() {
     ipc island open control; sleep 1.5; shot volume-control; ipc island close
 }
 
+# Tab has to land somewhere you can see, Space has to work there, and Esc has to leave.
+case_keyboard() {
+    sleep 11
+    ipc island open control; sleep 1.6; shot keyboard-control-0
+    wtype -k Tab; sleep 0.5; shot keyboard-control-1
+    check "Tab shows where it is in a panel" "$(magick compare -metric AE "$S/shots/keyboard-control-0.png" "$S/shots/keyboard-control-1.png" null: 2>&1 | cut -d' ' -f1 | awk '{print ($1 > 50)}')" 1
+    wtype -k Tab; wtype -k Tab; sleep 0.3; wtype -k Escape; sleep 1; shot keyboard-control-closed
+    check "Esc closes the panel from a control" "$(magick compare -metric AE "$S/shots/keyboard-control-0.png" "$S/shots/keyboard-control-closed.png" null: 2>&1 | cut -d" " -f1 | awk "{print (\$1 > 5000)}")" 1
+    VYNTARIS_APP_CALL=page VYNTARIS_APP_ARG=appearance QS_DISABLE_CRASH_HANDLER=1 qs -p "$Q/settings.qml" > "$S/settings.log" 2>&1 &
+    local app=$!
+    sleep 6
+    shot keyboard-settings-0
+    wtype -k Tab; sleep 0.5; shot keyboard-settings-1
+    check "Tab shows where it is in the settings" "$(magick compare -metric AE "$S/shots/keyboard-settings-0.png" "$S/shots/keyboard-settings-1.png" null: 2>&1 | cut -d' ' -f1 | awk '{print ($1 > 50)}')" 1
+    wtype -k Escape; sleep 1
+    check "Esc closes the settings" "$(hyprctl clients -j | grep -c '"class": "org.quickshell"')" 0
+    kill "$app" 2>/dev/null
+}
+
 case_wikinone() {
     sleep 11
     ipc wiki open; sleep 1.5; shot wiki-not-installed
@@ -217,7 +236,7 @@ import json,os,sys
     sleep 1
 }
 
-which="${2:-panels screenshot pointer accent startup wiki wikinone}"
+which="${2:-panels keyboard screenshot pointer accent startup wiki wikinone}"
 for c in $which; do
     case "$c" in
         panels) run panels 120 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
@@ -227,6 +246,7 @@ for c in $which; do
         wiki) run wiki 90 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         settings) run settings 80 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         volume) run volume 50 "{\"theme\":{$BASE},\"audio\":{\"boost\":true},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
+        keyboard) run keyboard 70 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         wikinone) run wikinone 40 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         startup) run startup 60 "{\"theme\":{$BASE,\"accent\":\"green\"},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
     esac

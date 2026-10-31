@@ -49,7 +49,7 @@ Singleton {
         onExited: code => {
             root.nvidiaBusy = false;
             if (code !== 0 && code !== 126 && code !== 127)
-                root.failure = nvidiaErr.text.trim().split("\n").pop() || Tr.t("That couldn't be changed");
+                root.failure = nvidiaErr.text.trim().split("\n").pop() || Tr.t("That couldn't be changed. Try again, or check that you're an administrator.");
             nvidiaStart.reload();
         }
     }
@@ -67,7 +67,7 @@ Singleton {
         onExited: code => {
             root.installing = false;
             if (code !== 0 && code !== 126 && code !== 127)
-                root.failure = installErr.text.trim().split("\n").pop() || Tr.t("The drivers couldn't be installed");
+                root.failure = installErr.text.trim().split("\n").pop() || Tr.t("The drivers couldn't be installed. Check your connection and try again.");
             root.survey();
         }
     }

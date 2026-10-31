@@ -18,13 +18,13 @@ Rectangle {
     border { width: 1; color: area.containsMouse ? fill : on ? Theme.accent : Theme.glassRim }
     Behavior on color { ColorAnim {} }
 
-    readonly property color ink: area.containsMouse || on ? Theme.textOnAccent : Theme.subtext0
+    readonly property color ink: area.containsMouse ? Theme.on(fill) : on ? Theme.textOnAccent : Theme.subtext0
     RowLayout {
         id: row
         anchors.centerIn: parent
-        spacing: 5
+        spacing: Theme.space6
         Icon { visible: root.icon !== ""; name: root.icon; size: 12; color: root.ink }
-        Label { caps: true; font.pixelSize: Theme.fontSizeSmall - 1; color: root.ink; text: root.text }
+        Label { overline: true; font.pixelSize: Theme.fontSizeSmall; color: root.ink; text: root.text }
     }
-    MouseArea { id: area; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.clicked() }
+    PressArea { id: area; anchors.fill: parent; label: root.text; onClicked: root.clicked() }
 }

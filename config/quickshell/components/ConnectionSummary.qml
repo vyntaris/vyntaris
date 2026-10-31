@@ -13,7 +13,7 @@ RowLayout {
     property bool showDetails: true
 
     readonly property string caption: [level >= 0 ? Math.round(level * 100) + "%" : "", showDetails ? details : ""].filter(s => s).join("  ·  ")
-    spacing: 12
+    spacing: Theme.space12
 
     Rectangle {
         implicitWidth: 38
@@ -30,11 +30,11 @@ RowLayout {
     }
     ColumnLayout {
         Layout.fillWidth: true
-        spacing: 1
+        spacing: Theme.space2
         Label {
             Layout.fillWidth: true
             elide: Text.ElideRight
-            font.pixelSize: Theme.fontSize + 3
+            font.pixelSize: Theme.fontSizeLarge
             font.weight: Font.DemiBold
             color: root.connected ? Theme.text : Theme.subtext0
             text: root.name

@@ -6,7 +6,7 @@ import qs.services
 
 Item {
     id: root
-    readonly property real fullWidth: 380
+    readonly property real fullWidth: Math.max(420, Theme.fontSize * 32)
     readonly property real hang: content.implicitHeight + 24
 
     width: fullWidth
@@ -38,11 +38,11 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 14
+            spacing: Theme.space14
 
             Label {
                 mono: true
-                font.pixelSize: 34
+                font.pixelSize: Theme.fontSizeHero
                 font.weight: Font.Light
                 color: root.tint
                 text: root.b.percent + "%"
@@ -50,7 +50,7 @@ Item {
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: Theme.space2
                 Label {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignRight
@@ -64,7 +64,7 @@ Item {
                     horizontalAlignment: Text.AlignRight
                     mono: true
                     color: Theme.subtext0
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     text: root.b.power.toFixed(1) + Tr.t(" W · ") + root.b.energyNow.toFixed(1) + " / " + root.b.energyFull.toFixed(1) + Tr.t(" Wh")
                 }
             }
@@ -75,7 +75,7 @@ Item {
             Layout.fillWidth: true
             readonly property int count: 20
             readonly property int filled: Math.round(root.b.percent / 100 * count)
-            spacing: 3
+            spacing: Theme.space4
             Repeater {
                 model: cells.count
                 Rectangle {
@@ -86,7 +86,7 @@ Item {
                     color: index < cells.filled ? root.tint : Theme.alpha(Theme.text, 0.1)
 
                     SequentialAnimation on opacity {
-                        running: root.b.charging && !root.b.full && index === cells.filled - 1
+                        running: root.b.charging && !root.b.full && index === cells.filled - 1 && Theme.speed > 0
                         loops: Animation.Infinite
                         alwaysRunToEnd: true
                         NumberAnimation { to: 0.35; duration: 700; easing.type: Easing.InOutSine }
@@ -98,9 +98,9 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: Theme.space10
 
-            Label { caps: true; color: Theme.overlay1; text: Tr.t("Health") }
+            Label { overline: true; color: Theme.overlay1; text: Tr.t("Health") }
             Meter {
                 Layout.fillWidth: true
                 implicitHeight: 8
@@ -110,27 +110,27 @@ Item {
             }
             Label {
                 mono: true
-                font.pixelSize: Theme.fontSizeSmall + 1
+                font.pixelSize: Theme.fontSizeLabel
                 text: root.b.health >= 0 ? Math.round(root.b.health * 100) + "%" : "—"
             }
             Rectangle { implicitWidth: 1; implicitHeight: 12; color: Theme.hairline }
-            Label { caps: true; color: Theme.overlay1; text: Tr.t("Cycles") }
+            Label { overline: true; color: Theme.overlay1; text: Tr.t("Cycles") }
             Label {
                 mono: true
-                font.pixelSize: Theme.fontSizeSmall + 1
+                font.pixelSize: Theme.fontSizeLabel
                 text: root.b.cycles >= 0 ? root.b.cycles : "—"
             }
         }
 
         Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.hairline; visible: Battery.users.length > 0 }
 
-        Label { visible: Battery.users.length > 0; caps: true; color: Theme.overlay1; text: Tr.t("Using the most") }
+        Label { visible: Battery.users.length > 0; overline: true; color: Theme.overlay1; text: Tr.t("Using the most") }
         Repeater {
             model: Battery.users
             RowLayout {
                 required property var modelData
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: Theme.space10
                 Icon { name: modelData.cpu < 0 ? "monitor" : "cpu"; size: 14; color: Theme.overlay1 }
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; text: modelData.name }
                 Meter {
@@ -142,9 +142,9 @@ Item {
                 }
                 Label {
                     mono: true
-                    font.pixelSize: Theme.fontSizeSmall + 1
+                    font.pixelSize: Theme.fontSizeLabel
                     color: modelData.cpu < 0 ? Theme.warning : Theme.subtext0
-                    text: modelData.cpu < 0 ? "awake" : modelData.cpu + "%"
+                    text: modelData.cpu < 0 ? Tr.t("awake") : modelData.cpu + "%"
                 }
             }
         }
@@ -153,9 +153,9 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 10
+            spacing: Theme.space10
             Icon { name: "gauge"; size: 16; color: Theme.overlay1 }
-            Label { Layout.fillWidth: true; caps: true; color: Theme.overlay1; text: Tr.t("Power") }
+            Label { Layout.fillWidth: true; Layout.minimumWidth: 0; elide: Text.ElideRight; overline: true; color: Theme.overlay1; text: Tr.t("Power") }
             Choice {
                 options: Power.order.map(p => ({ value: p, label: Power.name(p).replace(Tr.t("Power saver"), Tr.t("Saver")) }))
                 current: Power.profile
@@ -166,9 +166,9 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             visible: Battery.limitKind !== ""
-            spacing: 10
-            Icon { name: "battery"; level: 5; size: 16; color: Battery.chargeLimit ? Theme.accent : Theme.overlay1 }
-            Label { Layout.fillWidth: true; caps: true; color: Theme.overlay1; text: Tr.t("Limit to 80%") }
+            spacing: Theme.space10
+            Icon { name: "battery"; level: 5; size: 16; color: Battery.chargeLimit ? Theme.accentInk : Theme.overlay1 }
+            Label { Layout.fillWidth: true; overline: true; color: Theme.overlay1; text: Tr.t("Limit to 80%") }
             Switch { checked: Battery.chargeLimit; onToggled: on => Battery.setChargeLimit(on) }
         }
     }

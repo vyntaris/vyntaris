@@ -393,7 +393,7 @@ Item {
 
         Rectangle {
             id: disc
-            anchors { left: parent.left; leftMargin: 5; verticalCenter: parent.verticalCenter }
+            anchors { left: parent.left; leftMargin: Theme.space6; verticalCenter: parent.verticalCenter }
             width: parent.height - 10
             height: width
             radius: width / 2
@@ -409,7 +409,7 @@ Item {
         }
         Rectangle {
             id: fieldCount
-            anchors { right: parent.right; rightMargin: 5; verticalCenter: parent.verticalCenter }
+            anchors { right: parent.right; rightMargin: Theme.space6; verticalCenter: parent.verticalCenter }
             width: Math.max(disc.width, countText.implicitWidth + 16)
             height: disc.height
             radius: Theme.r(height / 2)
@@ -427,11 +427,11 @@ Item {
 
         TextInput {
             id: search
-            anchors { left: disc.right; leftMargin: 12; right: fieldCount.left; rightMargin: 12; verticalCenter: parent.verticalCenter }
+            anchors { left: disc.right; leftMargin: Theme.space12; right: fieldCount.left; rightMargin: Theme.space12; verticalCenter: parent.verticalCenter }
             color: Theme.text
             selectionColor: Theme.accent
             selectedTextColor: Theme.textOnAccent
-            font { family: Theme.fontFamily; pixelSize: Theme.fontSize + 2 }
+            font { family: Theme.fontFamily; pixelSize: Theme.fontSizeLarge }
             clip: true
 
             onTextChanged: {
@@ -524,7 +524,7 @@ Item {
         function lane(row) { return row ? widest - root.out(y + row.y - contentY + row.height) : 0; }
         height: root.listHeight
         clip: true
-        spacing: 2
+        spacing: Theme.space2
         model: root.results
         keyNavigationWraps: true
         boundsBehavior: Flickable.StopAtBounds
@@ -538,7 +538,7 @@ Item {
             y: at?.y ?? 0
             width: list.width - 2 * lane
             height: at?.height ?? 0
-            radius: Theme.r(14)
+            radius: Theme.r(12)
             fill: Theme.accent
             Behavior on y { Anim { duration: Theme.durationFast } }
         }
@@ -577,7 +577,7 @@ Item {
                     id: row
                     width: parent.width
                     height: parent.height
-                    spacing: 14
+                    spacing: Theme.space14
 
                     Item { implicitWidth: 4 }
 
@@ -603,7 +603,7 @@ Item {
                         Text {
                             anchors.centerIn: parent
                             visible: entry.kind === "emoji"
-                            font.pixelSize: 22
+                            font.pixelSize: Theme.fontSizeTitle
                             text: entry.modelData.char ?? ""
                         }
                         Icon {
@@ -611,21 +611,21 @@ Item {
                             visible: entry.kind === "timer" || entry.kind === "stopwatch"
                             name: "timer"
                             size: 17
-                            color: entry.selected ? Theme.textOnAccent : Theme.accent
+                            color: entry.selected ? Theme.textOnAccent : Theme.accentInk
                         }
                         Icon {
                             anchors.centerIn: parent
                             visible: entry.kind === "command"
                             name: entry.modelData.icon ?? "settings"
                             size: 16
-                            color: entry.selected ? Theme.textOnAccent : Theme.accent
+                            color: entry.selected ? Theme.textOnAccent : Theme.accentInk
                         }
                         Icon {
                             anchors.centerIn: parent
                             visible: entry.kind === "setting"
                             name: entry.modelData.page?.icon ?? "settings"
                             size: 16
-                            color: entry.selected ? Theme.textOnAccent : Theme.accent
+                            color: entry.selected ? Theme.textOnAccent : Theme.accentInk
                         }
                         Icon {
                             anchors.centerIn: parent
@@ -639,7 +639,7 @@ Item {
                             visible: (entry.kind === "app" && appIcon.source == "") || entry.kind === "calc" || entry.kind === "run" || entry.kind === "clip"
                             mono: true
                             font.weight: Font.Bold
-                            color: entry.selected ? Theme.textOnAccent : entry.kind !== "app" ? Theme.accent : Theme.subtext0
+                            color: entry.selected ? Theme.textOnAccent : entry.kind !== "app" ? Theme.accentInk : Theme.subtext0
                             text: entry.kind === "calc" ? "="
                                 : entry.kind === "run" ? ">_"
                                 : entry.kind === "clip" ? (entry.modelData.entry.isImage ? "▣" : "¶")
@@ -649,14 +649,14 @@ Item {
 
                     ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: 1
+                        spacing: Theme.space2
 
                         Label {
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                             textFormat: entry.kind === "app" || entry.kind === "setting" ? Text.StyledText : Text.PlainText
                             mono: entry.kind === "calc" || entry.kind === "run" || entry.kind === "clip"
-                            font.pixelSize: entry.kind === "calc" ? Theme.fontSize + 5 : Theme.fontSize
+                            font.pixelSize: entry.kind === "calc" ? Theme.fontSizeTitle : Theme.fontSize
                             font.weight: entry.kind === "calc" ? Font.DemiBold : Font.Normal
                             color: entry.selected ? Theme.textOnAccent : Theme.subtext1
                             text: entry.kind === "calc" ? (entry.modelData.label ?? "") + String(entry.modelData.value)
@@ -665,8 +665,8 @@ Item {
                                 : entry.kind === "stopwatch" ? Tr.t("Stopwatch")
                                 : entry.kind === "command" ? entry.modelData.title
                                 : entry.kind === "wiki" ? entry.modelData.page.title + (entry.modelData.page.section ? "  \u203a  " + entry.modelData.page.section : "")
-                                : entry.kind === "wiki-search" ? Tr.t("Search the Arch Wiki for \u201c") + entry.modelData.query + "\u201d"
-                                : entry.kind === "store" ? Tr.t("Search the Store for \u201c") + entry.modelData.query + "\u201d"
+                                : entry.kind === "wiki-search" ? Tr.f("Search the Arch Wiki for \u201c{0}\u201d", entry.modelData.query)
+                                : entry.kind === "store" ? Tr.f("Search the Store for \u201c{0}\u201d", entry.modelData.query)
                                 : entry.kind === "run" ? entry.modelData.command
                                 : entry.kind === "emoji" ? entry.modelData.name
                                 : entry.kind === "file" ? entry.modelData.path.split("/").pop()
@@ -681,7 +681,7 @@ Item {
                             elide: Text.ElideRight
                             color: entry.selected ? Theme.alpha(Theme.textOnAccent, 0.75) : Theme.overlay1
                             font.pixelSize: Theme.fontSizeSmall
-                            text: entry.kind === "calc" ? (entry.modelData.date ? Tr.t("Exchange rate of ") + entry.modelData.date : entry.modelData.label ? Tr.t("Conversion") : Tr.t("Result"))
+                            text: entry.kind === "calc" ? (entry.modelData.date ? Tr.f("Exchange rate of {0}", entry.modelData.date) : entry.modelData.label ? Tr.t("Conversion") : Tr.t("Result"))
                                 : entry.kind === "command" ? Tr.t("Command")
                                 : entry.kind === "window" ? Tr.t("Open window") + " · " + (entry.modelData.toplevel.workspace ? Tr.t("Workspace") + " " + entry.modelData.toplevel.workspace.id : entry.modelData.appId)
                                 : entry.kind === "timer" ? Tr.t("Start a timer")
@@ -691,7 +691,7 @@ Item {
                                 : entry.kind === "store" ? Tr.t("Apps from Arch and the AUR, installed with a click")
                                 : entry.kind === "run" ? Tr.t("Shell command")
                                 : entry.kind === "emoji" ? ""
-                                : entry.kind === "file" ? (entry.modelData.inside ? Tr.t("Has \u201c") + entry.modelData.query + Tr.t("\u201d in it · ") : "")
+                                : entry.kind === "file" ? (entry.modelData.inside ? Tr.f("Has \u201c{0}\u201d in it · ", entry.modelData.query) : "")
                                     + entry.modelData.path.replace(Quickshell.env("HOME"), "~")
                                 : entry.kind === "action" ? entry.modelData.app.name
                                 : entry.kind === "clip" ? (entry.modelData.entry.isImage ? Tr.t("Image") : Tr.t("Text"))
@@ -709,8 +709,8 @@ Item {
                     }
 
                     Label {
-                        caps: true
-                        font.pixelSize: Theme.fontSizeSmall - 1
+                        overline: true
+                        font.pixelSize: Theme.fontSizeSmall
                         color: entry.selected ? Theme.textOnAccent : Theme.overlay0
                         text: entry.selected
                             ? (entry.kind === "calc" || entry.kind === "clip" || entry.kind === "emoji" ? Tr.t("Copy ↵")

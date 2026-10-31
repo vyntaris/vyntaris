@@ -46,12 +46,12 @@ Item {
 
     PanelBody {
         id: content
-        spacing: 10
+        spacing: Theme.space10
 
         ColumnLayout {
             Layout.fillWidth: true
             visible: ArchWiki.checked && !ArchWiki.installed
-            spacing: 10
+            spacing: Theme.space10
             Label {
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
@@ -79,7 +79,7 @@ Item {
 
             Rectangle {
                 id: disc
-                anchors { left: parent.left; leftMargin: 5; verticalCenter: parent.verticalCenter }
+                anchors { left: parent.left; leftMargin: Theme.space6; verticalCenter: parent.verticalCenter }
                 width: parent.height - 10
                 height: width
                 radius: width / 2
@@ -88,7 +88,7 @@ Item {
             }
             Rectangle {
                 id: count
-                anchors { right: parent.right; rightMargin: 5; verticalCenter: parent.verticalCenter }
+                anchors { right: parent.right; rightMargin: Theme.space6; verticalCenter: parent.verticalCenter }
                 visible: root.asking
                 width: Math.max(disc.width, countText.implicitWidth + 16)
                 height: disc.height
@@ -106,11 +106,11 @@ Item {
             }
             TextInput {
                 id: search
-                anchors { left: disc.right; leftMargin: 12; right: count.visible ? count.left : parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter }
+                anchors { left: disc.right; leftMargin: Theme.space12; right: count.visible ? count.left : parent.right; rightMargin: Theme.space12; verticalCenter: parent.verticalCenter }
                 color: Theme.text
                 selectionColor: Theme.accent
                 selectedTextColor: Theme.textOnAccent
-                font { family: Theme.fontFamily; pixelSize: Theme.fontSize + 2 }
+                font { family: Theme.fontFamily; pixelSize: Theme.fontSizeLarge }
                 clip: true
                 onTextChanged: { root.current = 0; ArchWiki.setQuery(text); }
                 Keys.onEscapePressed: Panels.wikiOpen = false
@@ -146,7 +146,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: ArchWiki.installed
-            spacing: 2
+            spacing: Theme.space2
 
             Repeater {
                 model: root.rows
@@ -161,14 +161,14 @@ Item {
                     fill: chosen ? Theme.accent : area.containsMouse ? Theme.hover : "transparent"
                     Behavior on fill { ColorAnim {} }
                     RowLayout {
-                        anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
-                        spacing: 12
+                        anchors { fill: parent; leftMargin: Theme.space14; rightMargin: Theme.space14 }
+                        spacing: Theme.space12
                         ColumnLayout {
                             Layout.fillWidth: true
-                            spacing: 1
+                            spacing: Theme.space2
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                spacing: Theme.space6
                                 Label {
                                     Layout.fillWidth: !row.modelData.section
                                     Layout.maximumWidth: row.modelData.section ? 260 : -1
@@ -215,8 +215,8 @@ Item {
 
             Label {
                 Layout.fillWidth: true
-                Layout.topMargin: 4
-                Layout.bottomMargin: 4
+                Layout.topMargin: Theme.space4
+                Layout.bottomMargin: Theme.space4
                 visible: root.asking && root.rows.length === 0
                 horizontalAlignment: Text.AlignHCenter
                 color: Theme.overlay1

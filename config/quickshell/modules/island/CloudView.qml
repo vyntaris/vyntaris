@@ -23,7 +23,7 @@ Item {
         title: Tr.t("Google Drive")
         Label {
             visible: CloudBackup.backingUp
-            caps: true
+            overline: true
             color: Theme.overlay1
             font.family: Theme.monoFamily
             text: Math.round(CloudBackup.progress * 100) + "%"
@@ -32,7 +32,7 @@ Item {
 
     PanelBody {
         id: content
-        spacing: 12
+        spacing: Theme.space12
 
         Label {
             Layout.fillWidth: true
@@ -54,7 +54,7 @@ Item {
         }
         RowLayout {
             Layout.fillWidth: true
-            spacing: 8
+            spacing: Theme.space8
             Button {
                 visible: root.busy
                 danger: true

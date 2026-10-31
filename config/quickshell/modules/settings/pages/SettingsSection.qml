@@ -4,7 +4,7 @@ import qs.config
 import qs.components
 
 Label {
-    Layout.topMargin: 10
-    caps: true
-    color: Theme.accent
+    Layout.topMargin: Theme.space10
+    overline: true
+    color: Theme.accentInk
 }

@@ -18,8 +18,8 @@ Rectangle {
     border { width: 1; color: Theme.glassRim }
 
     RowLayout {
-        anchors { fill: parent; margins: 12 }
-        spacing: 14
+        anchors { fill: parent; margins: Theme.space12 }
+        spacing: Theme.space14
 
         ClippingRectangle {
             implicitWidth: root.artSize
@@ -38,15 +38,15 @@ Rectangle {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: Theme.space2
             Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: root.player?.trackTitle ?? "" }
             Label { Layout.fillWidth: true; elide: Text.ElideRight; color: Theme.subtext0; font.pixelSize: Theme.fontSizeSmall; text: root.player?.trackArtist ?? "" }
             RowLayout {
-                Layout.topMargin: 2
-                spacing: 4
-                IconButton { size: 30; icon: "previous"; onClicked: Media.previous() }
-                IconButton { size: 34; primary: true; icon: root.player?.isPlaying ? "pause" : "play"; onClicked: Media.toggle() }
-                IconButton { size: 30; icon: "next"; onClicked: Media.next() }
+                Layout.topMargin: Theme.space2
+                spacing: Theme.space4
+                IconButton { size: 30; icon: "previous"; label: Tr.t("Previous"); onClicked: Media.previous() }
+                IconButton { size: 34; primary: true; icon: root.player?.isPlaying ? "pause" : "play"; label: root.player?.isPlaying ? Tr.t("Pause") : Tr.t("Play"); onClicked: Media.toggle() }
+                IconButton { size: 30; icon: "next"; label: Tr.t("Next"); onClicked: Media.next() }
             }
         }
     }

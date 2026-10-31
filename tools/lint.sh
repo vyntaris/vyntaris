@@ -19,6 +19,8 @@ shellcheck -S warning "${shells[@]}" || bad=1
 shellcheck -S warning -s bash -e SC2034,SC2154 "${packaging[@]}" || bad=1
 python3 -c 'import ast, sys; [ast.parse(open(f).read(), f) for f in sys.argv[1:]]' "${pythons[@]}" || bad=1
 pyflakes "${pythons[@]}" || bad=1
+tools/check-contrast.py || bad=1
+tools/check-controls.py || bad=1
 
 [ "$bad" = 0 ] && echo "$(( ${#shells[@]} + ${#packaging[@]} )) shell scripts and ${#pythons[@]} Python files: clean"
 exit "$bad"

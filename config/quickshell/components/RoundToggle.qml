@@ -14,9 +14,10 @@ Item {
     signal rightClicked()
     signal entered()
 
-    implicitWidth: 64
-    implicitHeight: 74
-    opacity: enabled ? 1 : 0.4
+    implicitWidth: 72
+    implicitHeight: circle.height + 6 + name.implicitHeight
+    opacity: enabled ? 1 : Theme.disabledOpacity
+    readonly property color inkOn: Theme.on(tint)
 
     Rectangle {
         id: circle
@@ -35,7 +36,7 @@ Item {
             visible: root.glyph !== ""
             mono: true
             font.weight: Font.Bold
-            color: root.on ? Theme.textOnAccent : Theme.subtext1
+            color: root.on ? root.inkOn : Theme.subtext1
             text: root.glyph
         }
         Icon {
@@ -43,29 +44,32 @@ Item {
             visible: root.glyph === ""
             name: root.icon
             size: 19
-            color: root.on ? Theme.textOnAccent : Theme.subtext1
+            color: root.on ? root.inkOn : Theme.subtext1
         }
     }
 
     Label {
-        anchors { horizontalCenter: parent.horizontalCenter; top: circle.bottom; topMargin: 7 }
-        width: root.width + 8
+        id: name
+        anchors { horizontalCenter: parent.horizontalCenter; top: circle.bottom; topMargin: Theme.space6 }
+        width: root.width
         horizontalAlignment: Text.AlignHCenter
+        wrapMode: Text.Wrap
+        maximumLineCount: 2
         elide: Text.ElideRight
-        caps: true
-        font.pixelSize: Theme.fontSizeSmall - 2
-        color: root.on ? (root.tint === Theme.accent ? Theme.text : root.tint) : Theme.overlay1
+        font.pixelSize: Theme.fontSizeSmall
+        font.weight: root.on ? Font.DemiBold : Font.Normal
+        color: root.on ? (root.tint === Theme.accentInk ? Theme.text : root.tint) : Theme.overlay1
         text: root.label
     }
 
-    MouseArea {
+    PressArea {
         id: area
         anchors.fill: parent
         enabled: root.enabled && root.interactive
-        hoverEnabled: true
+        label: root.label
+        ringRadius: 14
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        cursorShape: Qt.PointingHandCursor
-        onClicked: mouse => mouse.button === Qt.RightButton ? root.rightClicked() : root.clicked()
+        onClicked: mouse => mouse?.button === Qt.RightButton ? root.rightClicked() : root.clicked()
         onEntered: root.entered()
     }
 }

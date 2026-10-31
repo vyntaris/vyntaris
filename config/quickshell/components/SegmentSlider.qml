@@ -13,17 +13,19 @@ RowLayout {
     readonly property alias shown: bar.shown
     readonly property real level: bar.shown * maximum
     property string valueText: Math.round(level * 100)
+    property string label
+    property string iconLabel
     signal moved(real v)
     signal iconClicked()
 
-    spacing: 12
+    spacing: Theme.space12
 
     Icon {
         name: root.icon
         level: root.iconLevel
         size: 16
         color: root.dimmed ? Theme.overlay0 : Theme.subtext1
-        MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: root.iconClicked() }
+        PressArea { anchors.fill: parent; anchors.margins: -6; enabled: root.iconLabel !== ""; label: root.iconLabel; ringRadius: 6; onClicked: root.iconClicked() }
     }
 
     Slider {
@@ -32,6 +34,7 @@ RowLayout {
         value: root.value / root.maximum
         caution: 1 / root.maximum
         count: root.count
+        label: root.label
         dimmed: root.dimmed
         onMoved: v => root.moved(v * root.maximum)
     }
@@ -40,7 +43,7 @@ RowLayout {
         Layout.preferredWidth: 30
         horizontalAlignment: Text.AlignRight
         mono: true
-        font.pixelSize: Theme.fontSizeSmall + 1
+        font.pixelSize: Theme.fontSizeLabel
         color: root.dimmed ? Theme.overlay1 : Theme.text
         text: root.valueText
     }

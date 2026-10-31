@@ -65,12 +65,12 @@ Item {
 
     PanelBody {
         id: content
-        spacing: 10
+        spacing: Theme.space10
 
         Label {
             Layout.fillWidth: true
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
+            Layout.topMargin: Theme.space4
+            Layout.bottomMargin: Theme.space4
             visible: !root.adapter
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
@@ -79,8 +79,8 @@ Item {
 
         Label {
             Layout.fillWidth: true
-            Layout.topMargin: 4
-            Layout.bottomMargin: 4
+            Layout.topMargin: Theme.space4
+            Layout.bottomMargin: Theme.space4
             visible: !!root.adapter && !root.on
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
@@ -90,7 +90,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.on
-            spacing: 8
+            spacing: Theme.space8
 
             ConnectionSummary {
                 Layout.fillWidth: true
@@ -107,7 +107,7 @@ Item {
                     onClicked: root.connected.disconnect()
                 }
             }
-            Rectangle { Layout.fillWidth: true; Layout.topMargin: 4; implicitHeight: 1; color: Theme.hairline }
+            Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.space4; implicitHeight: 1; color: Theme.hairline }
         }
 
         component DeviceRow: PanelSurface {
@@ -119,18 +119,18 @@ Item {
             radius: Theme.r(12)
             fill: hover.containsMouse ? Theme.hover : "transparent"
             Behavior on fill { ColorAnim {} }
-            MouseArea { id: hover; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.choose(row.modelData) }
+            PressArea { label: root.nameOf(row.modelData); id: hover; anchors.fill: parent; onClicked: root.choose(row.modelData) }
             RowLayout {
-                anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                spacing: 12
+                anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                spacing: Theme.space12
                 Icon { name: root.iconFor(row.modelData); size: 16; color: row.modelData.paired ? Theme.text : Theme.overlay1 }
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; text: root.nameOf(row.modelData) }
                 Spinner { visible: row.busy; size: 14 }
                 Label {
                     visible: row.busy || hover.containsMouse
-                    caps: true
-                    font.pixelSize: Theme.fontSizeSmall - 1
-                    color: Theme.accent
+                    overline: true
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.accentInk
                     text: (row.busy ? Tr.t("Connecting") : row.modelData.paired ? Tr.t("Connect") : Tr.t("Pair"))
                 }
                 Label {
@@ -150,7 +150,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.on && root.paired.length > 0
-            spacing: 2
+            spacing: Theme.space2
             Repeater { model: root.paired; DeviceRow {} }
         }
 
@@ -167,7 +167,7 @@ Item {
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.on
-            spacing: 2
+            spacing: Theme.space2
             Repeater { model: root.available; DeviceRow {} }
         }
     }

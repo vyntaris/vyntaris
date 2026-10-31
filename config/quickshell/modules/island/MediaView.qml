@@ -44,7 +44,7 @@ Item {
                 required property var modelData
                 implicitWidth: 8; implicitHeight: 8; radius: 4
                 color: modelData === root.player ? Theme.accent : Theme.alpha(Theme.text, 0.2)
-                MouseArea { anchors.fill: parent; anchors.margins: -4; cursorShape: Qt.PointingHandCursor; onClicked: root.player = modelData }
+                PressArea { label: modelData.identity ?? ""; anchors.fill: parent; anchors.margins: -4; onClicked: root.player = modelData }
             }
         }
     }
@@ -62,7 +62,7 @@ Item {
         x: card.x + root.pad
         y: card.y + root.pad
         width: card.width - 2 * root.pad
-        spacing: 16
+        spacing: Theme.space16
 
         ClippingRectangle {
             implicitWidth: 112
@@ -91,12 +91,12 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: Theme.space4
 
             Label {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
-                font.pixelSize: Theme.fontSize + 2
+                font.pixelSize: Theme.fontSizeLarge
                 font.weight: root.player?.trackTitle ? Font.DemiBold : Font.Normal
                 color: root.player?.trackTitle ? Theme.text : Theme.overlay1
                 text: root.player?.trackTitle || Tr.t("Nothing playing")
@@ -110,7 +110,7 @@ Item {
 
             Item {
                 Layout.fillWidth: true
-                Layout.topMargin: 8
+                Layout.topMargin: Theme.space8
                 implicitHeight: 14
                 visible: root.player?.lengthSupported ?? false
 
@@ -138,12 +138,12 @@ Item {
 
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: 2
-                spacing: 18
+                Layout.topMargin: Theme.space2
+                spacing: Theme.space20
 
-                IconButton { size: 34; icon: "previous"; active: root.player?.canGoPrevious ?? false; onClicked: root.player.previous() }
-                IconButton { icon: root.player?.isPlaying ? "pause" : "play"; primary: true; size: 44; active: root.player?.canTogglePlaying ?? false; onClicked: root.player.togglePlaying() }
-                IconButton { size: 34; icon: "next"; active: root.player?.canGoNext ?? false; onClicked: root.player.next() }
+                IconButton { size: 34; icon: "previous"; label: Tr.t("Previous"); active: root.player?.canGoPrevious ?? false; onClicked: root.player.previous() }
+                IconButton { icon: root.player?.isPlaying ? "pause" : "play"; label: root.player?.isPlaying ? Tr.t("Pause") : Tr.t("Play"); primary: true; size: 44; active: root.player?.canTogglePlaying ?? false; onClicked: root.player.togglePlaying() }
+                IconButton { size: 34; icon: "next"; label: Tr.t("Next"); active: root.player?.canGoNext ?? false; onClicked: root.player.next() }
             }
         }
     }

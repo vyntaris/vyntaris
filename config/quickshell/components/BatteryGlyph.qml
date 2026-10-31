@@ -40,7 +40,7 @@ Item {
         }
     }
     Rectangle {
-        anchors { left: body.right; leftMargin: 1; verticalCenter: body.verticalCenter }
+        anchors { left: body.right; leftMargin: Theme.space2; verticalCenter: body.verticalCenter }
         width: root.nub
         height: body.height * 0.42
         radius: width / 2

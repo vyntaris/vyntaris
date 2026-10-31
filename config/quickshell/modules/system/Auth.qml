@@ -78,7 +78,7 @@ Scope {
             anchors.centerIn: parent
             width: 420
             height: body.implicitHeight + 48
-            radius: Theme.r(21)
+            radius: Theme.r(20)
             border { width: 1; color: root.flow?.failed ? Theme.alpha(Theme.error, 0.6) : Theme.glassEdge }
             color: Theme.isDark ? Theme.crust : Theme.base
             transform: Translate { id: shakeShift }
@@ -87,19 +87,19 @@ Scope {
 
             SequentialAnimation {
                 id: shake
-                Anim { target: shakeShift; property: "x"; to: -10; duration: 50 }
-                Anim { target: shakeShift; property: "x"; to: 10; duration: 70 }
-                Anim { target: shakeShift; property: "x"; to: -6; duration: 70 }
-                Anim { target: shakeShift; property: "x"; to: 0; duration: 60 }
+                Anim { target: shakeShift; property: "x"; to: -10; duration: Theme.paced(50) }
+                Anim { target: shakeShift; property: "x"; to: 10; duration: Theme.paced(70) }
+                Anim { target: shakeShift; property: "x"; to: -6; duration: Theme.paced(70) }
+                Anim { target: shakeShift; property: "x"; to: 0; duration: Theme.paced(60) }
             }
 
             ColumnLayout {
                 id: body
-                anchors { left: parent.left; right: parent.right; top: parent.top; margins: 24 }
-                spacing: 14
+                anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space24 }
+                spacing: Theme.space14
 
                 RowLayout {
-                    spacing: 12
+                    spacing: Theme.space12
                     Rectangle {
                         implicitWidth: 44
                         implicitHeight: 44
@@ -108,8 +108,8 @@ Scope {
                         Icon { anchors.centerIn: parent; name: "lock"; size: 18; color: Theme.textOnAccent }
                     }
                     ColumnLayout {
-                        spacing: 2
-                        Label { caps: true; color: Theme.accent; text: Tr.t("Authentication required") }
+                        spacing: Theme.space2
+                        Label { overline: true; color: Theme.accentInk; text: Tr.t("Authentication required") }
                         Label { color: Theme.subtext0; font.pixelSize: Theme.fontSizeSmall; text: Quickshell.env("USER") || "" }
                     }
                 }
@@ -122,7 +122,7 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: Theme.space8
 
                     PasswordCells {
                         id: field
@@ -135,6 +135,7 @@ Scope {
                     }
                     IconButton {
                         icon: root.showPassword ? "eye-off" : "eye"
+                        label: root.showPassword ? Tr.t("Hide password") : Tr.t("Show password")
                         on: root.showPassword
                         onClicked: { root.showPassword = !root.showPassword; field.input.forceActiveFocus(); }
                     }
@@ -151,11 +152,11 @@ Scope {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Layout.topMargin: 2
-                    spacing: 8
+                    Layout.topMargin: Theme.space2
+                    spacing: Theme.space8
                     Item { Layout.fillWidth: true }
-                    Button { radius: Theme.r(13); text: Tr.t("Cancel"); onClicked: root.cancel() }
-                    Button { radius: Theme.r(13); primary: true; text: Tr.t("Authenticate"); active: field.text !== ""; onClicked: root.submit() }
+                    Button { radius: Theme.r(12); text: Tr.t("Cancel"); onClicked: root.cancel() }
+                    Button { radius: Theme.r(12); primary: true; text: Tr.t("Authenticate"); active: field.text !== ""; onClicked: root.submit() }
                 }
             }
         }

@@ -7,7 +7,7 @@ import qs.services
 
 SettingsPage {
     pageId: "about"
-    spacing: 10
+    spacing: Theme.space10
 
     SettingsRow { title: Tr.t("System"); Label { color: Theme.subtext0; text: Distro.name } }
     SettingsRow { title: Tr.t("Memory"); Label { mono: true; color: Theme.subtext0; text: SystemStats.formatBytes(SystemStats.memTotal, 0) } }

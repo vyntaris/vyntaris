@@ -14,6 +14,13 @@ Rectangle {
     scale: area.containsMouse && !current ? 1.12 : 1
     Behavior on scale { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
 
-    Icon { anchors.centerIn: parent; visible: root.current; name: "check"; size: Math.round(root.size * 0.44); stroke: 2.4; color: Theme.textOnAccent }
-    MouseArea { id: area; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: Config.setAccent(root.accent) }
+    Icon { anchors.centerIn: parent; visible: root.current; name: "check"; size: Math.round(root.size * 0.44); stroke: 2.4; color: Theme.on(root.color) }
+    PressArea {
+        id: area
+        anchors.fill: parent
+        label: Theme.accentLabel(root.accent)
+        role: Accessible.RadioButton
+        checked: root.current
+        onClicked: Config.setAccent(root.accent)
+    }
 }

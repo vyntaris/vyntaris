@@ -25,13 +25,22 @@ Singleton {
     readonly property color sapphire:  palette.sapphire
     readonly property color blue:      palette.blue
     readonly property color lavender:  palette.lavender
-    readonly property color text:      palette.text
+    readonly property color text:      highContrast ? ink(palette.text) : palette.text
     readonly property bool highContrast: Config.accessibility.highContrast
-    readonly property color subtext1:  highContrast ? palette.text : palette.subtext1
-    readonly property color subtext0:  highContrast ? palette.text : palette.subtext0
-    readonly property color overlay2:  highContrast ? palette.subtext1 : palette.overlay2
-    readonly property color overlay1:  highContrast ? palette.subtext0 : palette.overlay1
-    readonly property color overlay0:  highContrast ? palette.subtext0 : palette.overlay0
+    // The hardest background text meets: a tile on the panel it sits on.
+    readonly property string worstSurface: Palettes.mix(isDark ? palette.base : palette.crust, palette.text, 0.06)
+    readonly property string strongest: isDark ? "#ffffff" : "#000000"
+    readonly property real textRatio: highContrast ? 7 : 4.5
+    function ink(c) {
+        return Palettes.ensure(String(c), worstSurface, textRatio, highContrast ? strongest : palette.text);
+    }
+    readonly property color subtext1:  highContrast ? ink(palette.text) : ink(palette.subtext1)
+    readonly property color subtext0:  highContrast ? ink(palette.text) : ink(palette.subtext0)
+    readonly property color overlay2:  ink(highContrast ? palette.subtext1 : palette.overlay2)
+    readonly property color overlay1:  ink(highContrast ? palette.subtext0 : palette.overlay1)
+    readonly property color overlay0:  ink(highContrast ? palette.subtext0 : palette.overlay0)
+    // What a control's own edge is drawn in, where the edge is how it's seen.
+    readonly property color controlEdge: Palettes.ensure(palette.overlay0, worstSurface, highContrast ? 4.5 : 3, highContrast ? strongest : palette.text)
     readonly property color surface2:  palette.surface2
     readonly property color surface1:  palette.surface1
     readonly property color surface0:  palette.surface0
@@ -40,15 +49,22 @@ Singleton {
     readonly property color crust:     palette.crust
 
     readonly property string accentName: isDark ? Config.theme.accent : Config.theme.accentLight
-    readonly property color accent:   Palettes.accent(palette, accentName)
+    readonly property color accent:   Palettes.settled(Palettes.accent(palette, accentName))
     readonly property string accentNearest: Palettes.nearest(palette, accentName)
     function accentIn(pal) { return Palettes.accent(pal, accentName); }
     function colorOf(name) { return Palettes.accent(palette, name); }
-    readonly property color textOnAccent: isDark ? crust : base
+    function accentLabel(name) {
+        const names = { pink: Tr.t("Pink"), mauve: Tr.t("Mauve"), red: Tr.t("Red"), peach: Tr.t("Peach"),
+                        yellow: Tr.t("Yellow"), green: Tr.t("Green"), sky: Tr.t("Sky"), blue: Tr.t("Blue") };
+        return names[name] ?? Tr.t("Custom");
+    }
+    readonly property color accentInk: ink(accent)
+    function on(fill) { return Palettes.readableOn(String(fill), palette.base, Palettes.palettes.mocha.crust); }
+    readonly property color textOnAccent: on(accent)
     readonly property color accentBright: Qt.lighter(accent, 1.18)
-    readonly property color success:  green
-    readonly property color error:    red
-    readonly property color warning:  peach
+    readonly property color success:  ink(palette.green)
+    readonly property color error:    ink(palette.red)
+    readonly property color warning:  ink(palette.peach)
 
     readonly property color glassTint:  crust
     readonly property color glass:      glassTint
@@ -65,10 +81,31 @@ Singleton {
     readonly property string fontFamily: Config.theme.fontFamily || Qt.application.font.family
     readonly property string monoFamily: Config.theme.monoFamily || "monospace"
     readonly property int fontSize: Config.theme.fontSize
-    readonly property int fontSizeSmall: fontSize - 2
-    readonly property real capsSpacing: 1.4
+    readonly property int fontSizeSmall: Math.max(11, fontSize - 2)
+    readonly property int fontSizeLabel: Math.max(12, fontSize - 1)
+    readonly property int fontSizeMedium: fontSize + 1
+    readonly property int fontSizeLarge: fontSize + 3
+    readonly property int fontSizeTitle: fontSize + 5
+    readonly property int fontSizeHeading: fontSize + 7
+    readonly property int fontSizeDisplay: fontSize + 13
+    readonly property int fontSizeHero: fontSize + 21
 
     readonly property int radius: 10
+
+    readonly property int space2: 2
+    readonly property int space4: 4
+    readonly property int space6: 6
+    readonly property int space8: 8
+    readonly property int space10: 10
+    readonly property int space12: 12
+    readonly property int space14: 14
+    readonly property int space16: 16
+    readonly property int space20: 20
+    readonly property int space24: 24
+    readonly property int space32: 32
+    readonly property int space36: 36
+
+    readonly property real disabledOpacity: 0.5
 
     readonly property int barHeight: Config.bar.height
     // Buttons, fields and choices stand side by side, so all of them are this tall.
@@ -97,6 +134,8 @@ Singleton {
     function duration(ms) {
         return speed > 0 ? Math.round(ms / speed) : 0;
     }
+    // A shake or a flash has its own pace: not rushed by the speed, gone with the animations off.
+    function paced(ms) { return speed > 0 ? ms : 0; }
     readonly property int durationFast:   duration(140)
     readonly property int durationNormal: duration(260)
     readonly property int durationSlow:   duration(420)

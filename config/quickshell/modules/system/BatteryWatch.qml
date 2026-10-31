@@ -84,7 +84,7 @@ Scope {
         const p = Battery.percent;
         if (p <= Config.battery.critical && warned > Config.battery.critical) {
             warned = Config.battery.critical;
-            notify("critical", Tr.f("Battery critically low — {0}%", p), Tr.t("Plug in the charger now."));
+            notify("critical", Tr.f("Battery critically low: {0}%", p), Tr.t("Plug in the charger now."));
         } else if (p <= Config.battery.low && warned > Config.battery.low) {
             warned = Config.battery.low;
             let body = Tr.t("Plug in the charger soon.");
@@ -98,7 +98,7 @@ Scope {
                 remember();
                 body += " " + Tr.t("Power saver is on until it's charging.");
             }
-            notify("normal", Tr.f("Battery low — {0}%", p), body);
+            notify("normal", Tr.f("Battery low: {0}%", p), body);
         }
     }
 }

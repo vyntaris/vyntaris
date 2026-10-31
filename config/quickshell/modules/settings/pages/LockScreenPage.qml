@@ -15,7 +15,7 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Widgets")
         RowLayout {
-            spacing: 8
+            spacing: Theme.space8
             Button { text: Tr.t("Preview"); onClicked: Panels.inShell("lock", "preview") }
             Switch { checked: Config.lock.widgets; onToggled: on => { Config.lock.widgets = on; Config.saveSoon(); } }
         }

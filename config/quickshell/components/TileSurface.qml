@@ -9,6 +9,9 @@ Rectangle {
     readonly property alias hovered: area.containsMouse
     readonly property alias pressed: area.pressed
     property alias acceptedButtons: area.acceptedButtons
+    property alias label: area.label
+    property alias role: area.role
+    property alias checked: area.checked
     signal activated(var mouse)
     signal entered()
 
@@ -23,11 +26,9 @@ Rectangle {
     Behavior on color { ColorAnim {} }
     Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
 
-    MouseArea {
+    PressArea {
         id: area
         anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
         onClicked: mouse => root.activated(mouse)
         onEntered: root.entered()
     }

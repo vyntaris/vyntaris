@@ -9,7 +9,31 @@ Item {
     property int count: Math.max(8, Math.round(width / 9))
     // From this share of the bar on it shows in the warning colour: the part past what is safe.
     property real caution: 1
+    property string label: {
+        for (let p = parent; p; p = p.parent)
+            if (p.isOption === true) return p.title;
+        return "";
+    }
+    readonly property real step: 0.05
     signal moved(real v)
+
+    function nudge(by) { moved(Math.max(0, Math.min(1, value + by))); }
+    activeFocusOnTab: enabled
+    Keys.onLeftPressed: nudge(-step)
+    Keys.onDownPressed: nudge(-step)
+    Keys.onRightPressed: nudge(step)
+    Keys.onUpPressed: nudge(step)
+    Keys.onPressed: event => {
+        if (event.key === Qt.Key_Home) { moved(0); event.accepted = true; }
+        else if (event.key === Qt.Key_End) { moved(1); event.accepted = true; }
+    }
+    Accessible.role: Accessible.Slider
+    Accessible.name: label
+    Accessible.focusable: true
+    Accessible.focused: activeFocus
+    Accessible.description: Math.round(shown * 100) + "%"
+    opacity: enabled ? 1 : Theme.disabledOpacity
+    FocusRing { anchors.margins: -3; ringRadius: 5 }
 
     implicitWidth: 120
     implicitHeight: 16
@@ -20,7 +44,7 @@ Item {
     Row {
         id: cells
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 3
+        spacing: Theme.space4
         Repeater {
             model: root.count
             Rectangle {
@@ -30,7 +54,7 @@ Item {
                 height: on ? 12 : 6
                 anchors.verticalCenter: parent.verticalCenter
                 radius: 2
-                color: !on ? Theme.alpha(Theme.text, area.containsMouse ? 0.16 : 0.1)
+                color: !on ? (area.containsMouse ? Theme.overlay1 : Theme.controlEdge)
                     : root.dimmed ? Theme.overlay0
                     : index >= Math.round(root.caution * root.count) ? Theme.warning
                     : index === root.lit - 1 ? Theme.accentBright : root.fillColor

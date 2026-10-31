@@ -26,29 +26,29 @@ Item {
     }
 
     Item {
-        anchors { fill: parent; leftMargin: 22; rightMargin: 22 }
+        anchors { fill: parent; leftMargin: Theme.space24; rightMargin: Theme.space24 }
 
         RowLayout {
             width: parent.width
             height: Theme.barHeight + 4
-            spacing: 10
+            spacing: Theme.space10
 
             Icon {
                 name: root.view.icon
                 level: root.view.level
                 size: 18
-                color: root.view.dimmed ? Theme.overlay1 : Theme.accent
+                color: root.view.dimmed ? Theme.overlay1 : Theme.accentInk
             }
             Label {
                 Layout.fillWidth: true
-                caps: true
-                color: root.view.dimmed ? Theme.overlay1 : Theme.accent
+                overline: true
+                color: root.view.dimmed ? Theme.overlay1 : Theme.accentInk
                 text: root.view.label
             }
             Label {
                 visible: root.view.value >= 0 || root.toggle
                 mono: true
-                font.pixelSize: Theme.fontSize + 5
+                font.pixelSize: Theme.fontSizeTitle
                 font.weight: Font.DemiBold
                 color: root.view.dimmed ? Theme.overlay1 : Theme.text
                 text: root.view.text
@@ -67,7 +67,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 readonly property int count: 24
                 readonly property int lit: Math.round(Math.max(0, Math.min(1, root.view.value)) * count)
-                spacing: 3
+                spacing: Theme.space4
 
                 Repeater {
                     model: segments.count

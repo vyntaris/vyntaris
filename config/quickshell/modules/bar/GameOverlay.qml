@@ -30,7 +30,7 @@ PanelWindow {
         width: stats.implicitWidth + 36
         height: Theme.barHeight + radius
         y: -radius
-        radius: Theme.r(14)
+        radius: Theme.r(12)
         color: Theme.glassTop
         border { width: 1; color: Theme.glassRim }
         opacity: win.shown ? 1 : 0

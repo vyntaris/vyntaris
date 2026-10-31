@@ -98,7 +98,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.panelTop
         columns: root.columns
-        spacing: 12
+        spacing: Theme.space12
 
         Repeater {
             model: root.windows
@@ -122,7 +122,7 @@ Item {
 
                 ScreencopyView {
                     id: preview
-                    anchors { left: parent.left; right: parent.right; top: parent.top; margins: 8 }
+                    anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space8 }
                     height: parent.height - 44
                     captureSource: root.active ? card.modelData.wayland : null
                     live: root.active
@@ -130,8 +130,8 @@ Item {
                 }
 
                 RowLayout {
-                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 10 }
-                    spacing: 8
+                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: Theme.space10 }
+                    spacing: Theme.space8
                     AppIcon {
                         implicitSize: 18
                         readonly property string appId: card.modelData.wayland?.appId ?? ""
@@ -141,14 +141,14 @@ Item {
                     Label {
                         Layout.fillWidth: true
                         elide: Text.ElideRight
-                        font.pixelSize: Theme.fontSizeSmall + 1
+                        font.pixelSize: Theme.fontSizeLabel
                         font.weight: card.selected ? Font.DemiBold : Font.Normal
                         color: card.selected ? Theme.textOnAccent : Theme.subtext1
                         text: card.modelData.title
                     }
                     Label {
                         mono: true
-                        font.pixelSize: Theme.fontSizeSmall - 1
+                        font.pixelSize: Theme.fontSizeSmall
                         color: card.selected ? Theme.textOnAccent : Theme.overlay0
                         text: card.modelData.workspace?.id ?? ""
                     }

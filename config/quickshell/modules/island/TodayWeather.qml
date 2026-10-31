@@ -25,9 +25,9 @@ ColumnLayout {
 
     Label {
         Layout.topMargin: root.titleY
-        caps: true
-        color: Theme.accent
-        font.pixelSize: Theme.fontSizeSmall - 1
+        overline: true
+        color: Theme.accentInk
+        font.pixelSize: Theme.fontSizeSmall
         text: root.en.toString(clock.date, "dddd")
     }
     Label {
@@ -36,7 +36,7 @@ ColumnLayout {
         mono: true
         text: clock.date.getDate()
     }
-    Caption { text: root.en.toString(clock.date, "MMMM") + Tr.t(" · Week ") + root.week(clock.date) }
+    Caption { text: Tr.f("{0} · Week {1}", root.en.toString(clock.date, "MMMM"), root.week(clock.date)) }
 
     readonly property date born: /^\d{4}-\d{2}-\d{2}$/.test(Config.life.birthday) ? new Date(Config.life.birthday + "T00:00:00") : new Date(NaN)
     readonly property bool mori: !isNaN(born.getTime())
@@ -45,17 +45,17 @@ ColumnLayout {
     readonly property real lived: mori ? Math.max(0, Math.min(1, (clock.date - born) / (end - born))) : 0
     ColumnLayout {
         visible: root.mori
-        Layout.topMargin: 4
+        Layout.topMargin: Theme.space4
         Layout.fillWidth: true
-        spacing: 3
+        spacing: Theme.space4
         Meter {
             Layout.fillWidth: true
-            Layout.rightMargin: 8
+            Layout.rightMargin: Theme.space8
             implicitHeight: Math.round(Theme.fontSizeSmall / 2)
             count: 16
             value: root.lived
         }
-        Label { mono: true; color: Theme.subtext0; font.pixelSize: Theme.fontSizeSmall - 1; text: root.weeksLeft.toLocaleString(Qt.locale("en_US"), "f", 0) + Tr.t(" weeks left") }
+        Label { mono: true; color: Theme.subtext0; font.pixelSize: Theme.fontSizeSmall; text: root.weeksLeft.toLocaleString(Qt.locale("en_US"), "f", 0) + Tr.t(" weeks left") }
     }
 
     Item { Layout.fillHeight: true }
@@ -63,7 +63,7 @@ ColumnLayout {
     RowLayout {
         visible: Weather.loading
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Theme.space8
         Spinner { size: 14 }
         Caption { Layout.fillWidth: true; wrapMode: Text.Wrap; text: Tr.t("Getting the weather…") }
     }
@@ -75,16 +75,16 @@ ColumnLayout {
     }
     RowLayout {
         visible: root.w !== null
-        spacing: 8
-        Icon { name: root.w?.icon ?? "sun"; size: Theme.fontSize + 9; stroke: 1.6; color: Theme.accent }
-        Label { font.pixelSize: Theme.fontSize + 5; font.weight: Font.Light; mono: true; text: (Weather.now?.temp ?? "") + "°" }
+        spacing: Theme.space8
+        Icon { name: root.w?.icon ?? "sun"; size: Theme.fontSizeHeading; stroke: 1.6; color: Theme.accentInk }
+        Label { font.pixelSize: Theme.fontSizeTitle; font.weight: Font.Light; mono: true; text: (Weather.now?.temp ?? "") + "°" }
     }
     Label {
         visible: root.w !== null
         Layout.fillWidth: true
         elide: Text.ElideRight
         font.weight: Font.DemiBold
-        font.pixelSize: Theme.fontSizeSmall + 1
+        font.pixelSize: Theme.fontSizeLabel
         text: root.w?.text ?? ""
     }
     Caption {
@@ -99,6 +99,6 @@ ColumnLayout {
         Layout.fillWidth: true
         elide: Text.ElideRight
         text: Weather.city
-        MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { Panels.controlOpen = false; Panels.settingsRow("time", "Weather for"); } }
+        PressArea { label: Weather.city; anchors.fill: parent; onClicked: { Panels.controlOpen = false; Panels.settingsRow("time", "Weather for"); } }
     }
 }

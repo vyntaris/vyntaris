@@ -30,7 +30,7 @@ Item {
         property var audio: null
         property var devices: []
         Layout.fillWidth: true
-        spacing: 8
+        spacing: Theme.space8
 
         Caption { text: section.title }
 
@@ -38,6 +38,8 @@ Item {
             Layout.fillWidth: true
             icon: section.isInput ? (section.audio?.muted ? "mic-off" : "mic") : (section.audio?.muted ? "volume-x" : "volume")
             iconLevel: section.isInput ? -1 : Icons.volumeLevel(section.audio?.volume ?? 0)
+            label: section.isInput ? Tr.t("Microphone") : Tr.t("Volume")
+            iconLabel: Tr.t("Mute")
             value: section.audio?.volume ?? 0
             maximum: section.isInput ? 1 : Config.maxVolume
             dimmed: section.audio?.muted ?? false
@@ -48,7 +50,7 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: Theme.space2
 
             Caption {
                 visible: section.devices.length === 0
@@ -67,11 +69,11 @@ Item {
                     implicitHeight: 36
                     radius: Theme.r(10)
                     fill: chosen ? Theme.accent : area.containsMouse && can ? Theme.hover : "transparent"
-                    opacity: can ? 1 : 0.5
+                    opacity: can ? 1 : Theme.disabledOpacity
                     Behavior on fill { ColorAnim {} }
                     RowLayout {
-                        anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-                        spacing: 12
+                        anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                        spacing: Theme.space12
                         Icon { name: row.modelData.icon; size: 16; color: row.chosen ? Theme.textOnAccent : Theme.subtext0 }
                         Label {
                             Layout.fillWidth: true
@@ -86,11 +88,14 @@ Item {
                         }
                         Icon { visible: row.chosen; name: "check"; size: 15; color: Theme.textOnAccent }
                     }
-                    MouseArea {
+                    PressArea {
+                        label: row.modelData.label
+                        enabled: row.can
+                        role: Accessible.RadioButton
+                        checked: row.chosen
                         id: area
                         anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: row.can && !row.chosen ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        cursorShape: !row.chosen ? Qt.PointingHandCursor : Qt.ArrowCursor
                         onClicked: if (row.can && !row.chosen) AudioDevices.pick(row.modelData, section.isInput)
                     }
                 }
@@ -100,7 +105,7 @@ Item {
 
     PanelBody {
         id: content
-        spacing: 18
+        spacing: Theme.space20
 
         Section {
             title: Tr.t("Output")
@@ -117,11 +122,11 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 8
+            spacing: Theme.space8
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: Theme.space8
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; text: Tr.t("Noise suppression") }
                 Spinner { visible: NoiseSuppression.installing; size: 14 }
                 Choice {

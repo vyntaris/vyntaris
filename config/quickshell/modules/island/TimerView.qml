@@ -76,7 +76,7 @@ Item {
         ColumnLayout {
             visible: root.tab === "timer"
             Layout.fillWidth: true
-            spacing: 12
+            spacing: Theme.space12
 
             Big {
                 text: Chrono.timerActive ? Chrono.formatUp(Chrono.timerLeft) : "0:00"
@@ -86,7 +86,7 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: Theme.space8
                 Repeater {
                     model: [5, 15, 25]
                     Button {
@@ -101,12 +101,12 @@ Item {
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 8
+                spacing: Theme.space8
                 Field {
                     id: custom
                     Layout.fillWidth: true
                     mono: true
-                    placeholder: Tr.t("7m 30s")
+                    placeholder: Tr.t("Custom time, like 7m 30s")
                     Connections {
                         target: custom.input
                         function onAccepted() {
@@ -118,18 +118,19 @@ Item {
                 Button {
                     visible: Chrono.timerActive
                     icon: Chrono.timerRunning ? "pause" : "play"
+                    label: Chrono.timerRunning ? Tr.t("Pause") : Tr.t("Play")
                     primary: true
                     onClicked: Chrono.toggleTimer()
                 }
                 Button { visible: Chrono.timerActive; icon: "plus"; text: Tr.t("1 min"); onClicked: Chrono.addTimer(60) }
-                Button { visible: Chrono.timerActive; icon: "close"; onClicked: Chrono.cancelTimer() }
+                Button { visible: Chrono.timerActive; icon: "close"; label: Tr.t("Cancel"); onClicked: Chrono.cancelTimer() }
             }
         }
 
         ColumnLayout {
             visible: root.tab === "stopwatch"
             Layout.fillWidth: true
-            spacing: 14
+            spacing: Theme.space14
 
             Big {
                 text: Chrono.format(Chrono.swElapsed, true)
@@ -137,7 +138,7 @@ Item {
             }
             RowLayout {
                 Layout.alignment: Qt.AlignHCenter
-                spacing: 8
+                spacing: Theme.space8
                 Button {
                     primary: true
                     icon: Chrono.swRunning ? "pause" : "play"

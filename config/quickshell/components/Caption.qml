@@ -2,7 +2,7 @@ import QtQuick
 import qs.config
 
 Label {
-    caps: true
-    font.pixelSize: Theme.fontSizeSmall - 1
+    overline: true
+    font.pixelSize: Theme.fontSizeSmall
     color: Theme.overlay1
 }

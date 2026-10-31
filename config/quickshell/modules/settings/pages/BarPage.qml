@@ -63,7 +63,7 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Style")
         Row {
-            spacing: 8
+            spacing: Theme.space8
             Repeater {
                 model: BarStyles.styles
                 Rectangle {
@@ -90,17 +90,18 @@ SettingsPage {
                         drawers: styleTile.look.flat ? [] : [{ center: width / 2, width: 42, hang: 22 }]
                     }
                     Label {
-                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 7 }
+                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space8 }
                         font.pixelSize: Theme.fontSizeSmall
                         font.weight: styleTile.current ? Font.DemiBold : Font.Normal
                         color: styleTile.current ? Theme.text : Theme.subtext0
                         text: Tr.t(styleTile.modelData.label)
                     }
-                    MouseArea {
+                    PressArea {
+                        label: Tr.t(styleTile.modelData.label)
+                        role: Accessible.RadioButton
+                        checked: styleTile.current
                         id: styleArea
                         anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
                         onClicked: { BarStyles.apply(Config.bar, styleTile.modelData.id); Config.saveSoon(); }
                     }
                 }

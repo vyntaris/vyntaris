@@ -20,7 +20,7 @@ FocusScope {
     Row {
         id: cells
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 3
+        spacing: Theme.space4
         opacity: !root.reveal ? 1 : 0
         Behavior on opacity { Anim { duration: Theme.durationFast } }
         Repeater {
@@ -44,7 +44,7 @@ FocusScope {
     }
     TextInput {
         id: input
-        anchors { fill: parent; leftMargin: 2 }
+        anchors { fill: parent; leftMargin: Theme.space2 }
         opacity: root.reveal && !root.busy && !root.wrong ? 1 : 0
         echoMode: root.reveal ? TextInput.Normal : TextInput.Password
         verticalAlignment: TextInput.AlignVCenter
@@ -53,7 +53,7 @@ FocusScope {
         selectionColor: Theme.accent
         selectedTextColor: Theme.textOnAccent
         font.family: Theme.monoFamily
-        font.pixelSize: Theme.fontSize + 2
+        font.pixelSize: Theme.fontSizeLarge
         focus: true
         Keys.onReturnPressed: root.submitted()
         Keys.onEnterPressed: root.submitted()

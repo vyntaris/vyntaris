@@ -405,16 +405,16 @@ ShellRoot {
         opacity: dim ? 0.45 : 1
         Behavior on color { ColorAnim {} }
         RowLayout {
-            anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-            spacing: 10
-            Icon { visible: pick.icon !== ""; name: pick.icon; size: 16; color: pick.selected ? Theme.accent : Theme.subtext0 }
+            anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+            spacing: Theme.space10
+            Icon { visible: pick.icon !== ""; name: pick.icon; size: 16; color: pick.selected ? Theme.accentInk : Theme.subtext0 }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 0
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; text: pick.text; font.weight: pick.selected ? Font.DemiBold : Font.Normal }
                 Caption { Layout.fillWidth: true; visible: pick.sub !== ""; elide: Text.ElideRight; text: pick.sub }
             }
-            Icon { visible: pick.selected; name: "check"; size: 14; color: Theme.accent }
+            Icon { visible: pick.selected; name: "check"; size: 14; color: Theme.accentInk }
         }
         MouseArea { id: pickArea; anchors.fill: parent; hoverEnabled: true; cursorShape: pick.dim ? Qt.ArrowCursor : Qt.PointingHandCursor; onClicked: if (!pick.dim) pick.clicked() }
     }
@@ -432,10 +432,10 @@ ShellRoot {
         readonly property alias view: list
         ListView {
             id: list
-            anchors { fill: parent; margins: 6 }
+            anchors { fill: parent; margins: Theme.space6 }
             clip: true
             boundsBehavior: Flickable.StopAtBounds
-            spacing: 2
+            spacing: Theme.space2
         }
     }
 
@@ -482,9 +482,9 @@ ShellRoot {
                 MouseArea { anchors.fill: parent }
                 ColumnLayout {
                     anchors.centerIn: parent
-                    spacing: 10
-                    Icon { Layout.alignment: Qt.AlignHCenter; name: "terminal"; size: 34; color: Theme.accent }
-                    Label { Layout.alignment: Qt.AlignHCenter; font.pixelSize: Theme.fontSize + 6; font.weight: Font.Bold; text: Tr.t("The text installer is open") }
+                    spacing: Theme.space10
+                    Icon { Layout.alignment: Qt.AlignHCenter; name: "terminal"; size: 34; color: Theme.accentInk }
+                    Label { Layout.alignment: Qt.AlignHCenter; font.pixelSize: Theme.fontSizeTitle; font.weight: Font.Bold; text: Tr.t("The text installer is open") }
                     Label { Layout.alignment: Qt.AlignHCenter; color: Theme.subtext0; text: Tr.t("Close it (Super+Q, or Enter once it ends) to come back here.") }
                 }
             }
@@ -504,21 +504,21 @@ ShellRoot {
 
                 ColumnLayout {
                     anchors { fill: parent; margins: 28 }
-                    spacing: 18
+                    spacing: Theme.space20
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 14
-                        Icon { name: "vyntaris"; size: 22; color: Theme.accent }
+                        spacing: Theme.space14
+                        Icon { name: "vyntaris"; size: 22; color: Theme.accentInk }
                         ColumnLayout {
-                            spacing: 2
+                            spacing: Theme.space2
                             Caption { text: root.preview ? Tr.t("Preview: nothing will be erased") : "Vyntaris" }
-                            Label { text: root.page === 8 ? Tr.t("Repair") : Tr.t(root.pages[root.page]); font.pixelSize: Theme.fontSize + 9; font.weight: Font.Bold }
+                            Label { text: root.page === 8 ? Tr.t("Repair") : Tr.t(root.pages[root.page]); font.pixelSize: Theme.fontSizeHeading; font.weight: Font.Bold }
                         }
                         Item { Layout.fillWidth: true }
                         Row {
                             visible: root.page !== 8
-                            spacing: 5
+                            spacing: Theme.space6
                             Repeater {
                                 model: root.pages.length
                                 Rectangle {
@@ -544,7 +544,7 @@ ShellRoot {
                             ColumnLayout {
                                 anchors.centerIn: parent
                                 width: Math.min(parent.width, 520)
-                                spacing: 16
+                                spacing: Theme.space16
                                 Logo { Layout.alignment: Qt.AlignHCenter; size: 84; animated: Theme.speed > 0 }
                                 Label { Layout.alignment: Qt.AlignHCenter; text: Tr.t("Welcome to Vyntaris"); font.pixelSize: Theme.fontSize + 15; font.weight: Font.Bold }
                                 Label {
@@ -561,9 +561,9 @@ ShellRoot {
                             index: 1
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 12
+                                spacing: Theme.space12
                                 RowLayout {
-                                    spacing: 12
+                                    spacing: Theme.space12
                                     Rectangle {
                                         implicitWidth: 40; implicitHeight: 40; radius: 20
                                         color: root.online ? Theme.accent : Theme.alpha(Theme.text, 0.06)
@@ -580,7 +580,7 @@ ShellRoot {
                                         }
                                     }
                                     Item { Layout.fillWidth: true }
-                                    Button { visible: root.hasWifi && !root.wifiAsking; icon: "refresh"; onClicked: { wifiList.rescan = true; wifiList.running = true; } }
+                                    Button { visible: root.hasWifi && !root.wifiAsking; icon: "refresh"; label: Tr.t("Refresh"); onClicked: { wifiList.rescan = true; wifiList.running = true; } }
                                 }
                                 Item {
                                     Layout.fillWidth: true
@@ -599,8 +599,8 @@ ShellRoot {
                                             color: modelData.active ? Theme.accent : netArea.containsMouse ? Theme.hover : "transparent"
                                             Behavior on color { ColorAnim {} }
                                             RowLayout {
-                                                anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
-                                                spacing: 12
+                                                anchors { fill: parent; leftMargin: Theme.space14; rightMargin: Theme.space14 }
+                                                spacing: Theme.space12
                                                 Icon {
                                                     name: "wifi"
                                                     level: Math.min(3, Math.floor(net.modelData.signal / 25))
@@ -642,9 +642,9 @@ ShellRoot {
                                     Row {
                                         anchors.centerIn: parent
                                         visible: root.networks.length === 0
-                                        spacing: 8
+                                        spacing: Theme.space8
                                         Spinner { anchors.verticalCenter: parent.verticalCenter; size: 14 }
-                                        Label { anchors.verticalCenter: parent.verticalCenter; caps: true; color: Theme.overlay1; text: Tr.t("Scanning…") }
+                                        Label { anchors.verticalCenter: parent.verticalCenter; overline: true; color: Theme.overlay1; text: Tr.t("Scanning…") }
                                     }
                                 }
                                 Label {
@@ -658,10 +658,10 @@ ShellRoot {
                                     Layout.fillWidth: true
                                     Layout.alignment: Qt.AlignTop
                                     visible: root.wifiAsking
-                                    spacing: 14
+                                    spacing: Theme.space14
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        spacing: 12
+                                        spacing: Theme.space12
                                         Rectangle {
                                             implicitWidth: 38; implicitHeight: 38; radius: Theme.r(12)
                                             color: Theme.accent
@@ -669,8 +669,8 @@ ShellRoot {
                                         }
                                         ColumnLayout {
                                             Layout.fillWidth: true
-                                            spacing: 1
-                                            Label { Layout.fillWidth: true; elide: Text.ElideRight; font.pixelSize: Theme.fontSize + 3; font.weight: Font.DemiBold; text: root.wifiOpen }
+                                            spacing: Theme.space2
+                                            Label { Layout.fillWidth: true; elide: Text.ElideRight; font.pixelSize: Theme.fontSizeLarge; font.weight: Font.DemiBold; text: root.wifiOpen }
                                             Label {
                                                 Layout.fillWidth: true
                                                 elide: Text.ElideRight
@@ -709,7 +709,7 @@ ShellRoot {
                                     }
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        spacing: 8
+                                        spacing: Theme.space8
                                         Button { Layout.fillWidth: true; Layout.preferredWidth: 1; text: Tr.t("Cancel"); onClicked: root.cancelWifi() }
                                         Button {
                                             Layout.fillWidth: true
@@ -770,10 +770,10 @@ ShellRoot {
                             index: 3
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 10
+                                spacing: Theme.space10
                                 RowLayout {
-                                    spacing: 14
-                                    Label { text: root.timezone.replace(/_/g, " "); font.pixelSize: Theme.fontSize + 6; font.weight: Font.DemiBold }
+                                    spacing: Theme.space14
+                                    Label { text: root.timezone.replace(/_/g, " "); font.pixelSize: Theme.fontSizeTitle; font.weight: Font.DemiBold }
                                     Caption { visible: root.zoneGuessed; text: Tr.t("Detected from your connection") }
                                     Item { Layout.fillWidth: true }
                                 }
@@ -816,7 +816,7 @@ ShellRoot {
                                 }
                                 Caption { text: Tr.t("User name") }
                                 ColumnLayout {
-                                    spacing: 3
+                                    spacing: Theme.space4
                                     Field {
                                         Layout.fillWidth: true
                                         mono: true
@@ -827,7 +827,7 @@ ShellRoot {
                                 }
                                 Caption { text: Tr.t("Computer name") }
                                 ColumnLayout {
-                                    spacing: 3
+                                    spacing: Theme.space4
                                     Field { Layout.fillWidth: true; mono: true; text: root.host; onTextChanged: root.host = text }
                                     Label { visible: root.host !== "" && !root.hostOk; color: Theme.error; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("Letters, digits and - (not at either end), no spaces") }
                                 }
@@ -836,7 +836,7 @@ ShellRoot {
                                 Field { Layout.fillWidth: true; secret: true; canReveal: true; onTextChanged: root.pass = text }
                                 Caption { text: Tr.t("Confirm password") }
                                 ColumnLayout {
-                                    spacing: 3
+                                    spacing: Theme.space4
                                     Field { Layout.fillWidth: true; secret: true; canReveal: true; onTextChanged: root.pass2 = text }
                                     Label { visible: root.pass2 !== "" && root.pass !== root.pass2; color: Theme.error; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("The passwords don't match") }
                                 }
@@ -847,16 +847,16 @@ ShellRoot {
                             index: 5
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 10
+                                spacing: Theme.space10
                                 Caption { text: Tr.t("Install on") }
                                 Box {
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: Math.min(root.mode === "partition" ? 112 : 170, Math.max(60, root.disks.length * 50 + 12))
                                     ListView {
-                                        anchors { fill: parent; margins: 6 }
+                                        anchors { fill: parent; margins: Theme.space6 }
                                         clip: true
                                         boundsBehavior: Flickable.StopAtBounds
-                                        spacing: 2
+                                        spacing: Theme.space2
                                         model: root.disks
                                         delegate: Pick {
                                             required property var modelData
@@ -873,7 +873,7 @@ ShellRoot {
                                 }
                                 RowLayout {
                                     visible: root.disk !== ""
-                                    spacing: 14
+                                    spacing: Theme.space14
                                     Caption { text: Tr.t("How") }
                                     Choice {
                                         options: [{ value: "erase", label: Tr.t("Whole disk") }, { value: "free", label: Tr.t("Free space") },
@@ -914,8 +914,8 @@ ShellRoot {
                                         + (root.mode !== "erase" && root.diskEsp !== "" ? "  At start you choose Vyntaris or the other system. If Windows uses BitLocker, keep its recovery key at hand." : "")
                                 }
                                 RowLayout {
-                                    Layout.topMargin: 6
-                                    spacing: 14
+                                    Layout.topMargin: Theme.space6
+                                    spacing: Theme.space14
                                     Caption { text: Tr.t("File system") }
                                     Choice {
                                         options: [{ value: "btrfs", label: "Btrfs" }, { value: "ext4", label: "ext4" }]
@@ -967,7 +967,7 @@ ShellRoot {
                             index: 8
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 10
+                                spacing: Theme.space10
                                 Label {
                                     visible: root.repairScanning
                                     color: Theme.subtext0
@@ -986,10 +986,10 @@ ShellRoot {
                                     Layout.fillWidth: true
                                     Layout.preferredHeight: Math.min(112, root.repairSystems.length * 50 + 12)
                                     ListView {
-                                        anchors { fill: parent; margins: 6 }
+                                        anchors { fill: parent; margins: Theme.space6 }
                                         clip: true
                                         interactive: false
-                                        spacing: 2
+                                        spacing: Theme.space2
                                         model: root.repairSystems
                                         delegate: Pick {
                                             required property var modelData
@@ -1057,10 +1057,10 @@ ShellRoot {
                                     Layout.fillWidth: true
                                     Layout.fillHeight: true
                                     ListView {
-                                        anchors { fill: parent; leftMargin: 12; rightMargin: 18; topMargin: 10; bottomMargin: 10 }
+                                        anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space20; topMargin: Theme.space10; bottomMargin: Theme.space10 }
                                         clip: true
                                         boundsBehavior: Flickable.StopAtBounds
-                                        spacing: 2
+                                        spacing: Theme.space2
                                         model: repairLog
                                         onCountChanged: positionViewAtEnd()
                                         delegate: Label {
@@ -1069,7 +1069,7 @@ ShellRoot {
                                             wrapMode: Text.WrapAnywhere
                                             mono: true
                                             font.pixelSize: Theme.fontSizeSmall
-                                            color: line.startsWith("::") ? Theme.accent : /^error/i.test(line) ? Theme.error : Theme.subtext0
+                                            color: line.startsWith("::") ? Theme.accentInk : /^error/i.test(line) ? Theme.error : Theme.subtext0
                                             font.weight: line.startsWith("::") ? Font.DemiBold : Font.Normal
                                             text: line
                                         }
@@ -1083,13 +1083,13 @@ ShellRoot {
                             index: 7
                             ColumnLayout {
                                 anchors.fill: parent
-                                spacing: 14
+                                spacing: Theme.space14
                                 property bool details: false
                                 id: inst
                                 Item { Layout.fillHeight: true; visible: !inst.details }
                                 Label {
                                     Layout.alignment: Qt.AlignHCenter
-                                    font.pixelSize: Theme.fontSize + 9
+                                    font.pixelSize: Theme.fontSizeHeading
                                     font.weight: Font.Bold
                                     text: root.result === 0 ? Tr.t("Vyntaris is installed") : root.result > 0 ? Tr.t("The installation failed") : Tr.t("Installing Vyntaris")
                                     color: root.result > 0 ? Theme.error : Theme.text
@@ -1102,9 +1102,9 @@ ShellRoot {
                                 Row {
                                     id: segs
                                     Layout.alignment: Qt.AlignHCenter
-                                    Layout.topMargin: 10
+                                    Layout.topMargin: Theme.space10
                                     readonly property int count: 32
-                                    spacing: 4
+                                    spacing: Theme.space4
                                     property real pulse: 0
                                     SequentialAnimation on pulse {
                                         running: root.result < 0 && root.page === 7
@@ -1131,9 +1131,9 @@ ShellRoot {
                                 }
                                 RowLayout {
                                     Layout.alignment: Qt.AlignHCenter
-                                    spacing: 10
+                                    spacing: Theme.space10
                                     Caption { text: root.stepName }
-                                    Caption { color: Theme.accent; text: Math.round(root.progress * 100) + "%" }
+                                    Caption { color: Theme.accentInk; text: Math.round(root.progress * 100) + "%" }
                                 }
                                 Label {
                                     Layout.fillWidth: true
@@ -1152,11 +1152,11 @@ ShellRoot {
                                     visible: inst.details
                                     ListView {
                                         id: logView
-                                        anchors { fill: parent; leftMargin: 12; rightMargin: 18; topMargin: 10; bottomMargin: 10 }
+                                        anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space20; topMargin: Theme.space10; bottomMargin: Theme.space10 }
                                         clip: true
                                         boundsBehavior: Flickable.StopAtBounds
                                         model: log
-                                        spacing: 2
+                                        spacing: Theme.space2
                                         property bool follow: true
                                         property bool pinning: false
                                         function pin() { pinning = true; positionViewAtEnd(); pinning = false; }
@@ -1169,7 +1169,7 @@ ShellRoot {
                                             width: ListView.view.width
                                             mono: true
                                             font.pixelSize: Theme.fontSizeSmall
-                                            color: line.startsWith("::") ? Theme.accent : /error|fail/i.test(line) ? Theme.error : Theme.subtext0
+                                            color: line.startsWith("::") ? Theme.accentInk : /error|fail/i.test(line) ? Theme.error : Theme.subtext0
                                             font.weight: line.startsWith("::") ? Font.DemiBold : Font.Normal
                                             wrapMode: Text.WrapAnywhere
                                             text: line
@@ -1200,20 +1200,20 @@ ShellRoot {
                                         }
                                     }
                                     Rectangle {
-                                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 12 }
+                                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space12 }
                                         visible: !logView.follow
                                         width: latest.implicitWidth + 28
                                         height: 30
                                         radius: 15
                                         color: Theme.accent
-                                        Label { id: latest; anchors.centerIn: parent; caps: true; color: Theme.textOnAccent; font.weight: Font.DemiBold; text: Tr.t("↓  Latest") }
+                                        Label { id: latest; anchors.centerIn: parent; overline: true; color: Theme.textOnAccent; font.weight: Font.DemiBold; text: Tr.t("↓  Latest") }
                                         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { logView.follow = true; logView.pin(); } }
                                     }
                                 }
                                 Item { Layout.fillHeight: true; visible: !inst.details }
                                 RowLayout {
                                     Layout.alignment: Qt.AlignHCenter
-                                    spacing: 10
+                                    spacing: Theme.space10
                                     Button {
                                         text: inst.details ? Tr.t("Hide details") : Tr.t("Show details")
                                         onClicked: inst.details = !inst.details
@@ -1231,7 +1231,7 @@ ShellRoot {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: 10
+                        spacing: Theme.space10
                         Label {
                             visible: root.page === 0
                             color: Theme.overlay1

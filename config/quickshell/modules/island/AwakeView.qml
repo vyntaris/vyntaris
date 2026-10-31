@@ -23,7 +23,7 @@ Item {
         title: Tr.t("Keep awake")
         Label {
             visible: KeepAwake.active && KeepAwake.minutes > 0
-            caps: true
+            overline: true
             color: Theme.overlay1
             text: KeepAwake.format(KeepAwake.remaining)
         }
@@ -34,7 +34,7 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 8
+            spacing: Theme.space8
 
             Repeater {
                 model: root.modes
@@ -50,7 +50,7 @@ Item {
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: Theme.space6
                         Icon {
                             Layout.alignment: Qt.AlignHCenter
                             name: opt.modelData.icon
@@ -60,8 +60,8 @@ Item {
                         }
                         Label {
                             Layout.alignment: Qt.AlignHCenter
-                            caps: true
-                            font.pixelSize: Theme.fontSizeSmall - 1
+                            overline: true
+                            font.pixelSize: Theme.fontSizeSmall
                             color: opt.marked ? Theme.textOnAccent : Theme.overlay1
                             text: opt.modelData.label
                         }
@@ -72,10 +72,10 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: Theme.space12
             visible: KeepAwake.active
 
-            Label { caps: true; color: Theme.overlay1; text: Tr.t("For") }
+            Label { overline: true; color: Theme.overlay1; text: Tr.t("For") }
             Item { Layout.fillWidth: true }
             Choice {
                 options: [{ value: 0, label: "∞" }, { value: 60, label: "1h" }, { value: 240, label: "4h" }]

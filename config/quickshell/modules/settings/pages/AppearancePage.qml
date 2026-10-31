@@ -10,7 +10,7 @@ SettingsPage {
     pageId: "appearance"
 
     SettingsRow {
-        title: Tr.t("Flavor")
+        title: Tr.t("Theme")
         Choice {
             options: [{ value: "mocha", label: Tr.t("Dark") }, { value: "latte", label: Tr.t("Light") }, { value: "auto", label: Tr.t("Auto") }]
             current: Config.theme.autoFlavor ? "auto" : Config.theme.flavor
@@ -34,19 +34,27 @@ SettingsPage {
     }
     SettingsRow {
         title: Tr.t("Accent")
-        Grid {
+        Row {
+            spacing: Theme.space12
+            Caption {
+                anchors.verticalCenter: parent.verticalCenter
+                text: Config.theme.wallpaperAccent ? Tr.t("From wallpaper") : Theme.accentLabel(Theme.accentName)
+            }
+          Grid {
+            anchors.verticalCenter: parent.verticalCenter
             columns: 8
-            spacing: 7
+            spacing: Theme.space8
             Repeater {
                 model: Palettes.accentChoices
                 AccentSwatch { required property string modelData; accent: modelData; size: 24 }
             }
+          }
         }
     }
     SettingsRow {
         title: Tr.t("Accent from wallpaper")
         RowLayout {
-            spacing: 10
+            spacing: Theme.space10
             Rectangle {
                 visible: WallpaperColors.ready && WallpaperColors.chosen !== ""
                 implicitWidth: 18; implicitHeight: 18; radius: 9
@@ -59,7 +67,7 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Text size")
         Choice {
-            options: [{ value: 12, label: Tr.t("Small") }, { value: 13, label: Tr.t("Normal") }, { value: 15, label: Tr.t("Large") }]
+            options: [{ value: 12, label: Tr.t("Small") }, { value: 13, label: Tr.t("Normal") }, { value: 15, label: Tr.t("Large") }, { value: 17, label: Tr.t("Larger") }]
             current: Config.theme.fontSize
             onPicked: v => { Config.theme.fontSize = v; Config.saveSoon(); }
         }
@@ -108,7 +116,7 @@ SettingsPage {
         }
     }
     SettingsRow {
-        title: Tr.t("Theme apps")
+        title: Tr.t("Match apps to theme")
         Switch { checked: Config.theme.syncApps; onToggled: on => { Config.theme.syncApps = on; Config.saveSoon(); } }
     }
     SettingsRow {

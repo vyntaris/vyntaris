@@ -61,8 +61,8 @@ Item {
     }
 
     PanelHeader {
-        icon: "bell"
-        title: root.n?.appName || Tr.t("System")
+        icon: root.critical ? "alert" : "bell"
+        title: (root.critical ? Tr.t("Critical") + " · " : "") + (root.n?.appName || Tr.t("System"))
         tint: root.tint
         Label {
             visible: Notifications.waiting > 0
@@ -71,7 +71,7 @@ Item {
             color: Theme.overlay1
             text: "+" + Notifications.waiting
         }
-        HeaderButton { icon: "close"; onClicked: root.n?.dismiss() }
+        HeaderButton { icon: "close"; label: Tr.t("Dismiss"); onClicked: root.n?.dismiss() }
     }
 
     RowLayout {
@@ -79,7 +79,7 @@ Item {
         x: 22 - root.out(y + height)
         y: Theme.barHeight + 4
         width: parent.width - 44 + 2 * root.out(y + height)
-        spacing: 14
+        spacing: Theme.space14
 
         NotificationIcon {
             Layout.alignment: Qt.AlignTop
@@ -91,7 +91,7 @@ Item {
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 3
+            spacing: Theme.space4
 
             Label {
                 Layout.fillWidth: true
@@ -111,13 +111,13 @@ Item {
                 elide: Text.ElideRight
                 color: Theme.subtext0
                 linkColor: Theme.accent
-                font.pixelSize: Theme.fontSize - 1
+                font.pixelSize: Theme.fontSizeLabel
                 onLinkActivated: link => Qt.openUrlExternally(link)
             }
             Flow {
                 Layout.fillWidth: true
-                Layout.topMargin: 6
-                spacing: 6
+                Layout.topMargin: Theme.space6
+                spacing: Theme.space6
                 visible: actions.count > 0
                 Repeater {
                     id: actions
@@ -136,7 +136,7 @@ Item {
     Meter {
         visible: !root.critical
         x: 22 - root.out(y + height)
-        anchors { bottom: parent.bottom; bottomMargin: 12 }
+        anchors { bottom: parent.bottom; bottomMargin: Theme.space12 }
         width: root.fullWidth - 44 + 2 * root.out(y + height)
         height: 6
         count: 36

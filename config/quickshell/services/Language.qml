@@ -80,7 +80,7 @@ Singleton {
         onExited: code => {
             root.busy = false;
             if (code !== 0 && code !== 126 && code !== 127)
-                root.failure = setErr.text.trim().split("\n").pop() || Tr.t("The language couldn't be changed");
+                root.failure = setErr.text.trim().split("\n").pop() || Tr.t("The language couldn't be changed. Try again in a moment.");
             root.refresh();
         }
     }

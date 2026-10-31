@@ -54,7 +54,7 @@ Singleton {
             root.busy = false;
             job.stdinEnabled = true;
             if (code !== 0 && code !== 126 && code !== 127)
-                root.failure = jobErr.text.trim().split("\n").pop() || Tr.t("That couldn't be changed");
+                root.failure = jobErr.text.trim().split("\n").pop() || Tr.t("That couldn't be changed. Try again, or check that you're an administrator.");
             root.refresh();
         }
     }

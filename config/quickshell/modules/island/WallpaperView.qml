@@ -135,7 +135,7 @@ Item {
                 anchors.verticalCenterOffset: -8
                 width: card.width
                 height: Math.round(card.width * 9 / 16)
-                radius: Theme.r(14)
+                radius: Theme.r(12)
                 color: Theme.surface0
                 scale: card.selected ? 1.08 : 0.86
                 opacity: card.selected ? 1 : 0.55
@@ -153,7 +153,7 @@ Item {
 
                 Rectangle {
                     visible: card.inUse
-                    anchors { right: parent.right; top: parent.top; margins: 8 }
+                    anchors { right: parent.right; top: parent.top; margins: Theme.space8 }
                     width: 22; height: 22; radius: 11
                     color: Theme.accent
                     Icon { anchors.centerIn: parent; name: "check"; size: 14; stroke: 2.2; color: Theme.textOnAccent }
@@ -164,7 +164,7 @@ Item {
                 anchors.centerIn: thumb
                 width: thumb.width * thumb.scale + 6
                 height: thumb.height * thumb.scale + 6
-                radius: Theme.r(17)
+                radius: Theme.r(16)
                 color: "transparent"
                 border { width: 2; color: card.selected ? Theme.accent : "transparent" }
                 Behavior on border.color { ColorAnim {} }
