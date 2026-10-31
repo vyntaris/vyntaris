@@ -51,6 +51,9 @@ def build(lang):
     except sqlite3.Error:
         pass
     os.makedirs(CACHE, exist_ok=True)
+    # What an index cut off halfway left behind.
+    for old in glob.glob(glob.escape(target) + ".*"):
+        os.remove(old)
     temporary = f"{target}.{os.getpid()}"
     db = sqlite3.connect(temporary)
     tokenizer = "porter unicode61 remove_diacritics 2" if lang == "en" else "unicode61 remove_diacritics 2"
@@ -154,8 +157,8 @@ def search(lang, query):
     query = query.strip().lower()
     words = WORD.findall(query)
     meaningful = [w for w in words if w not in COMMON] or words
-    answer = {"corrected": "", "results": []}
-    if not words or not os.path.exists(index_path(lang)):
+    answer = {"ready": os.path.exists(index_path(lang)), "corrected": "", "results": []}
+    if not words or not answer["ready"]:
         return answer
     db = sqlite3.connect(f"file:{index_path(lang)}?mode=ro", uri=True)
     rows = lookup(db, meaningful, "AND")

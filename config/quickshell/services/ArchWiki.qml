@@ -210,7 +210,7 @@ Singleton {
                 if (engineProc.asked !== root.query) return;
                 try {
                     const answer = JSON.parse(text);
-                    root.found = answer.results;
+                    root.found = answer.ready ? answer.results : null;
                     root.corrected = answer.corrected;
                 } catch (e) {}
             }

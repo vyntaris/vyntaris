@@ -347,6 +347,11 @@ Item {
         search.forceActiveFocus();
     }
 
+    // The wiki's answer comes a moment after the typing: Enter means its first row.
+    Connections {
+        target: ArchWiki
+        function onResultsChanged() { if (search.text.startsWith("?")) list.currentIndex = 0; }
+    }
     Component.onCompleted: if (active) activeChanged()
     onActiveChanged: {
         if (!active) return;

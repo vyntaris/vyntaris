@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """The Arch Wiki's search engine, on a small wiki made here: it needs neither the real one nor a desktop."""
+import glob
 import importlib.util
 import os
 import pathlib
@@ -61,8 +62,14 @@ if engine.search("en", "zzzzqqq")["results"]:
 if any(r["title"].endswith("(Latviešu)") for r in engine.search("en", "latviski")["results"]):
     print("  FAIL another language's page in English")
     failed += 1
-if engine.search("de", "pacman")["results"]:
-    print("  FAIL a language with no index found something")
+if engine.search("de", "pacman")["ready"]:
+    print("  FAIL a language with no index calls itself ready")
+    failed += 1
+pathlib.Path(engine.index_path("en") + ".12345").write_text("cut off")
+pathlib.Path(work, "html/en").touch()
+engine.build("en")
+if glob.glob(engine.index_path("en") + ".*"):
+    print("  FAIL an index cut off halfway stays behind")
     failed += 1
 if any("mw-content" in r["snippet"] for r in engine.search("en", "manager")["results"]):
     print("  FAIL markup in a snippet")

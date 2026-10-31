@@ -14,14 +14,15 @@ Item {
     implicitWidth: stretch ? 0 : row.implicitWidth + 6
     implicitHeight: Theme.controlHeight
 
-    PanelSurface {
+    // Plain shapes, not slanted ones: the part chosen has to sit evenly inside the whole.
+    Rectangle {
         anchors.fill: parent
         radius: Theme.r(height / 2)
-        fill: Theme.alpha(Theme.crust, 0.45)
-        edgeWidth: 1; edge: Theme.glassRim
+        color: Theme.alpha(Theme.crust, 0.45)
+        border { width: 1; color: Theme.glassRim }
     }
 
-    PanelSurface {
+    Rectangle {
         readonly property Item target: root.index >= 0 && optionRepeater.count > root.index ? optionRepeater.itemAt(root.index) : null
         visible: target !== null
         x: 3 + (target?.x ?? 0)
@@ -29,7 +30,7 @@ Item {
         width: target?.width ?? 0
         height: parent.height - 6
         radius: Theme.r(height / 2)
-        fill: Theme.accent
+        color: Theme.accent
         Behavior on x { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
         Behavior on width { Anim { duration: Theme.durationNormal } }
     }
