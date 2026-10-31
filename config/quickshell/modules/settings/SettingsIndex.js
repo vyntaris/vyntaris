@@ -143,6 +143,7 @@ var rows = [
     { page: "lock", title: "Widgets" },
     { page: "drivers", title: "Start its driver with the system" },
     { page: "access", title: "High contrast" },
+    { page: "access", title: "Volume above 100%" },
     { page: "access", title: "Cursor size" },
     { page: "about", title: "System" },
     { page: "about", title: "Memory" },

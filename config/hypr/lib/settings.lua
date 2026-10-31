@@ -11,6 +11,7 @@ local defaults = {
                 naturalScroll = true, tapToClick = true, sensitivity = 0, mouseAccel = false },
     windows = { rounding = 10, gapsIn = 5, border = 2 },
     display = { scale = 1, monitors = {} },
+    audio   = { boost = false },
     bar     = { windowGap = 8, corners = "round", inside = "rounded" },
 }
 

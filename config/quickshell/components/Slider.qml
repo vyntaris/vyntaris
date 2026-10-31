@@ -7,6 +7,8 @@ Item {
     property color fillColor: Theme.accent
     property bool dimmed: false
     property int count: Math.max(8, Math.round(width / 9))
+    // From this share of the bar on it shows in the warning colour: the part past what is safe.
+    property real caution: 1
     signal moved(real v)
 
     implicitWidth: 120
@@ -30,6 +32,7 @@ Item {
                 radius: 2
                 color: !on ? Theme.alpha(Theme.text, area.containsMouse ? 0.16 : 0.1)
                     : root.dimmed ? Theme.overlay0
+                    : index >= Math.round(root.caution * root.count) ? Theme.warning
                     : index === root.lit - 1 ? Theme.accentBright : root.fillColor
                 Behavior on height { Anim { duration: Theme.durationFast } }
                 Behavior on color { ColorAnim {} }

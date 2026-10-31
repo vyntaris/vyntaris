@@ -81,7 +81,7 @@ Item {
             id: field
             Layout.fillWidth: true
             visible: ArchWiki.installed
-            implicitHeight: 38
+            implicitHeight: Theme.controlHeight
             radius: Theme.r(height / 2)
             fill: Theme.alpha(Theme.crust, 0.45)
             edgeWidth: 1; edge: Theme.glassRim

@@ -5,12 +5,14 @@ Item {
     id: root
     property var options: []
     property var current
+    // Every option the same share of a width given from outside, instead of just wide enough for its word.
+    property bool stretch: false
     signal picked(var value)
 
     readonly property int index: options.findIndex(o => o.value === current)
 
-    implicitWidth: row.implicitWidth + 6
-    implicitHeight: 32
+    implicitWidth: stretch ? 0 : row.implicitWidth + 6
+    implicitHeight: Theme.controlHeight
 
     PanelSurface {
         anchors.fill: parent
@@ -43,7 +45,7 @@ Item {
             Item {
                 required property var modelData
                 required property int index
-                width: optLabel.implicitWidth + 24
+                width: root.stretch ? (root.width - 6) / Math.max(1, root.options.length) : optLabel.implicitWidth + 28
                 height: row.height
                 Label {
                     id: optLabel

@@ -45,6 +45,11 @@ Singleton {
         enabled: root.armed
         function onMutedChanged() { root.show("mic"); }
     }
+    // Without the boost nothing stays above full.
+    Connections {
+        target: Config.audio
+        function onBoostChanged() { if (!Config.audio.boost && root.sink && root.sink.volume > 1) root.sink.volume = 1; }
+    }
     Connections {
         target: Brightness
         function onChanged() { root.show("brightness"); }
@@ -102,7 +107,7 @@ Singleton {
             icon: sink?.muted ? "volume-x" : "volume",
             level: Icons.volumeLevel(vol),
             label: sink?.muted ? Tr.t("Muted") : Tr.t("Volume"),
-            value: vol,
+            value: vol / Config.maxVolume,
             text: sink?.muted ? "--" : String(Math.round(vol * 100)),
             sub: "",
             dimmed: sink?.muted ?? false,

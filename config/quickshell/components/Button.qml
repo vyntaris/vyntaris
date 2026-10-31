@@ -18,7 +18,7 @@ Rectangle {
     readonly property real natural: measure.advanceWidth + (icon !== "" ? 23 : 0) + 32
     readonly property bool tight: !iconOnly && width < natural
 
-    implicitHeight: 36
+    implicitHeight: Theme.controlHeight
     implicitWidth: iconOnly ? implicitHeight : natural
     radius: Theme.r(implicitHeight / 2)
     opacity: active ? 1 : 0.4

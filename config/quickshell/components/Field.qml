@@ -14,7 +14,7 @@ PanelSurface {
     signal committed(string text)
 
     implicitWidth: 220
-    implicitHeight: 38
+    implicitHeight: Theme.controlHeight
     radius: Theme.r(height / 2)
     fill: Theme.alpha(Theme.text, input.activeFocus ? 0.09 : 0.05)
     edgeWidth: input.activeFocus ? 2 : 1

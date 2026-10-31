@@ -47,12 +47,6 @@ Item {
     PanelHeader {
         icon: "timer"
         title: Tr.t("Timer")
-        Choice {
-            implicitHeight: 24
-            options: root.tabs.map(t => ({ value: t.id, label: t.label }))
-            current: root.tab
-            onPicked: v => root.tab = v
-        }
     }
 
     component Big: Label {
@@ -71,6 +65,14 @@ Item {
     PanelBody {
         id: content
 
+        Choice {
+            Layout.fillWidth: true
+            stretch: true
+            options: root.tabs.map(t => ({ value: t.id, label: t.label }))
+            current: root.tab
+            onPicked: v => root.tab = v
+        }
+
         ColumnLayout {
             visible: root.tab === "timer"
             Layout.fillWidth: true
@@ -82,13 +84,15 @@ Item {
             }
             Bar_ { value: Chrono.timerProgress; visible: Chrono.timerActive }
 
-            Row {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 6
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
                 Repeater {
                     model: [5, 15, 25]
                     Button {
                         required property int modelData
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 1
                         text: modelData + Tr.t(" min")
                         onClicked: Chrono.timerActive ? Chrono.addTimer(modelData * 60) : Chrono.startTimer(modelData * 60)
                     }

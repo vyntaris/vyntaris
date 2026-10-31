@@ -90,8 +90,7 @@ Item {
         x: root.gap
         y: field.y
         width: root.sideWidth
-        // The rows stay as thin as lists elsewhere, spread to end level with the icons.
-        spacing: Math.min(18, Math.max(2, (field.height + 12 + grid.height - root.categories.length * 36) / Math.max(1, root.categories.length - 1)))
+        spacing: 4
         Repeater {
             model: root.categories
             Item {
@@ -139,7 +138,7 @@ Item {
         x: root.gap + root.sideWidth + root.gap
         y: Theme.barHeight + root.gap
         width: root.listWidth + lean
-        height: 38
+        height: Theme.controlHeight
 
         SlantShape {
             anchors.fill: parent

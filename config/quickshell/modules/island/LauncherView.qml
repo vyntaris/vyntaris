@@ -299,7 +299,7 @@ Item {
         case "awake": if (v === null || v !== KeepAwake.active) KeepAwake.toggle(); break;
         case "mic": if (mic) mic.muted = v === null ? !mic.muted : !v; break;
         case "mute": if (sink) sink.muted = v; break;
-        case "volume": if (sink) { sink.muted = false; sink.volume = v; } break;
+        case "volume": if (sink) { sink.muted = false; sink.volume = Math.min(v, Config.maxVolume); } break;
         case "brightness": Brightness.set(v); break;
         case "dark": {
             const dark = v === null ? Config.theme.flavor === "latte" : v;
@@ -381,7 +381,7 @@ Item {
         x: root.gap - root.out(y + height)
         y: Theme.barHeight + root.gap
         width: parent.width - 2 * root.gap + 2 * root.out(y + height)
-        height: 38
+        height: Theme.controlHeight
         radius: Theme.r(height / 2)
         fill: Theme.alpha(Theme.crust, 0.45)
         edgeWidth: 1; edge: Theme.glassRim

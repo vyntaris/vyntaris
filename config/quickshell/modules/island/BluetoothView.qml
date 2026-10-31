@@ -103,7 +103,6 @@ Item {
 
                 Button {
                     visible: root.connected !== null
-                    implicitHeight: 30
                     text: Tr.t("Disconnect")
                     onClicked: root.connected.disconnect()
                 }

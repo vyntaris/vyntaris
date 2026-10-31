@@ -120,6 +120,28 @@ case_wiki() {
     sleep 1.5; shot wiki-through-link
 }
 
+case_settings() {
+    sleep 3
+    VYNTARIS_APP_CALL=page VYNTARIS_APP_ARG=appearance QS_DISABLE_CRASH_HANDLER=1 qs -p "$Q/settings.qml" > "$S/settings.log" 2>&1 &
+    local app=$! p
+    sleep 6
+    for p in appearance bar windows notifications apps input displays power users time; do
+        timeout 4 qs -p "$Q/settings.qml" ipc call app open page "$p" > /dev/null 2>&1; sleep 1.2; shot "settings-$p"
+    done
+    kill "$app" 2>/dev/null; sleep 1
+    check "the settings have no errors" "$(grep -c "ERROR" "$S/settings.log")" 0
+    ipc welcome open; sleep 2.5
+    for p in 1 2 3 5; do ipc welcome go "$p"; sleep 1.3; shot "welcome-$p"; done
+    ipc welcome close; sleep 1
+}
+
+# The real volume is never touched: the sliders are only shown a value above full.
+case_volume() {
+    sleep 11
+    ipc island open sound; sleep 1.5; shot volume-sound; ipc island close; sleep 0.5
+    ipc island open control; sleep 1.5; shot volume-control; ipc island close
+}
+
 case_wikinone() {
     sleep 11
     ipc wiki open; sleep 1.5; shot wiki-not-installed
@@ -157,6 +179,8 @@ run() {
     printf '%s\n' "$3" > "$H/.config/quickshell/settings.json"
     # Nothing leaves the test: a page that would open is only written down, and the wiki can be absent.
     sed -i 's|Config.launch(\["xdg-open", target\])|Quickshell.execDetached(["sh", "-c", "echo \\"$1\\" >> \\"$HOME/opened\\"", "sh", target])|' "$Q/services/ArchWiki.qml"
+    [ "$1" = volume ] && sed -i 's/value: section.audio?.volume ?? 0/value: section.isInput ? 0.6 : 1.25/' "$Q/modules/island/SoundView.qml"
+    [ "$1" = volume ] && sed -i 's/value: root.sink?.audio?.volume ?? 0/value: 1.25/' "$Q/modules/island/ControlView.qml"
     [ "$1" = wikinone ] && sed -i 's|^root=.*|root=/nonexistent|' "$Q/scripts/wiki.sh"
     touch "$H/.local/state/quickshell/by-shell/vyntaris/welcome-done"
     ln -s "$HOME/.local/share/applications" "$H/.local/share/applications"
@@ -201,6 +225,8 @@ for c in $which; do
         pointer) run pointer 70 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         accent) run accent 70 "{\"theme\":{$BASE,\"wallpaperAccent\":true},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         wiki) run wiki 90 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
+        settings) run settings 80 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
+        volume) run volume 50 "{\"theme\":{$BASE},\"audio\":{\"boost\":true},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         wikinone) run wikinone 40 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         startup) run startup 60 "{\"theme\":{$BASE,\"accent\":\"green\"},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
     esac

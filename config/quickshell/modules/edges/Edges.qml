@@ -19,7 +19,7 @@ Item {
     function setVolume(v) {
         if (!sink) return;
         sink.muted = false;
-        sink.volume = Math.max(0, Math.min(1, v));
+        sink.volume = Math.max(0, Math.min(1, v)) * Config.maxVolume;
     }
 
     component Strip: MouseArea {
@@ -50,7 +50,7 @@ Item {
         id: volume
         on: Config.edges.volume
         atLeft: false
-        value: root.sink?.volume ?? 0
+        value: (root.sink?.volume ?? 0) / Config.maxVolume
         onChanged: v => root.setVolume(v)
     }
 

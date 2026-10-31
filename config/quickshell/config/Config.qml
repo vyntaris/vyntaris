@@ -116,6 +116,7 @@ Singleton {
     }
 
     property bool loaded: false
+    readonly property real maxVolume: audio.boost ? 1.5 : 1
     readonly property string defaultWallpaper: "/usr/share/backgrounds/vyntaris/default.jpg"
     SystemClock { id: wallpaperClock; precision: SystemClock.Minutes }
     readonly property int minuteOfDay: wallpaperClock.date.getHours() * 60 + wallpaperClock.date.getMinutes()
@@ -317,6 +318,7 @@ Singleton {
             }
 
             property JsonObject audio: JsonObject {
+                property bool boost: false
                 property int noise: 0
                 property string noiseMic: ""
             }

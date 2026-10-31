@@ -337,7 +337,7 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, descr
 hl.bind(mainMod .. " + SHIFT + mouse:272", hl.dsp.window.resize(), { mouse = true, description = "Resize window (drag, touchpad)" })
 
 local vol = function(cmd) return hl.dsp.exec_cmd("wpctl " .. cmd) end
-hl.bind("XF86AudioRaiseVolume", vol("set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Volume up" })
+hl.bind("XF86AudioRaiseVolume", vol("set-volume -l " .. (settings.audio.boost and "1.5" or "1") .. " @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Volume up" })
 hl.bind("XF86AudioLowerVolume", vol("set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true, description = "Volume down" })
 hl.bind("XF86AudioMute",        vol("set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, description = "Mute" })
 hl.bind("XF86AudioMicMute",     vol("set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, description = "Mute the microphone" })

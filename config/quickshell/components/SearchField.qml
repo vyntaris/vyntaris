@@ -9,7 +9,7 @@ PanelSurface {
     signal accepted()
 
     implicitWidth: 240
-    implicitHeight: 38
+    implicitHeight: Theme.controlHeight
     radius: Theme.r(height / 2)
     fill: Theme.alpha(Theme.crust, 0.45)
     edgeWidth: 1; edge: field.activeFocus ? Theme.accent : Theme.glassRim

@@ -71,6 +71,8 @@ Singleton {
     readonly property int radius: 10
 
     readonly property int barHeight: Config.bar.height
+    // Buttons, fields and choices stand side by side, so all of them are this tall.
+    readonly property int controlHeight: 36
     readonly property int panelTop: barHeight + 6
     readonly property int panelInset: 20
     readonly property bool squareBar: Config.bar.corners === "square"

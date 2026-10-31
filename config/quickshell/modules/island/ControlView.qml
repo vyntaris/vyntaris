@@ -249,8 +249,9 @@ Item {
                 icon: root.sink?.audio?.muted ? "volume-x" : "volume"
                 iconLevel: Icons.volumeLevel(root.sink?.audio?.volume ?? 0)
                 value: root.sink?.audio?.volume ?? 0
+                maximum: Config.maxVolume
                 dimmed: root.sink?.audio?.muted ?? false
-                valueText: root.sink?.audio?.muted ? "--" : Math.round(shown * 100)
+                valueText: root.sink?.audio?.muted ? "--" : Math.round(level * 100)
                 onMoved: v => { if (root.sink?.audio) root.sink.audio.volume = v; }
                 onIconClicked: if (root.sink?.audio) root.sink.audio.muted = !root.sink.audio.muted
             }

@@ -39,8 +39,9 @@ Item {
             icon: section.isInput ? (section.audio?.muted ? "mic-off" : "mic") : (section.audio?.muted ? "volume-x" : "volume")
             iconLevel: section.isInput ? -1 : Icons.volumeLevel(section.audio?.volume ?? 0)
             value: section.audio?.volume ?? 0
+            maximum: section.isInput ? 1 : Config.maxVolume
             dimmed: section.audio?.muted ?? false
-            valueText: section.audio?.muted ? "--" : Math.round(shown * 100)
+            valueText: section.audio?.muted ? "--" : Math.round(level * 100)
             onMoved: v => { if (section.audio) section.audio.volume = v; }
             onIconClicked: if (section.audio) section.audio.muted = !section.audio.muted
         }
