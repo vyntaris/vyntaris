@@ -17,6 +17,4 @@ magick "$work/picture.png" -fx "$warm channel(u.r+wh*(mx*0.83-u.r), u.g+wh*(mx*0
 # lights: how much of the colour goes where, as strong as the warmth was (0.33 is about an accent's saturation).
 magick "$work/picture.png" -fx "$warm ws=max(0,min(1,(dd-0.004)/0.016)); wh*ws*min(1,dd/(max(mx,0.01)*0.33))" \
     -colorspace Gray -depth 8 -define png:compression-level=9 "$out/default-lights.png"
-magick "$out/default-base.jpg" \
-    \( +clone -separate -evaluate-sequence Max -colorspace sRGB -type TrueColor \( +clone -fill "$accent" -colorize 100 \) -compose Multiply -composite \) \
-    "$out/default-lights.png" -compose Over -composite -sampling-factor 1x1 -quality 92 "$out/default.jpg"
+"$(dirname "$0")/../config/quickshell/scripts/paint-wallpaper.sh" "$out/default-base.jpg" "$out/default-lights.png" "$accent" "$out/default.jpg"

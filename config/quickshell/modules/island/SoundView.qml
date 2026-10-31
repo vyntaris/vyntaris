@@ -25,7 +25,6 @@ Item {
 
     component Section: ColumnLayout {
         id: section
-        readonly property bool panelColumn: true
         property string title
         property bool isInput: false
         property var audio: null

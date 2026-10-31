@@ -1,14 +1,9 @@
 import QtQuick
-import QtQuick.Shapes
 import qs.config
 import "Slant.js" as Slant
 
-Shape {
+SlantShape {
     id: root
-    property color fill
-    property color stroke
-    property real strokeWidth: 1
-    property real radius: 0
     readonly property Item surface: parent
     readonly property Item view: {
         let v = null;
@@ -22,7 +17,7 @@ Shape {
         return null;
     }
     readonly property Item block: body ? (void body.blocks, body.blockOf(surface)) : null
-    readonly property var edges: {
+    edges: {
         if (!Theme.slanted || !view || !surface || !surface.visible) return null;
         void [surface.x, surface.y, surface.width, surface.height, surface.parent?.x, surface.parent?.y,
               surface.parent?.parent?.x, surface.parent?.parent?.y, surface.parent?.parent?.parent?.y,
@@ -47,16 +42,9 @@ Shape {
         return { lt: left ? l(at.y) : 0, lb: left ? l(at.y + h) : 0, rt: right ? r(at.y) : 0, rb: right ? r(at.y + h) : 0 };
     }
     readonly property bool on: edges !== null && (edges.lt > 0.5 || edges.rt > 0.5)
+    pathWidth: surface?.width ?? 0
+    pathHeight: surface?.height ?? 0
 
     visible: on
     z: -1
-    preferredRendererType: Shape.CurveRenderer
-
-    ShapePath {
-        fillColor: root.fill
-        strokeColor: root.stroke
-        strokeWidth: root.strokeWidth
-        joinStyle: ShapePath.RoundJoin
-        PathSvg { path: root.on ? Slant.path(root.surface.width, root.surface.height, root.radius, root.edges) : "" }
-    }
 }

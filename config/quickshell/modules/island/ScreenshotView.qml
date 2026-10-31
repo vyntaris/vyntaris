@@ -3,14 +3,12 @@ import QtQuick
 import QtQuick.Layouts
 import qs.config
 import qs.components
-import "../../components/Slant.js" as Slant
 import qs.services
 
 Item {
     id: root
     readonly property real fullWidth: 570
-    readonly property real hang: 112
-    function out(y) { return Theme.slanted ? Slant.out(height, Theme.barHeight, y) : 0; }
+    readonly property real hang: content.implicitHeight + 26
 
     width: fullWidth
     height: Theme.barHeight + hang
@@ -25,50 +23,49 @@ Item {
         HeaderButton { icon: "close"; onClicked: Screenshot.dismiss() }
     }
 
-    RowLayout {
-        x: 20 - root.out(y + height)
-        y: Theme.barHeight + 4
-        width: parent.width - 40 + 2 * root.out(y + height)
-        spacing: 14
+    PanelBody {
+        id: content
 
-        ClippingRectangle {
-            implicitWidth: 152
-            implicitHeight: 86
-            radius: Theme.r(12)
-            color: Theme.alpha(Theme.text, 0.06)
-            border { width: 1; color: Theme.glassRim }
-            Image {
-                anchors.fill: parent
-                source: Screenshot.lastPath ? "file://" + Screenshot.lastPath : ""
-                sourceSize: Qt.size(304, 172)
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                cache: false
-            }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Screenshot.open() }
-        }
-
-        ColumnLayout {
+        RowLayout {
             Layout.fillWidth: true
-            spacing: 8
+            spacing: 14
 
-            Field {
-                id: nameField
-                Layout.fillWidth: true
-                implicitHeight: 30
-                mono: true
-                text: Screenshot.lastPath.split("/").pop().replace(/\.png$/i, "")
-                onCommitted: t => Screenshot.rename(t)
-                onActiveFocusChanged: Screenshot.keepOpen(activeFocus)
+            ClippingRectangle {
+                implicitWidth: 152
+                implicitHeight: 86
+                radius: Theme.r(12)
+                color: Theme.alpha(Theme.text, 0.06)
+                Image {
+                    anchors.fill: parent
+                    source: Screenshot.lastPath ? "file://" + Screenshot.lastPath : ""
+                    sourceSize: Qt.size(304, 172)
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    cache: false
+                }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: Screenshot.open() }
             }
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 6
-                Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "image"; text: Tr.t("Edit"); onClicked: Screenshot.editShot() }
-                Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "external"; text: Tr.t("Open"); onClicked: Screenshot.open() }
-                Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "folder"; text: Tr.t("Folder"); onClicked: Screenshot.openFolder() }
-                Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "trash"; text: Tr.t("Delete"); danger: true; onClicked: Screenshot.remove() }
+                spacing: 8
+
+                Field {
+                    Layout.fillWidth: true
+                    mono: true
+                    text: Screenshot.lastPath.split("/").pop().replace(/\.png$/i, "")
+                    onCommitted: t => Screenshot.rename(t)
+                    onActiveFocusChanged: Screenshot.keepOpen(activeFocus)
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "image"; text: Tr.t("Edit"); onClicked: Screenshot.editShot() }
+                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "external"; text: Tr.t("Open"); onClicked: Screenshot.open() }
+                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "folder"; text: Tr.t("Folder"); onClicked: Screenshot.openFolder() }
+                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "trash"; text: Tr.t("Delete"); danger: true; onClicked: Screenshot.remove() }
+                }
             }
         }
     }

@@ -1027,7 +1027,7 @@ global shortcuts, without a process started in between, so the first letter type
 | `rust/` | `core` (palettes, settings, paths) and `ui` (what the apps share); `apps/` (Dr. Help, the Store, Backup, the share picker); `daemons/` (the phone link, the settings portal, Bluetooth files, laptop switches); `tools/` (doctor, drivers, splash, icon theme, VS Code theme, store and document indexes, settings admin, JSON for scripts, what uses the battery) |
 | `pkg/` | the package (`PKGBUILD`, `vyntaris.install`) |
 | `iso/` | the ISO (`build.sh`, on Arch's releng profile) and its console installer and repair |
-| `tools/` | packaging and publishing, the tests named above, the VM tests, and what makes the logo, icons, sounds and wallpapers |
+| `tools/` | packaging and publishing, the tests named above, the VM tests, `test-ui.sh` (the shell in a nested Hyprland with a real pointer and keyboard, run on a desktop), and what makes the logo, icons, sounds and wallpapers |
 | `docs/screenshots/` | the pictures in this README, from `tools/site-shots.sh` |
 | `packages.txt` | the apps every install comes with |
 

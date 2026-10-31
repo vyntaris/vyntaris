@@ -33,18 +33,10 @@ ColumnLayout {
         return null;
     }
     function isColumn(item) {
-        if (String(item).startsWith("QQuickColumnLayout") || item.panelColumn === true) return true;
-        if (item.spacing === undefined || item.layoutDirection === undefined || item.flow !== undefined) return false;
-        const shown = [];
-        for (let i = 0; i < item.children.length; i++)
-            if (item.children[i].visible && item.children[i].height > 0) shown.push(item.children[i]);
-        if (shown.length < 2) return false;
-        for (let i = 1; i < shown.length; i++)
-            if (Math.abs(shown[i].x - shown[0].x) > 1 || shown[i].y <= shown[i - 1].y) return false;
-        return true;
+        return item instanceof ColumnLayout;
     }
     function isList(item) {
-        return String(item).startsWith("QQuickListView");
+        return item instanceof ListView;
     }
     function lane(row, list) {
         if (lean <= 0 || !row || !list) return 0;

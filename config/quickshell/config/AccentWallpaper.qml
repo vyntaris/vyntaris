@@ -27,13 +27,11 @@ Singleton {
             + 'stamp="$(stat -c "%Y %s" "$source")" || exit 1; mkdir -p "$d" || exit 1; '
             + '[ "$(cat "$d/stamp" 2>/dev/null)" = "$stamp" ] || { rm -f "$d"/*.jpg; printf "%s" "$stamp" > "$d/stamp"; }; '
             + 'if [ "$hex" = "$4" ]; then out=$picture; elif [ ! -s "$out" ]; then '
-            + '  nice -n 19 magick "$source" \\( +clone -separate -evaluate-sequence Max -colorspace sRGB -type TrueColor '
-            + '    \\( +clone -fill "$hex" -colorize 100 \\) -compose Multiply -composite \\) "$lights" -compose Over -composite '
-            + '    -sampling-factor 1x1 -quality 92 "$out.tmp.jpg" && mv "$out.tmp.jpg" "$out" || exit 1; '
+            + '  nice -n 19 "$5" "$source" "$lights" "$hex" "$out.tmp.jpg" && mv "$out.tmp.jpg" "$out" || exit 1; '
             + 'fi; '
             + 'find "$d" -name "*.jpg" ! -name "${out##*/}" ! -name current.jpg -delete; '
             + 'cp "$out" "$d/current.tmp" && mv "$d/current.tmp" "$d/current.jpg"; printf "%s" "$hex"',
-            "sh", root.accent, root.dir, Config.defaultWallpaper, root.baked]
+            "sh", root.accent, root.dir, Config.defaultWallpaper, root.baked, Quickshell.shellPath("scripts/paint-wallpaper.sh")]
         stdout: StdioCollector { onStreamFinished: if (text.trim() === root.accent) root.ready = root.accent }
         onExited: code => { if (code !== 0) root.failed = true; }
     }

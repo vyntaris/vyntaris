@@ -1,7 +1,6 @@
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Shapes
 import qs.config
 import qs.components
 import "../../components/Slant.js" as Slant
@@ -12,26 +11,6 @@ Item {
     id: root
     readonly property int gap: 16
     function out(y) { return Theme.slanted ? Slant.out(height, Theme.barHeight, y) : 0; }
-
-    component SlantBox: Shape {
-        id: box
-        property color fill: "transparent"
-        property color stroke: "transparent"
-        property real strokeWidth: 0
-        property real corner: 0
-        property real leftLean: 0
-        property real rightLean: 0
-        anchors.fill: parent
-        preferredRendererType: Shape.CurveRenderer
-        Behavior on fill { ColorAnim {} }
-        ShapePath {
-            fillColor: box.fill
-            strokeColor: box.stroke
-            strokeWidth: box.strokeWidth
-            joinStyle: ShapePath.RoundJoin
-            PathSvg { path: Slant.path(box.width, box.height, box.corner, { lt: box.leftLean, lb: 0, rt: box.rightLean, rb: 0 }) }
-        }
-    }
 
     readonly property int columns: 5
     readonly property int rows: 3
@@ -111,7 +90,8 @@ Item {
         x: root.gap
         y: field.y
         width: root.sideWidth
-        spacing: 2
+        // The rows stay as thin as lists elsewhere, spread to end level with the icons.
+        spacing: Math.min(18, Math.max(2, (field.height + 12 + grid.height - root.categories.length * 36) / Math.max(1, root.categories.length - 1)))
         Repeater {
             model: root.categories
             Item {
@@ -122,11 +102,13 @@ Item {
                 readonly property real lean: root.out(side.y + y + height)
                 x: -lean
                 width: side.width + lean
-                height: Math.min(54, (field.height + 12 + grid.height - (root.categories.length - 1) * side.spacing) / root.categories.length)
-                SlantBox {
+                height: 36
+                SlantShape {
+                    anchors.fill: parent
                     fill: nav.current ? Theme.accent : navArea.containsMouse ? Theme.hover : "transparent"
-                    corner: Theme.r(10)
-                    leftLean: root.out(side.y + nav.y) - nav.lean
+                    radius: Theme.r(10)
+                    edges: ({ lt: root.out(side.y + nav.y) - nav.lean, lb: 0, rt: 0, rb: 0 })
+                    Behavior on fill { ColorAnim {} }
                 }
                 RowLayout {
                     anchors { fill: parent; leftMargin: 14; rightMargin: 12 }
@@ -159,12 +141,12 @@ Item {
         width: root.listWidth + lean
         height: 38
 
-        SlantBox {
+        SlantShape {
+            anchors.fill: parent
             fill: Theme.alpha(Theme.crust, 0.45)
             stroke: Theme.glassRim
-            strokeWidth: 1
-            corner: Theme.r(field.height / 2)
-            rightLean: root.out(field.y) - field.lean
+            radius: Theme.r(field.height / 2)
+            edges: ({ lt: 0, lb: 0, rt: root.out(field.y) - field.lean, rb: 0 })
         }
         Rectangle {
             id: disc
@@ -234,89 +216,89 @@ Item {
         height: grid.height
         clip: true
 
-    GridView {
-        id: grid
-        width: root.columns * root.cell
-        height: root.rows * root.cell
-        cellWidth: root.cell
-        cellHeight: root.cell
-        function spread(tile) {
-            const col = tile.index % root.columns;
-            return col / (root.columns - 1) * root.out(gridClip.y + tile.y - contentY + root.cell);
-        }
-        model: root.apps
-        boundsBehavior: Flickable.StopAtBounds
-        keyNavigationWraps: true
-        highlightMoveDuration: 0
-
-        delegate: Item {
-            id: tile
-            required property var modelData
-            required property int index
-            readonly property bool picked: GridView.isCurrentItem && root.choosing
-            width: root.cell
-            height: root.cell
-
-            Component.onCompleted: if (root.entering && index < root.columns * root.rows) { surface.opacity = 0; intro.start(); }
-            SequentialAnimation {
-                id: intro
-                PauseAnimation { duration: Theme.duration(60 + tile.index * 14) }
-                Anim { target: surface; property: "opacity"; to: 1 }
+        GridView {
+            id: grid
+            width: root.columns * root.cell
+            height: root.rows * root.cell
+            cellWidth: root.cell
+            cellHeight: root.cell
+            function spread(tile) {
+                const col = tile.index % root.columns;
+                return col / (root.columns - 1) * root.out(gridClip.y + tile.y - contentY + root.cell);
             }
+            model: root.apps
+            boundsBehavior: Flickable.StopAtBounds
+            keyNavigationWraps: true
+            highlightMoveDuration: 0
 
-            Rectangle {
-                id: surface
-                x: 4 + grid.spread(tile); y: 4
-                width: parent.width - 8
-                height: parent.height - 8
-                radius: Theme.r(12)
-                color: tile.picked ? Theme.accent : "transparent"
-                scale: area.pressed ? 0.96 : 1
-                Behavior on color { ColorAnim {} }
-                Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
+            delegate: Item {
+                id: tile
+                required property var modelData
+                required property int index
+                readonly property bool picked: GridView.isCurrentItem && root.choosing
+                width: root.cell
+                height: root.cell
 
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    width: parent.width - 12
-                    spacing: 8
-                    AppIcon {
-                        Layout.alignment: Qt.AlignHCenter
-                        implicitSize: 56
-                        source: Quickshell.iconPath(tile.modelData.icon, true) || Quickshell.iconPath("application-x-executable", true)
-                    }
-                    Label {
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        elide: Text.ElideRight
-                        maximumLineCount: 2
-                        wrapMode: Text.Wrap
-                        font.pixelSize: Theme.fontSizeSmall + 1
-                        color: tile.picked ? Theme.textOnAccent : Theme.subtext1
-                        text: tile.modelData.name
+                Component.onCompleted: if (root.entering && index < root.columns * root.rows) { surface.opacity = 0; intro.start(); }
+                SequentialAnimation {
+                    id: intro
+                    PauseAnimation { duration: Theme.duration(60 + tile.index * 14) }
+                    Anim { target: surface; property: "opacity"; to: 1 }
+                }
+
+                Rectangle {
+                    id: surface
+                    x: 4 + grid.spread(tile); y: 4
+                    width: parent.width - 8
+                    height: parent.height - 8
+                    radius: Theme.r(12)
+                    color: tile.picked ? Theme.accent : "transparent"
+                    scale: area.pressed ? 0.96 : 1
+                    Behavior on color { ColorAnim {} }
+                    Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
+
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        width: parent.width - 12
+                        spacing: 8
+                        AppIcon {
+                            Layout.alignment: Qt.AlignHCenter
+                            implicitSize: 56
+                            source: Quickshell.iconPath(tile.modelData.icon, true) || Quickshell.iconPath("application-x-executable", true)
+                        }
+                        Label {
+                            Layout.fillWidth: true
+                            horizontalAlignment: Text.AlignHCenter
+                            elide: Text.ElideRight
+                            maximumLineCount: 2
+                            wrapMode: Text.Wrap
+                            font.pixelSize: Theme.fontSizeSmall + 1
+                            color: tile.picked ? Theme.textOnAccent : Theme.subtext1
+                            text: tile.modelData.name
+                        }
                     }
                 }
-            }
-            MouseArea {
-                id: area
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onPositionChanged: {
-                    const at = mapToItem(root, mouseX, mouseY);
-                    if (root.pointer && (at.x !== root.pointer.x || at.y !== root.pointer.y)) { root.moved = true; grid.currentIndex = tile.index; }
-                    root.pointer = at;
+                MouseArea {
+                    id: area
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onPositionChanged: {
+                        const at = mapToItem(root, mouseX, mouseY);
+                        if (root.pointer && (at.x !== root.pointer.x || at.y !== root.pointer.y)) { root.moved = true; grid.currentIndex = tile.index; }
+                        root.pointer = at;
+                    }
+                    onClicked: root.start(tile.modelData)
                 }
-                onClicked: root.start(tile.modelData)
+            }
+
+            Label {
+                anchors.centerIn: parent
+                visible: grid.count === 0
+                color: Theme.overlay1
+                text: Tr.t("No apps found")
             }
         }
-
-        Label {
-            anchors.centerIn: parent
-            visible: grid.count === 0
-            color: Theme.overlay1
-            text: Tr.t("No apps found")
-        }
-    }
     }
     property var pointer: null
 }
