@@ -1,5 +1,9 @@
 window, .card, list.boxed-list, preferencesgroup > box > list { border-radius: 12px; }
-.navigation-sidebar row { border-radius: 9px; }
+/* The same side menu as the shell's (Theme.navItem* in config/quickshell/config/Theme.qml). */
+.navigation-sidebar { background: none; padding: 0; }
+.navigation-sidebar > row { min-height: 36px; margin: 0 0 4px 0; padding: 0 12px; border-radius: 12px; }
+.navigation-sidebar > row:last-child { margin-bottom: 0; }
+.navigation-sidebar > row:selected, .navigation-sidebar > row:selected:hover { color: @accent_fg_color; background: @accent_bg_color; font-weight: 600; }
 .vyntaris-key {
     font-weight: 600;
     font-size: 0.85em;

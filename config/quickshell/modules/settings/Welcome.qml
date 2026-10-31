@@ -249,7 +249,7 @@ Scope {
                         Rectangle {
                             id: rail
                             Layout.fillHeight: true
-                            Layout.preferredWidth: 250
+                            Layout.preferredWidth: Theme.navItemWidth + 2 * Theme.space24
                             radius: card.radius
                             color: Theme.alpha(Theme.crust, 0.35)
                             Rectangle { anchors { top: parent.top; bottom: parent.bottom; right: parent.right } width: rail.radius; color: rail.color }
@@ -264,19 +264,19 @@ Scope {
 
                                 Item {
                                     Layout.fillWidth: true
-                                    implicitHeight: root.steps.length * 40
+                                    implicitHeight: root.steps.length * (Theme.navItemHeight + Theme.navItemGap)
 
                                     Rectangle {
                                         width: parent.width
-                                        height: 36
-                                        radius: Theme.r(12)
-                                        y: root.step * 40
+                                        height: Theme.navItemHeight
+                                        radius: Theme.navRadius
+                                        y: root.step * (Theme.navItemHeight + Theme.navItemGap)
                                         color: Theme.accent
                                         Behavior on y { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
                                     }
                                     Column {
                                         width: parent.width
-                                        spacing: Theme.space4
+                                        spacing: Theme.navItemGap
                                         Repeater {
                                             model: root.steps
                                             Item {
@@ -286,7 +286,7 @@ Scope {
                                                 readonly property bool current: root.step === index
                                                 readonly property bool done: index < root.step
                                                 width: parent.width
-                                                height: 36
+                                                height: Theme.navItemHeight
                                                 RowLayout {
                                                     anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
                                                     spacing: Theme.space12

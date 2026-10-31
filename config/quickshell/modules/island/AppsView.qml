@@ -16,9 +16,9 @@ Item {
     readonly property int rows: 3
     readonly property real cell: 108
     // The rows of icons end level with the menu beside them.
-    readonly property real menuHeight: categories.length * 36 + (categories.length - 1) * side.spacing
+    readonly property real menuHeight: categories.length * Theme.navItemHeight + (categories.length - 1) * side.spacing
     readonly property real cellHeight: Math.max(68, (menuHeight - Theme.controlHeight - 12) / rows)
-    readonly property real sideWidth: 160
+    readonly property real sideWidth: Theme.navItemWidth
     readonly property real listWidth: columns * cell
     readonly property real fullWidth: gap + sideWidth + gap + listWidth + gap
     readonly property real hang: gap + field.height + 12 + grid.height + gap
@@ -93,7 +93,7 @@ Item {
         x: root.gap
         y: field.y
         width: root.sideWidth
-        spacing: Theme.space4
+        spacing: Theme.navItemGap
         Repeater {
             model: root.categories
             Item {
@@ -103,17 +103,17 @@ Item {
                 readonly property bool current: root.categoryIndex === index
                 readonly property real lean: root.out(side.y + y + height)
                 x: -lean
-                width: side.width + lean
-                height: 36
+                width: side.width
+                height: Theme.navItemHeight
                 SlantShape {
                     anchors.fill: parent
                     fill: nav.current ? Theme.accent : navArea.containsMouse ? Theme.hover : "transparent"
-                    radius: Theme.r(10)
+                    radius: Theme.navRadius
                     edges: ({ lt: root.out(side.y + nav.y) - nav.lean, lb: 0, rt: 0, rb: 0 })
                     Behavior on fill { ColorAnim {} }
                 }
                 RowLayout {
-                    anchors { fill: parent; leftMargin: Theme.space14; rightMargin: Theme.space12 }
+                    anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
                     spacing: Theme.space10
                     Icon { name: root.categoryIcon(nav.modelData); size: 16; color: nav.current ? Theme.textOnAccent : Theme.overlay1 }
                     Label {

@@ -38,7 +38,7 @@ Scope {
         id: win
         visible: Panels.helpOpen
         title: Tr.t("Help")
-        implicitWidth: 840
+        implicitWidth: 866
         implicitHeight: Math.min(Math.max(side.needed, 640), (screen?.height ?? 1080) * 0.9)
         minimumSize: Qt.size(700, 480)
         color: Theme.base

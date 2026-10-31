@@ -107,6 +107,14 @@ Singleton {
 
     readonly property real disabledOpacity: 0.5
 
+    // Every side menu in the system, the Store's too (rust/ui/src/style.css): the part you click is this big.
+    readonly property int navItemWidth: 208
+    readonly property int navItemHeight: controlHeight
+    readonly property int navItemGap: space4
+    readonly property int navInset: space12
+    readonly property int navWidth: navItemWidth + 2 * navInset
+    readonly property int navRadius: r(12)
+
     readonly property int barHeight: Config.bar.height
     // Buttons, fields and choices stand side by side, so all of them are this tall.
     readonly property int controlHeight: 36

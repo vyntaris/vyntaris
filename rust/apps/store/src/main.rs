@@ -702,7 +702,8 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
     });
     let s2 = st.clone();
     st.search.connect_search_changed(move |_| s2.query_changed());
-    let side = gtk::Box::new(gtk::Orientation::Vertical, 8);
+    let side = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(12)
+        .margin_top(12).margin_bottom(12).margin_start(12).margin_end(12).build();
     side.append(&st.search);
     side.append(&gtk::ScrolledWindow::builder().vexpand(true).child(&st.sections).build());
     let side_bar = adw::ToolbarView::new();
@@ -739,7 +740,7 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
     let split = adw::NavigationSplitView::builder()
         .sidebar(&adw::NavigationPage::builder().title(tr("Store")).child(&side_bar).build())
         .content(&adw::NavigationPage::builder().title(tr("Apps")).child(&content).build())
-        .min_sidebar_width(220.0).max_sidebar_width(260.0).build();
+        .min_sidebar_width(232.0).max_sidebar_width(232.0).build();
     let win = adw::ApplicationWindow::builder().application(app).title(tr("Store")).default_width(880).default_height(660)
         .width_request(700).height_request(480).content(&split).build();
     vyntaris_ui::escape_closes(&win);

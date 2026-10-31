@@ -121,7 +121,7 @@ Scope {
         id: win
         visible: Panels.settingsOpen
         title: Tr.t("Settings")
-        implicitWidth: 840
+        implicitWidth: 866
         readonly property real sideNeeded: side.needed
         implicitHeight: Math.min(sideNeeded, (screen?.height ?? 1080) * 0.9)
         minimumSize: Qt.size(700, 480)
