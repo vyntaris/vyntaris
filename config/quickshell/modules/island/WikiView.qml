@@ -11,17 +11,15 @@ Item {
     readonly property bool active: Panels.wikiOpen
 
     property int current: 0
-    property bool picking: false
 
     readonly property bool asking: ArchWiki.query.trim() !== ""
     readonly property var rows: asking ? ArchWiki.results.slice(0, 7)
-        : ArchWiki.recent.filter(r => r.language === ArchWiki.language).concat(ArchWiki.starters).filter((p, i, all) => all.findIndex(o => o.path === p.path && (o.anchor ?? "") === (p.anchor ?? "")) === i).slice(0, 7)
+        : ArchWiki.recent.concat(ArchWiki.starters).filter((p, i, all) => all.findIndex(o => o.path === p.path && (o.anchor ?? "") === (p.anchor ?? "")) === i).slice(0, 7)
 
     width: fullWidth
     height: Theme.barHeight + hang
 
     onActiveChanged: if (active) {
-        picking = false;
         current = 0;
         search.text = Panels.wikiQuery;
         ArchWiki.setQuery(Panels.wikiQuery);
@@ -44,13 +42,6 @@ Item {
     PanelHeader {
         icon: "info"
         title: Tr.t("Arch Wiki")
-        ChipButton {
-            visible: ArchWiki.installed
-            icon: "translate"
-            on: root.picking
-            text: ArchWiki.nameOf(ArchWiki.language)
-            onClicked: { root.picking = !root.picking; search.forceActiveFocus(); }
-        }
     }
 
     PanelBody {
@@ -122,8 +113,7 @@ Item {
                 font { family: Theme.fontFamily; pixelSize: Theme.fontSize + 2 }
                 clip: true
                 onTextChanged: { root.current = 0; ArchWiki.setQuery(text); }
-                Keys.onEscapePressed: { if (root.picking) root.picking = false; else Panels.wikiOpen = false; }
-                Keys.onTabPressed: root.picking = !root.picking
+                Keys.onEscapePressed: Panels.wikiOpen = false
                 Keys.onDownPressed: root.current = Math.min(root.current + 1, root.rows.length - 1)
                 Keys.onUpPressed: root.current = Math.max(root.current - 1, 0)
                 Keys.onReturnPressed: root.start(root.rows[root.current])
@@ -139,24 +129,9 @@ Item {
             }
         }
 
-        Flow {
-            Layout.fillWidth: true
-            visible: ArchWiki.installed && root.picking
-            spacing: 6
-            Repeater {
-                model: ArchWiki.languages
-                ChipButton {
-                    required property var modelData
-                    on: modelData.code === ArchWiki.language
-                    text: ArchWiki.nameOf(modelData.code) + "  " + modelData.count
-                    onClicked: { ArchWiki.pick(modelData.code); root.picking = false; search.forceActiveFocus(); }
-                }
-            }
-        }
-
         Label {
             Layout.fillWidth: true
-            visible: ArchWiki.installed && !root.picking && root.asking && ArchWiki.corrected !== ""
+            visible: ArchWiki.installed && root.asking && ArchWiki.corrected !== ""
             elide: Text.ElideRight
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.overlay1
@@ -164,13 +139,13 @@ Item {
         }
 
         Caption {
-            visible: ArchWiki.installed && !root.picking && !root.asking && root.rows.length > 0
-            text: ArchWiki.recent.some(r => r.language === ArchWiki.language) ? Tr.t("Recent") : Tr.t("Start here")
+            visible: ArchWiki.installed && !root.asking && root.rows.length > 0
+            text: ArchWiki.recent.length > 0 ? Tr.t("Recent") : Tr.t("Start here")
         }
 
         ColumnLayout {
             Layout.fillWidth: true
-            visible: ArchWiki.installed && !root.picking
+            visible: ArchWiki.installed
             spacing: 2
 
             Repeater {
@@ -246,12 +221,6 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
                 color: Theme.overlay1
                 text: ArchWiki.indexing || ArchWiki.searching || ArchWiki.loading ? Tr.t("Searching…") : Tr.t("No pages found")
-            }
-            Button {
-                Layout.alignment: Qt.AlignHCenter
-                visible: root.asking && root.rows.length === 0 && !ArchWiki.searching && !ArchWiki.indexing && ArchWiki.language !== "en"
-                text: Tr.t("Search in English")
-                onClicked: { ArchWiki.pick("en"); search.forceActiveFocus(); }
             }
         }
     }

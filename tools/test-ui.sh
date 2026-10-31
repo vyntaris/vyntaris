@@ -105,7 +105,7 @@ case_wiki() {
     ipc wiki search "parallel downloads"; sleep 1.5; shot wiki-section; wtype -k Return; sleep 1.5
     check "a section opens at its heading" "$(tail -1 "$H/opened" | sed 's|.*/vyntaris/wiki/||')" "en/Pacman.html#Parallel_downloads"
     ipc wiki search pacmna; sleep 1.5; shot wiki-typo
-    wtype -k Tab; sleep 0.8; shot wiki-languages; wtype -k Escape; sleep 0.5; wtype -k Escape; sleep 1
+    wtype -k Escape; sleep 1
     ipc launcher open; sleep 1.2; wtype '?systemd'; sleep 0.8; shot launcher-wiki; wtype -k Return; sleep 1.5
     check "the launcher's ? opens one too" "$(tail -1 "$H/opened" | sed 's|.*/vyntaris/wiki/||')" "en/Systemd.html"
     ipc launcher open; sleep 1.2; wtype 'wireguard'; sleep 0.8; shot launcher-offer; wtype -k Escape; sleep 1

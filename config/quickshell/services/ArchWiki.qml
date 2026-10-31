@@ -12,11 +12,10 @@ Singleton {
     readonly property string engine: Quickshell.shellPath("scripts/wiki-search.py")
 
     property bool checked: false
-    property var languages: []
-    readonly property bool installed: languages.length > 0
+    property bool installed: false
     property bool installing: false
 
-    property string language: ""
+    readonly property string language: "en"
     property var pages: []
     property bool loading: false
     property var recent: []
@@ -29,22 +28,6 @@ Singleton {
 
     readonly property var starters: ["Installation_guide", "General_recommendations", "Pacman", "Systemd", "Network_configuration", "System_maintenance"]
         .map(path => pages.find(p => p.path === path)).filter(p => p)
-
-    function nameOf(code) {
-        if (code === "en") return "English";
-        const name = Qt.locale(code.replace("zh-hans", "zh_CN").replace("zh-hant", "zh_TW")).nativeLanguageName;
-        return name ? name.charAt(0).toUpperCase() + name.slice(1) : code;
-    }
-
-    function pick(code) {
-        if (code === language) return;
-        language = code;
-        pages = [];
-        found = null;
-        corrected = "";
-        saveState();
-        loadPages();
-    }
 
     function search(text) {
         const q = text.trim().toLowerCase();
@@ -86,8 +69,8 @@ Singleton {
     }
 
     function open(page) {
-        const known = recent.filter(r => r.path !== page.path || r.anchor !== page.anchor || r.language !== language);
-        recent = [{ title: page.title, section: page.section ?? "", anchor: page.anchor ?? "", path: page.path, language: language }].concat(known).slice(0, 6);
+        const known = recent.filter(r => r.path !== page.path || r.anchor !== page.anchor);
+        recent = [{ title: page.title, section: page.section ?? "", anchor: page.anchor ?? "", path: page.path }].concat(known).slice(0, 6);
         saveState();
         painter.target = url(page);
         painter.command = ["sh", script, "theme", folder, colours(), Quickshell.shellPath("assets/wiki.css")];
@@ -112,7 +95,6 @@ Singleton {
     }
 
     function loadPages() {
-        if (!language) return;
         loading = true;
         pagesProc.running = false;
         pagesProc.command = ["sh", script, "pages", language];
@@ -123,13 +105,7 @@ Singleton {
     }
 
     function saveState() {
-        stateFile.setText(JSON.stringify({ language, recent }));
-    }
-
-    function settle(saved) {
-        const has = code => languages.some(l => l.code === code && l.count >= 20);
-        language = languages.some(l => l.code === saved) ? saved : has(Tr.lang) ? Tr.lang : "en";
-        loadPages();
+        stateFile.setText(JSON.stringify({ recent }));
     }
 
     FileView {
@@ -140,12 +116,9 @@ Singleton {
             try {
                 const d = JSON.parse(text());
                 root.recent = d.recent ?? [];
-                root.saved = d.language ?? "";
             } catch (e) {}
-            if (root.checked) root.settle(root.saved);
         }
     }
-    property string saved: ""
 
     function check() {
         languagesProc.running = false;
@@ -158,12 +131,9 @@ Singleton {
         command: ["sh", root.script, "languages"]
         stdout: StdioCollector {
             onStreamFinished: {
-                root.languages = text.split("\n").filter(l => l).map(l => {
-                    const [code, count] = l.split("\t");
-                    return { code, count: Number(count) };
-                }).sort((a, b) => b.count - a.count);
+                root.installed = text.split("\n").some(l => l.startsWith("en\t"));
                 root.checked = true;
-                if (root.installed && !root.language) root.settle(root.saved);
+                if (root.installed && root.pages.length === 0) root.loadPages();
             }
         }
     }

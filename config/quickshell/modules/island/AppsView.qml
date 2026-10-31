@@ -15,6 +15,9 @@ Item {
     readonly property int columns: 5
     readonly property int rows: 3
     readonly property real cell: 108
+    // The rows of icons end level with the menu beside them.
+    readonly property real menuHeight: categories.length * 36 + (categories.length - 1) * side.spacing
+    readonly property real cellHeight: Math.max(68, (menuHeight - Theme.controlHeight - 12) / rows)
     readonly property real sideWidth: 160
     readonly property real listWidth: columns * cell
     readonly property real fullWidth: gap + sideWidth + gap + listWidth + gap
@@ -218,12 +221,12 @@ Item {
         GridView {
             id: grid
             width: root.columns * root.cell
-            height: root.rows * root.cell
+            height: root.rows * root.cellHeight
             cellWidth: root.cell
-            cellHeight: root.cell
+            cellHeight: root.cellHeight
             function spread(tile) {
                 const col = tile.index % root.columns;
-                return col / (root.columns - 1) * root.out(gridClip.y + tile.y - contentY + root.cell);
+                return col / (root.columns - 1) * root.out(gridClip.y + tile.y - contentY + root.cellHeight);
             }
             model: root.apps
             boundsBehavior: Flickable.StopAtBounds
@@ -236,7 +239,7 @@ Item {
                 required property int index
                 readonly property bool picked: GridView.isCurrentItem && root.choosing
                 width: root.cell
-                height: root.cell
+                height: root.cellHeight
 
                 Component.onCompleted: if (root.entering && index < root.columns * root.rows) { surface.opacity = 0; intro.start(); }
                 SequentialAnimation {
@@ -259,18 +262,16 @@ Item {
                     ColumnLayout {
                         anchors.centerIn: parent
                         width: parent.width - 12
-                        spacing: 8
+                        spacing: 4
                         AppIcon {
                             Layout.alignment: Qt.AlignHCenter
-                            implicitSize: 56
+                            implicitSize: 40
                             source: Quickshell.iconPath(tile.modelData.icon, true) || Quickshell.iconPath("application-x-executable", true)
                         }
                         Label {
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
-                            maximumLineCount: 2
-                            wrapMode: Text.Wrap
                             font.pixelSize: Theme.fontSizeSmall + 1
                             color: tile.picked ? Theme.textOnAccent : Theme.subtext1
                             text: tile.modelData.name

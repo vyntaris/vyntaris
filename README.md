@@ -990,7 +990,7 @@ resize, ALT is for workspaces. Help lists every key, read from Hyprland.
 | ALT+TAB | switch windows: hold ALT, TAB (SHIFT+TAB back) picks, letting go goes there |
 | SUPER+ENTER / E / B / C | terminal / files / browser / editor |
 | SUPER+H, CTRL+SHIFT+ESC | btop, the system monitor |
-| SUPER+SHIFT+H, `?` in the launcher | the Arch Wiki: search it in any of its languages, down to the section, past typos (`scripts/wiki-search.py`, SQLite's FTS5; `services/ArchWiki.qml`), read it in your colours (`assets/wiki.css`), offline |
+| SUPER+SHIFT+H, `?` in the launcher | the Arch Wiki: search it in English, down to the section, past typos (`scripts/wiki-search.py`, SQLite's FTS5; `services/ArchWiki.qml`), read it in your colours (`assets/wiki.css`), offline |
 | SUPER+Q, ALT+F4 | close / kill the window |
 | SUPER+F, SHIFT+SPACE, P, S | fullscreen, float, pin, split direction |
 | SUPER+G, [ / ] | group windows, previous / next tab |
