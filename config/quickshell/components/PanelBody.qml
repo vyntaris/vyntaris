@@ -33,7 +33,7 @@ ColumnLayout {
         return null;
     }
     function isColumn(item) {
-        if (String(item).startsWith("QQuickColumnLayout")) return true;
+        if (String(item).startsWith("QQuickColumnLayout") || item.panelColumn === true) return true;
         if (item.spacing === undefined || item.layoutDirection === undefined || item.flow !== undefined) return false;
         const shown = [];
         for (let i = 0; i < item.children.length; i++)

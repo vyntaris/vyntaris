@@ -19,7 +19,7 @@ Item {
     readonly property int gap: 16
     function out(y) { return Theme.slanted ? Slant.out(height, Theme.barHeight, y) : 0; }
     readonly property real fullWidth: 660
-    readonly property real hang: gap + field.height + gap + chips.height + gap + listHeight + gap + hints.height + gap
+    readonly property real hang: gap + field.height + gap + chips.height + gap + listHeight + gap
     readonly property bool active: Panels.launcherOpen
 
     readonly property int rowHeight: 50
@@ -486,7 +486,6 @@ Item {
                     Label {
                         id: chipText
                         anchors.centerIn: parent
-                        caps: true
                         font.weight: current ? Font.DemiBold : Font.Normal
                         text: root.categoryName(modelData)
                         color: current ? Theme.textOnAccent : chipArea.containsMouse ? Theme.subtext0 : Theme.overlay1
@@ -720,7 +719,6 @@ Item {
         Label {
             anchors.centerIn: parent
             visible: list.count === 0
-            caps: true
             text: search.text.startsWith(">") ? Tr.t("Type a command")
                 : search.text.startsWith(":") ? Tr.t("Clipboard is empty")
                 : search.text.startsWith("/") ? (search.text.length < 3 ? Tr.t("Type a file name") : Tr.t("No files found"))
@@ -729,9 +727,4 @@ Item {
         }
     }
 
-    KeyHints {
-        id: hints
-        anchors { horizontalCenter: parent.horizontalCenter; top: list.bottom; topMargin: root.gap }
-        keys: [["↑ ↓", Tr.t("select")], ["⇥", Tr.t("category")], ["↵", Tr.t("open")], ["esc", Tr.t("close")]]
-    }
 }

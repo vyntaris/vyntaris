@@ -73,9 +73,18 @@ Item {
             Layout.bottomMargin: 4
             visible: !root.adapter
             horizontalAlignment: Text.AlignHCenter
-            caps: true
             color: Theme.overlay1
             text: Tr.t("No adapter")
+        }
+
+        Label {
+            Layout.fillWidth: true
+            Layout.topMargin: 4
+            Layout.bottomMargin: 4
+            visible: !!root.adapter && !root.on
+            horizontalAlignment: Text.AlignHCenter
+            color: Theme.overlay1
+            text: Tr.t("Off")
         }
 
         ColumnLayout {
@@ -153,7 +162,7 @@ Item {
             Spinner { visible: root.available.length === 0; size: 12 }
             Label {
                 visible: root.available.length === 0
-                caps: true; color: Theme.overlay0; font.pixelSize: Theme.fontSizeSmall - 1; text: Tr.t("Scanning…")
+                color: Theme.overlay1; text: Tr.t("Scanning…")
             }
         }
         ColumnLayout {

@@ -89,6 +89,7 @@ Item {
                     Layout.leftMargin: index === 2 ? 10 : 0
                     implicitHeight: 88
                     marked: root.current === index
+                    solid: true
                     pressScale: 0.96
                     onEntered: root.current = opt.index
                     onActivated: root.take(opt.index)
@@ -101,18 +102,14 @@ Item {
                             name: opt.modelData.icon
                             size: 24
                             stroke: 1.6
-                            color: opt.modelData.group === "Video" ? Theme.red : (opt.marked ? Theme.accent : Theme.subtext0)
+                            color: opt.marked ? Theme.textOnAccent : Theme.subtext0
                         }
-                        Label { Layout.alignment: Qt.AlignHCenter; caps: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.overlay1; text: opt.modelData.group }
-                        Label { Layout.alignment: Qt.AlignHCenter; font.weight: Font.DemiBold; text: opt.modelData.label }
+                        Label { Layout.alignment: Qt.AlignHCenter; caps: true; font.pixelSize: Theme.fontSizeSmall - 2; color: opt.marked ? Theme.textOnAccent : Theme.overlay1; text: opt.modelData.group }
+                        Label { Layout.alignment: Qt.AlignHCenter; font.weight: Font.DemiBold; color: opt.marked ? Theme.textOnAccent : Theme.text; text: opt.modelData.label }
                     }
                 }
             }
         }
 
-        KeyHints {
-            Layout.alignment: Qt.AlignHCenter
-            keys: Recorder.recording ? [["↵", "stop"]] : [["← →", "choose"], ["↵", "take"], ["esc", "close"]]
-        }
     }
 }

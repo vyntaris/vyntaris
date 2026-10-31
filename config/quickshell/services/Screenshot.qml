@@ -41,5 +41,6 @@ Singleton {
     Process {
         id: proc
         property string target
+        onExited: code => { if (code === 0) Osd.show("screenshot"); }
     }
 }

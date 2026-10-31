@@ -44,6 +44,7 @@ Item {
                     Layout.fillWidth: true
                     implicitHeight: 74
                     marked: KeepAwake.mode === modelData.id
+                    solid: true
                     pressScale: 0.96
                     onActivated: KeepAwake.set(opt.modelData.id)
 
@@ -55,13 +56,13 @@ Item {
                             name: opt.modelData.icon
                             size: 24
                             stroke: 1.6
-                            color: opt.marked ? Theme.accent : Theme.subtext0
+                            color: opt.marked ? Theme.textOnAccent : Theme.subtext0
                         }
                         Label {
                             Layout.alignment: Qt.AlignHCenter
                             caps: true
                             font.pixelSize: Theme.fontSizeSmall - 1
-                            color: opt.marked ? Theme.text : Theme.overlay1
+                            color: opt.marked ? Theme.textOnAccent : Theme.overlay1
                             text: opt.modelData.label
                         }
                     }
@@ -72,8 +73,7 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: 12
-            opacity: KeepAwake.active ? 1 : 0.45
-            Behavior on opacity { Anim {} }
+            visible: KeepAwake.active
 
             Label { caps: true; color: Theme.overlay1; text: Tr.t("For") }
             Item { Layout.fillWidth: true }

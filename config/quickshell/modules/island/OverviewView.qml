@@ -16,7 +16,7 @@ Item {
     readonly property int columns: Math.max(1, Math.min(4, windows.length))
     readonly property real fullWidth: Math.max(420, columns * (cardW + 12) + 28)
     readonly property real hang: windows.length === 0 ? 90
-        : Math.ceil(windows.length / columns) * (cardH + 12) + 44 + hints.height + 6
+        : Math.ceil(windows.length / columns) * (cardH + 12) + 34
 
     width: fullWidth
     height: Theme.barHeight + hang
@@ -168,19 +168,12 @@ Item {
         }
     }
 
-    KeyHints {
-        id: hints
-        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 14 }
-        visible: root.windows.length > 0
-        keys: [["⇥", Tr.t("next")], ["⇧ ⇥", Tr.t("back")], [Tr.t("let go of alt"), Tr.t("switch")], ["esc", Tr.t("close")]]
-    }
 
     Label {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.barHeight + 30
         visible: root.windows.length === 0
-        caps: true
-        color: Theme.overlay0
+        color: Theme.overlay1
         text: Tr.t("No open windows")
     }
 }

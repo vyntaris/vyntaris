@@ -37,7 +37,9 @@ Item {
         Label {
             Layout.fillWidth: true
             elide: Text.ElideRight
-            font.weight: Font.DemiBold
+            readonly property bool none: !CloudBackup.signingIn && !CloudBackup.backingUp && !root.busy && CloudBackup.last <= 0
+            font.weight: none ? Font.Normal : Font.DemiBold
+            color: none ? Theme.overlay1 : Theme.text
             text: CloudBackup.signingIn ? Tr.t("Signing in…")
                 : CloudBackup.backingUp ? Tr.f("Backing up · {0}", CloudBackup.folder)
                 : root.busy ? Tr.t("Backing up now…")

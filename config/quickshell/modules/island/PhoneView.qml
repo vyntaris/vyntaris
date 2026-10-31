@@ -37,7 +37,6 @@ Item {
             Layout.bottomMargin: 4
             visible: !Phone.enabled
             horizontalAlignment: Text.AlignHCenter
-            caps: true
             color: Theme.overlay1
             text: Tr.t("Off")
         }
@@ -218,7 +217,7 @@ Item {
                 Caption { Layout.fillWidth: true; text: Tr.t("Nearby") }
                 Label {
                     visible: Phone.nearby.length === 0
-                    caps: true; color: Theme.overlay0; font.pixelSize: Theme.fontSizeSmall - 1; text: Tr.t("Looking…")
+                    color: Theme.overlay1; text: Tr.t("Looking…")
                 }
             }
             Repeater {

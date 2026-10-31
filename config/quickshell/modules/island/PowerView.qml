@@ -7,7 +7,7 @@ import qs.services
 
 Item {
     id: root
-    readonly property real hang: 118
+    readonly property real hang: 92
     readonly property bool active: Panels.powerOpen
 
     width: fullWidth
@@ -125,10 +125,4 @@ Item {
         }
     }
 
-    KeyHints {
-        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 10 }
-        keys: [["← →", Tr.t("choose")], ["↵", Tr.t("select")], ["esc", Tr.t("close")]]
-        opacity: root.active ? 1 : 0
-        Behavior on opacity { Anim { duration: Theme.durationNormal } }
-    }
 }

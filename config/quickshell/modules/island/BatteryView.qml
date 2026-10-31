@@ -106,7 +106,7 @@ Item {
                 implicitHeight: 8
                 visible: root.b.health >= 0
                 value: root.b.health
-                fillColor: root.b.health < 0.6 ? Theme.error : root.b.health < 0.8 ? Theme.warning : Theme.success
+                fillColor: root.b.health < 0.6 ? Theme.error : root.b.health < 0.8 ? Theme.warning : Theme.accent
             }
             Label {
                 mono: true

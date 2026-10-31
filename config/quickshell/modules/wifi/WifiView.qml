@@ -113,6 +113,16 @@ Item {
             Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.hairline }
         }
 
+        Label {
+            Layout.fillWidth: true
+            Layout.topMargin: 4
+            Layout.bottomMargin: 4
+            visible: !root.asking && root.device !== null && !Networking.wifiEnabled
+            horizontalAlignment: Text.AlignHCenter
+            color: Theme.overlay1
+            text: Tr.t("Off")
+        }
+
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: 4
@@ -121,7 +131,6 @@ Item {
             spacing: 8
             Spinner { visible: root.device !== null; size: 14 }
             Label {
-                caps: true
                 text: root.device === null ? Tr.t("No adapter") : Tr.t("Scanning…")
                 color: Theme.overlay1
             }
@@ -356,7 +365,6 @@ Item {
             Field {
                 id: password
                 Layout.fillWidth: true
-                implicitHeight: 44
                 secret: true
                 canReveal: true
                 mono: true

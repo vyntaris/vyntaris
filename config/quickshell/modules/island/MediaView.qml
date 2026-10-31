@@ -55,9 +55,6 @@ Item {
         y: Theme.panelTop
         width: parent.width - 2 * Theme.panelInset + 2 * root.out(y + height)
         height: content.implicitHeight + 2 * root.pad
-        radius: Theme.r(18)
-        fill: Theme.alpha(Theme.text, 0.04)
-        edgeWidth: 1; edge: Theme.glassRim
     }
 
     RowLayout {
@@ -100,7 +97,8 @@ Item {
                 Layout.fillWidth: true
                 elide: Text.ElideRight
                 font.pixelSize: Theme.fontSize + 2
-                font.weight: Font.DemiBold
+                font.weight: root.player?.trackTitle ? Font.DemiBold : Font.Normal
+                color: root.player?.trackTitle ? Theme.text : Theme.overlay1
                 text: root.player?.trackTitle || Tr.t("Nothing playing")
             }
             Label {

@@ -9,7 +9,7 @@ import "../../config/Wallpapers.js" as Walls
 Item {
     id: root
     readonly property real fullWidth: 820
-    readonly property real hang: 240
+    readonly property real hang: 208
     readonly property bool active: Panels.wallpaperOpen
 
     readonly property string directory: Config.expandHome(Config.wallpaper.directory)
@@ -191,8 +191,4 @@ Item {
         }
     }
 
-    KeyHints {
-        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 14 }
-        keys: [["← →", Tr.t("browse")], ["↵", Tr.t("set and close")], ["esc", Tr.t("close")]]
-    }
 }

@@ -55,7 +55,7 @@ Item {
                 height: parent.height
                 spacing: 10
                 Label { Layout.fillWidth: true; Layout.minimumWidth: 0; elide: Text.ElideRight; font.pixelSize: Theme.fontSizeSmall + 1; text: pkgRow.modelData.name }
-                Label { visible: pkgRow.modelData.aur; caps: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.peach; text: Tr.t("AUR") }
+                Label { visible: pkgRow.modelData.aur; caps: true; font.pixelSize: Theme.fontSizeSmall - 2; color: Theme.overlay1; text: Tr.t("AUR") }
                 Label { mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.overlay0; text: pkgRow.modelData.from }
                 Icon { name: "chevron-right"; size: 11; color: Theme.overlay0 }
                 Label { mono: true; font.pixelSize: Theme.fontSizeSmall; color: Theme.accent; text: pkgRow.modelData.to }
@@ -125,8 +125,8 @@ Item {
         spacing: 6
         RowLayout {
             Layout.fillWidth: true
-            Icon { name: "schedule"; size: 16; color: Theme.peach }
-            Label { Layout.fillWidth: true; caps: true; color: Theme.peach; text: Tr.t("Waiting for Vyntaris") }
+            Icon { name: "schedule"; size: 16; color: Theme.accent }
+            Label { Layout.fillWidth: true; caps: true; color: Theme.accent; text: Tr.t("Waiting for Vyntaris") }
         }
         Label {
             Layout.fillWidth: true
@@ -148,8 +148,7 @@ Item {
         Spinner { anchors.verticalCenter: parent.verticalCenter; size: 14 }
         Label {
             anchors.verticalCenter: parent.verticalCenter
-            caps: true
-            color: Theme.overlay0
+            color: Theme.overlay1
             text: Tr.t("Checking…")
         }
     }

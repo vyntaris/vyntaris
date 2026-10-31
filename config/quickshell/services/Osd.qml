@@ -117,6 +117,7 @@ Singleton {
             sub: "",
             dimmed: false,
         };
+        case "screenshot": return { icon: "camera", level: -1, label: Tr.t("Screenshot"), value: -1, text: Tr.t("Saved"), sub: "", dimmed: false, toggle: true };
         case "airplane": return toggleView(Hardware.airplane ? "airplane" : "airplane-off", Tr.t("Airplane mode"), Hardware.airplane);
         case "touchpad": return toggleView(Hardware.touchpad ? "touchpad" : "touchpad-off", Tr.t("Touchpad"), Hardware.touchpad);
         case "camera": {

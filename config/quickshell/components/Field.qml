@@ -14,8 +14,8 @@ PanelSurface {
     signal committed(string text)
 
     implicitWidth: 220
-    implicitHeight: 40
-    radius: Theme.r(12)
+    implicitHeight: 38
+    radius: Theme.r(height / 2)
     fill: Theme.alpha(Theme.text, input.activeFocus ? 0.09 : 0.05)
     edgeWidth: input.activeFocus ? 2 : 1
     edge: invalid ? Theme.error : input.activeFocus ? Theme.accent : Theme.alpha(Theme.text, 0.16)
@@ -24,7 +24,7 @@ PanelSurface {
 
     TextInput {
         id: input
-        anchors { fill: parent; leftMargin: 14; rightMargin: root.canReveal ? 44 : 14 }
+        anchors { fill: parent; leftMargin: 16; rightMargin: root.canReveal ? 44 : 16 }
         verticalAlignment: TextInput.AlignVCenter
         color: Theme.text
         selectionColor: Theme.accent

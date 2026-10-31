@@ -25,6 +25,7 @@ Item {
 
     component Section: ColumnLayout {
         id: section
+        readonly property bool panelColumn: true
         property string title
         property bool isInput: false
         property var audio: null
@@ -32,12 +33,10 @@ Item {
         Layout.fillWidth: true
         spacing: 8
 
-        Caption { Layout.leftMargin: 12; text: section.title }
+        Caption { text: section.title }
 
         SegmentSlider {
             Layout.fillWidth: true
-            Layout.leftMargin: 12
-            Layout.rightMargin: 12
             icon: section.isInput ? (section.audio?.muted ? "mic-off" : "mic") : (section.audio?.muted ? "volume-x" : "volume")
             iconLevel: section.isInput ? -1 : Icons.volumeLevel(section.audio?.volume ?? 0)
             value: section.audio?.volume ?? 0
@@ -52,7 +51,6 @@ Item {
             spacing: 2
 
             Caption {
-                Layout.leftMargin: 12
                 visible: section.devices.length === 0
                 text: Tr.t("None")
             }
@@ -102,58 +100,44 @@ Item {
 
     PanelBody {
         id: content
+        spacing: 18
 
-        // One block, so everything in it starts on the same line.
-        Item {
+        Section {
+            title: Tr.t("Output")
+            audio: root.sink?.audio ?? null
+            devices: AudioDevices.outputs
+        }
+
+        Section {
+            title: Tr.t("Input")
+            isInput: true
+            audio: root.source?.audio ?? null
+            devices: AudioDevices.inputs
+        }
+
+        ColumnLayout {
             Layout.fillWidth: true
-            implicitHeight: stack.implicitHeight
+            spacing: 8
 
-            ColumnLayout {
-                id: stack
-                width: parent.width
-                spacing: 18
-
-                Section {
-                    title: Tr.t("Output")
-                    audio: root.sink?.audio ?? null
-                    devices: AudioDevices.outputs
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 8
+                Label { Layout.fillWidth: true; elide: Text.ElideRight; text: Tr.t("Noise suppression") }
+                Spinner { visible: NoiseSuppression.installing; size: 14 }
+                Choice {
+                    options: NoiseSuppression.labels.map((label, i) => ({ value: i, label: label }))
+                    current: NoiseSuppression.level
+                    onPicked: v => NoiseSuppression.set(v)
                 }
+            }
 
-                Section {
-                    title: Tr.t("Input")
-                    isInput: true
-                    audio: root.source?.audio ?? null
-                    devices: AudioDevices.inputs
-                }
-
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 8
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 12
-                        spacing: 8
-                        Label { Layout.fillWidth: true; elide: Text.ElideRight; text: Tr.t("Noise suppression") }
-                        Spinner { visible: NoiseSuppression.installing; size: 14 }
-                        Choice {
-                            options: NoiseSuppression.labels.map((label, i) => ({ value: i, label: label }))
-                            current: NoiseSuppression.level
-                            onPicked: v => NoiseSuppression.set(v)
-                        }
-                    }
-
-                    Label {
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 12
-                        Layout.rightMargin: 12
-                        visible: !NoiseSuppression.available
-                        wrapMode: Text.Wrap
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.overlay1
-                        text: NoiseSuppression.installing ? Tr.t("Installing…") : Tr.t("Turning it on installs RNNoise (noise-suppression-for-voice) once.")
-                    }
-                }
+            Label {
+                Layout.fillWidth: true
+                visible: !NoiseSuppression.available
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.overlay1
+                text: NoiseSuppression.installing ? Tr.t("Installing…") : Tr.t("Turning it on installs RNNoise (noise-suppression-for-voice) once.")
             }
         }
     }

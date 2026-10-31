@@ -56,10 +56,7 @@ Item {
             Layout.fillWidth: true
             visible: player !== null
             implicitHeight: mediaRow.implicitHeight + 24
-            radius: Theme.r(16)
-            color: mediaSlant.on ? "transparent" : Theme.alpha(Theme.text, 0.05)
-            border { width: mediaSlant.on ? 0 : 1; color: Theme.glassRim }
-            Slanted { id: mediaSlant; fill: Theme.alpha(Theme.text, 0.05); stroke: Theme.glassRim; radius: mediaCard.radius }
+            color: "transparent"
 
             Timer {
                 running: root.active && mediaCard.player !== null
@@ -231,17 +228,13 @@ Item {
             }
         }
 
-        component Card: Rectangle {
+        component Card: Item {
             id: card
             default property alias content: inner.data
-            property real pad: 14
+            property real pad: 4
             property alias spacing: inner.spacing
             Layout.fillWidth: true
             implicitHeight: inner.implicitHeight + pad * 2
-            radius: Theme.r(18)
-            color: cardSlant.on ? "transparent" : Theme.alpha(Theme.text, 0.04)
-            border { width: cardSlant.on ? 0 : 1; color: Theme.glassRim }
-            Slanted { id: cardSlant; fill: Theme.alpha(Theme.text, 0.04); stroke: Theme.glassRim; radius: card.radius }
             ColumnLayout {
                 id: inner
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: parent.pad }

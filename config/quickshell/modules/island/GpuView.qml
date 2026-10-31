@@ -35,7 +35,7 @@ Item {
                 required property var modelData
                 Layout.fillWidth: true
                 spacing: 10
-                Icon { name: "bolt"; size: 15; color: Theme.green }
+                Icon { name: "bolt"; size: 15; color: Theme.accent }
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: use.modelData.app }
                 ChipButton { danger: true; text: Tr.t("Close"); onClicked: Gpu.close(use.modelData) }
             }

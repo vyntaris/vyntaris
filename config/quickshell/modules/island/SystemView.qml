@@ -52,9 +52,8 @@ Item {
     PanelHeader {
         icon: "cpu"
         title: Tr.t("System")
-        Button {
-            implicitHeight: 26
-            text: Tr.t("Processes")
+        HeaderButton {
+            icon: "terminal"
             onClicked: { Panels.systemOpen = false; Quickshell.execDetached(["vyntaris-monitor"]); }
         }
         Label { caps: true; color: Theme.overlay1; text: Tr.t("Up") }
@@ -65,38 +64,11 @@ Item {
         id: content
         spacing: 10
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-
-            Icon { name: "cpu"; size: 16; color: Theme.overlay1 }
-            Label { Layout.preferredWidth: 64; caps: true; color: Theme.overlay1; text: Tr.t("CPU") }
-
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: 26
-
-                Row {
-                    anchors.bottom: parent.bottom
-                    anchors.right: parent.right
-                    spacing: 2
-                    Repeater {
-                        model: root.s.cpuHistory
-                        Rectangle {
-                            required property real modelData
-                            required property int index
-                            anchors.bottom: parent.bottom
-                            width: 4
-                            height: Math.max(2, modelData * 26)
-                            radius: 1
-                            color: index === root.s.cpuHistory.length - 1 ? Theme.accentBright
-                                : Theme.alpha(Theme.accent, 0.35 + 0.65 * index / Math.max(1, root.s.cpuHistory.length))
-                        }
-                    }
-                }
-            }
-
-            Value { text: Math.round(root.s.cpu * 100) + "%" }
+        StatRow {
+            icon: "cpu"
+            label: Tr.t("CPU")
+            value: root.s.cpu
+            valueText: Math.round(root.s.cpu * 100) + "%"
         }
 
         StatRow {

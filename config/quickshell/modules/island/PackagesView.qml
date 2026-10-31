@@ -40,8 +40,6 @@ Item {
         width: parent.width - 2 * Theme.panelInset + 2 * root.out(y + height)
         height: root.hang - 18
         radius: Theme.r(Theme.radius)
-        fill: Theme.alpha(Theme.crust, 0.7)
-        edgeWidth: 1; edge: Theme.hairline
 
         ListView {
             id: log
@@ -77,9 +75,10 @@ Item {
                     : Theme.subtext0
             }
         }
-        Caption {
+        Label {
             anchors.centerIn: parent
             visible: log.count === 0
+            color: Theme.overlay1
             text: Activities.installing ? Tr.t("Starting…") : Tr.t("No install since the shell started")
         }
     }

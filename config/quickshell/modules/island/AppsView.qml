@@ -313,7 +313,7 @@ Item {
         Label {
             anchors.centerIn: parent
             visible: grid.count === 0
-            caps: true
+            color: Theme.overlay1
             text: Tr.t("No apps found")
         }
     }
