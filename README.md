@@ -989,6 +989,7 @@ resize, ALT is for workspaces. Help lists every key, read from Hyprland.
 | SUPER+SHIFT+A | Sound |
 | ALT+TAB | switch windows: hold ALT, TAB (SHIFT+TAB back) picks, letting go goes there |
 | SUPER+ENTER / E / B / C | terminal / files / browser / editor |
+| SUPER+H, CTRL+SHIFT+ESC | btop, the system monitor |
 | SUPER+Q, ALT+F4 | close / kill the window |
 | SUPER+F, SHIFT+SPACE, P, S | fullscreen, float, pin, split direction |
 | SUPER+G, [ / ] | group windows, previous / next tab |

@@ -253,6 +253,7 @@ hl.bind(mainMod .. " + E",         run(settings.apps.fileManager), { description
 hl.bind(mainMod .. " + B",         run(settings.apps.browser), { description = "Browser" })
 hl.bind(mainMod .. " + C",         run(settings.apps.editor), { description = "Code editor" })
 hl.bind("CTRL + SHIFT + Escape",   run("vyntaris-monitor"), { description = "Task manager" })
+hl.bind(mainMod .. " + H",         run("vyntaris-monitor"), { description = "Task manager" })
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"), { description = "Pick a color from the screen" })
 
 hl.bind("SUPER + Super_L",          shell("control"), { release = true, description = "Start: control center, type to search apps (tap SUPER)" })
