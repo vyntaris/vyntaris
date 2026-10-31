@@ -10,6 +10,7 @@ Scope {
     readonly property string resize: ({ crop: "crop", fit: "fit", stretch: "stretch" })[Config.wallpaper.fillMode] ?? "crop"
     readonly property string fill: String(Theme.crust).slice(1, 7)
     readonly property bool waiting: Config.wallpaperPending()
+    readonly property bool accentFollows: WallpaperColors.wanted
     readonly property string picture: [file, resize, fill, waiting].join("\n")
 
     property bool started: false
