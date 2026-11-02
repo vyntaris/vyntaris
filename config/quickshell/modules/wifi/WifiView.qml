@@ -147,7 +147,7 @@ Item {
             visible: !root.asking && root.device !== null && !Networking.wifiEnabled
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
-            text: Tr.t("Off")
+            text: root.wiredShown ? Tr.t("Wi-Fi") + "  ·  " + Tr.t("Off") : Tr.t("Off")
         }
 
         RowLayout {
