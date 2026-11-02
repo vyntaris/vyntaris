@@ -3,12 +3,13 @@ import QtQuick.Layouts
 import qs.config
 import qs.components
 import "../../components/Slant.js" as Slant
+import "../../services/Terminal.js" as Terminal
 import qs.services
 
 Item {
     id: root
     readonly property real fullWidth: Updates.upgrading ? Math.max(460, Math.ceil(lines.averageCharacterWidth * 72) + 64) : 460
-    readonly property real hang: Updates.upgrading ? console_.height + 14 + 104 : Math.min(list.contentHeight, 260)
+    readonly property real hang: Updates.upgrading ? console_.height + Theme.space4 + 20 : Math.min(list.contentHeight, 260)
         + (deskColumn.visible ? deskColumn.implicitHeight + 14 : 0)
         + (fwColumn.visible ? fwColumn.implicitHeight + 14 : 0)
         + (heldColumn.visible ? heldColumn.implicitHeight + 14 : 0)
@@ -26,11 +27,13 @@ Item {
         icon: "package-update"
         title: Updates.upgrading ? Tr.t("Updating…") : Updates.count === 1 ? Tr.t("1 update") : Updates.count > 1 ? Tr.f("{0} updates", Updates.count) : Updates.firmware.length > 0 ? Tr.t("Firmware")
             : Updates.failed ? Tr.t("Couldn't check") : Tr.t("Up to date")
+        Spinner { visible: Updates.upgrading; size: 14 }
         HeaderButton {
+            visible: !Updates.upgrading
             icon: "refresh"
             label: Tr.t("Check again")
             onClicked: { Updates.check(); Updates.checkFirmware(); }
-            RotationAnimation on rotation { running: Updates.checking || Updates.upgrading; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
+            RotationAnimation on rotation { running: Updates.checking; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
         }
     }
 
@@ -142,26 +145,45 @@ Item {
         }
     }
 
-    Rectangle {
+    Item {
         id: console_
-        x: 20 - root.out(y + height)
-        y: Theme.panelTop
-        width: parent.width - 40 + 2 * root.out(y + height)
-        height: Updates.upgrading ? lines.lineSpacing * 8 + 20 : 0
+        readonly property var colours: ({ red: Theme.error, green: Theme.success, yellow: Theme.yellow, blue: Theme.accentInk,
+            magenta: Theme.mauve, cyan: Theme.sky, white: Theme.overlay1, dim: Theme.overlay0 })
+        y: Theme.panelTop + Theme.space4
+        width: parent.width
+        height: Updates.upgrading ? lines.lineSpacing * Math.max(1, Updates.output.length) : 0
         visible: Updates.upgrading
-        radius: Theme.r(10)
-        color: Theme.alpha(Theme.text, 0.05)
-        clip: true
-        FontMetrics { id: lines; font: output.font }
-        Label {
-            id: output
-            anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: Theme.space10 }
-            mono: true
-            font.pixelSize: Theme.fontSizeSmall
-            color: Theme.subtext0
-            wrapMode: Text.NoWrap
-            elide: Text.ElideNone
-            text: Updates.output
+        FontMetrics { id: lines; font.family: Theme.monoFamily; font.pixelSize: Theme.fontSizeSmall }
+        Repeater {
+            model: Updates.output
+            Item {
+                id: termRow
+                required property var modelData
+                required property int index
+                readonly property var parts: Terminal.split(modelData)
+                readonly property real lean: root.out(console_.y + y + lines.lineSpacing)
+                readonly property real pad: 20 + Theme.space4
+                width: console_.width
+                height: lines.lineSpacing
+                y: index * lines.lineSpacing
+                Text {
+                    id: leftText
+                    x: termRow.pad - termRow.lean
+                    font: lines.font
+                    color: Theme.text
+                    textFormat: Text.StyledText
+                    text: Terminal.html(termRow.parts.left, console_.colours)
+                }
+                Text {
+                    readonly property real end: termRow.width - termRow.pad + termRow.lean
+                    readonly property int cells: Math.floor((end - leftText.x - leftText.implicitWidth) / lines.averageCharacterWidth) - 1
+                    x: end - implicitWidth
+                    font: lines.font
+                    color: Theme.text
+                    textFormat: Text.StyledText
+                    text: Terminal.html(Terminal.candy(termRow.parts.right, cells), console_.colours)
+                }
+            }
         }
     }
 
@@ -190,7 +212,7 @@ Item {
         spacing: Theme.space12
 
         Button {
-            visible: Updates.packages.length > 0 || Updates.upgrading
+            visible: Updates.packages.length > 0 && !Updates.upgrading
             primary: Updates.held.length === 0
             icon: "arrow-down"
             text: Updates.upgrading ? Tr.t("Updating…") : Updates.held.length > 0 ? Tr.t("Update anyway") : Tr.t("Update now")

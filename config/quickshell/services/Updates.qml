@@ -36,7 +36,7 @@ Singleton {
         if (upgrading) return;
         upgrading = true;
         lastResult = "";
-        output = "";
+        output = [];
         Quickshell.execDetached(["systemd-run", "--user", "--quiet", "--collect", "--unit=vyntaris-upgrade",
             "--description=Updating the system", "--", Quickshell.shellPath("scripts/upgrade.sh"), aurHelper]);
         upgradeWatch.restart();
@@ -47,7 +47,7 @@ Singleton {
         lastResult = "";
         recheck.restart();
     }
-    property string output: ""
+    property var output: []
     Timer {
         interval: 500
         repeat: true
