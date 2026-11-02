@@ -17,7 +17,10 @@ end() {
 }
 plain() { sed 's/\x1b\[[0-9;?]*[A-Za-z]//g; s/\r$//' "$log"; }
 onscreen() { script -qefc "stty cols 72 2>/dev/null; $*" /dev/null < /dev/null >> "$log" 2>&1; }
-asked() { case "$1" in 126|127) end cancelled ;; esac; }
+asked() {
+    plain | grep -qE 'authentication agent|AUTHENTICATING FOR' && end failed
+    case "$1" in 126|127) end cancelled ;; esac
+}
 
 onscreen pkexec pacman -Syu --noconfirm
 code=$?; asked "$code"
