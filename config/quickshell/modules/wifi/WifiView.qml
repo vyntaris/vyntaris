@@ -13,6 +13,7 @@ Item {
     property bool showHeader: true
     property var wiredDevice: null
     readonly property bool wiredShown: !showHeader && !asking && (wiredDevice?.connected ?? false)
+    readonly property bool wiredOnly: wiredShown && connected === null
 
     readonly property real naturalWidth: 340
     readonly property real bodyHeight: content.implicitHeight > 0 ? content.implicitHeight + 28 : 8
@@ -74,7 +75,7 @@ Item {
     Binding {
         target: root.device
         property: "scannerEnabled"
-        value: root.open || scanLinger.running
+        value: (root.open && !root.wiredOnly) || scanLinger.running
         when: root.device !== null
     }
 
@@ -137,24 +138,24 @@ Item {
 
             LinkStats { link: wiredLink }
 
-            Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.space4; visible: root.device !== null; implicitHeight: 1; color: Theme.hairline }
+            Rectangle { Layout.fillWidth: true; Layout.topMargin: Theme.space4; visible: !root.wiredOnly; implicitHeight: 1; color: Theme.hairline }
         }
 
         Label {
             Layout.fillWidth: true
             Layout.topMargin: Theme.space4
             Layout.bottomMargin: Theme.space4
-            visible: !root.asking && root.device !== null && !Networking.wifiEnabled
+            visible: !root.asking && !root.wiredOnly && root.device !== null && !Networking.wifiEnabled
             horizontalAlignment: Text.AlignHCenter
             color: Theme.overlay1
-            text: root.wiredShown ? Tr.t("Wi-Fi") + "  ·  " + Tr.t("Off") : Tr.t("Off")
+            text: Tr.t("Off")
         }
 
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: Theme.space4
             Layout.bottomMargin: Theme.space4
-            visible: !root.asking && ((root.device === null && !root.wiredShown) || (root.device !== null && Networking.wifiEnabled && root.networks.length === 0))
+            visible: !root.asking && !root.wiredOnly && (root.device === null || (Networking.wifiEnabled && root.networks.length === 0))
             spacing: Theme.space8
             Spinner { visible: root.device !== null; size: 14 }
             Label {
@@ -196,7 +197,7 @@ Item {
             id: list
             Layout.fillWidth: true
             implicitHeight: Math.min(contentHeight, 7 * 42)
-            visible: !root.asking && Networking.wifiEnabled && model.length > 0
+            visible: !root.asking && !root.wiredOnly && Networking.wifiEnabled && model.length > 0
             clip: true
             spacing: Theme.space2
             boundsBehavior: Flickable.StopAtBounds

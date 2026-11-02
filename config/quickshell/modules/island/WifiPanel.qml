@@ -16,10 +16,10 @@ Item {
     height: Theme.barHeight + hang
 
     PanelHeader {
-        icon: root.wired && !root.device ? "ethernet" : "wifi"
+        icon: wifi.wiredOnly ? "ethernet" : "wifi"
         title: root.wired ? Tr.t("Network") : Tr.t("Wi-Fi")
         Switch {
-            visible: root.device !== null
+            visible: root.device !== null && !wifi.wiredOnly
             checked: Networking.wifiEnabled
             onToggled: on => Networking.wifiEnabled = on
         }
