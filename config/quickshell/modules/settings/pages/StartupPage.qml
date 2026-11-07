@@ -56,38 +56,51 @@ SettingsPage {
         }
     }
     SettingsSection { text: Tr.t("Add") }
-    SearchField { id: startSearch; Layout.fillWidth: true; placeholder: Tr.t("Search") }
-    Flow {
-        Layout.fillWidth: true
-        spacing: Theme.space6
-        Repeater {
-            model: {
-                const q = startSearch.text.trim().toLowerCase();
-                const have = (Config.startup.apps ?? []).map(a => a.id);
-                return DesktopEntries.applications.values
-                    .filter(e => !e.noDisplay && !have.includes(e.id) && (!q || e.name.toLowerCase().includes(q) || (e.genericName ?? "").toLowerCase().includes(q)))
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .slice(0, q ? 12 : 8);
+    // Chosen from a dropdown like every other list in Settings, the apps already starting left out.
+    property bool picking: false
+    SettingsRow {
+        title: Tr.t("An app")
+        Button { id: appButton; icon: "plus"; text: Tr.t("Choose"); onClicked: startupPage.picking = !startupPage.picking }
+    }
+    SettingsPicker {
+        anchor: appButton
+        shown: startupPage.picking
+        results: {
+            const q = query.trim().toLowerCase();
+            const have = (Config.startup.apps ?? []).map(a => a.id);
+            return DesktopEntries.applications.values
+                .filter(e => !e.noDisplay && !have.includes(e.id)
+                    && (!q || e.name.toLowerCase().includes(q) || (e.genericName ?? "").toLowerCase().includes(q)))
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(e => ({ value: e.id, title: e.name, caption: e.genericName ?? "" }));
+        }
+        empty: Tr.t("Nothing by that name")
+        onPicked: v => {
+            const e = DesktopEntries.byId(v);
+            if (e) startupPage.add({ id: e.id, name: e.name });
+            startupPage.picking = false;
+        }
+        onClosed: startupPage.picking = false
+    }
+    SettingsRow {
+        title: Tr.t("Command")
+        RowLayout {
+            spacing: Theme.space8
+            Field {
+                id: startCmd
+                Layout.preferredWidth: 260
+                mono: true
+                placeholder: "discord --start-minimized"
             }
             Button {
-                required property var modelData
-                text: modelData.name
-                onClicked: { startupPage.add({ id: modelData.id, name: modelData.name }); startSearch.text = ""; }
-            }
-        }
-    }
-    SettingsSection { text: Tr.t("Command") }
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Theme.space8
-        Field { id: startCmd; Layout.fillWidth: true; mono: true; placeholder: "discord --start-minimized" }
-        Button {
-            icon: "check"; text: Tr.t("Add"); primary: true
-            onClicked: {
-                const cmd = startCmd.text.trim();
-                if (!cmd) return;
-                startupPage.add({ id: "", name: cmd.split(" ")[0], command: cmd });
-                startCmd.text = "";
+                id: addCommand
+                icon: "check"; text: Tr.t("Add"); primary: true
+                onClicked: {
+                    const cmd = startCmd.text.trim();
+                    if (!cmd) return;
+                    startupPage.add({ id: "", name: cmd.split(" ")[0], command: cmd });
+                    startCmd.text = "";
+                }
             }
         }
     }
