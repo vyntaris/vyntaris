@@ -292,8 +292,10 @@ hl.bind(mainMod .. " + A",          shell("apps"), { description = "All apps" })
 hl.bind(mainMod .. " + SHIFT + A",  shell("sound"), { description = "Sound: outputs and inputs" })
 hl.bind("ALT + Tab",                qs("switcher next"), { description = "Switch windows" })
 hl.bind("ALT + SHIFT + Tab",        qs("switcher previous"), { description = "Switch windows, backwards" })
-hl.bind("ALT + Alt_L",              qs("switcher commit"), { release = true, description = "Switch to the window picked" })
-hl.bind("ALT + SHIFT + Alt_L",      qs("switcher commit"), { release = true, description = "Switch to the window picked" })
+-- transparent: Hyprland shadows a modifier's release bind once another bind used it (ALT + Tab), so letting go
+-- of Alt did nothing and it took a second tap of Alt to switch
+hl.bind("ALT + Alt_L",              qs("switcher commit"), { release = true, transparent = true, description = "Switch to the window picked" })
+hl.bind("ALT + SHIFT + Alt_L",      qs("switcher commit"), { release = true, transparent = true, description = "Switch to the window picked" })
 hl.bind("switch:on:Lid Switch", qs("session lid"), { locked = true, description = "Lid closed" })
 
 hl.bind(mainMod .. " + SHIFT + S",  qs("screenshot region"), { description = "Screenshot of a region" })
