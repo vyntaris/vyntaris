@@ -14,8 +14,6 @@ Singleton {
     property real memTotal: 0
     readonly property real memory: memTotal > 0 ? memUsed / memTotal : 0
     property real temperature: -1
-    property real rxRate: 0
-    property real txRate: 0
     property real diskUsed: 0
     property real diskTotal: 0
     readonly property real disk: diskTotal > 0 ? diskUsed / diskTotal : 0
@@ -29,11 +27,10 @@ Singleton {
     }
 
     property var lastCpu: null
-    property var lastNet: null
 
     readonly property bool watched: Panels.controlOpen || Panels.systemOpen
     onWatchedChanged: if (watched) {
-        lastCpu = null; lastNet = null; cpuHistory = [];
+        lastCpu = null; cpuHistory = [];
         df.running = true;
         sample();
         firstRate.restart();
@@ -41,7 +38,6 @@ Singleton {
     function sample() {
         stat.reload();
         meminfo.reload();
-        netdev.reload();
         uptimeFile.reload();
         if (tempFile.path) tempFile.reload();
     }
@@ -76,28 +72,6 @@ Singleton {
             const kb = key => parseInt((text().match(new RegExp("^" + key + ":\\s+(\\d+)", "m")) ?? [])[1] ?? 0) * 1024;
             root.memTotal = kb("MemTotal");
             root.memUsed = root.memTotal - kb("MemAvailable");
-        }
-    }
-
-    FileView {
-        id: netdev
-        path: "/proc/net/dev"
-        onLoaded: {
-            let rx = 0, tx = 0;
-            for (const line of text().split("\n").slice(2)) {
-                const m = line.trim().match(/^([^:]+):\s*(.*)$/);
-                if (!m || m[1] === "lo") continue;
-                const f = m[2].split(/\s+/).map(Number);
-                rx += f[0];
-                tx += f[8];
-            }
-            const now = Date.now();
-            if (root.lastNet) {
-                const dt = (now - root.lastNet.time) / 1000;
-                root.rxRate = dt > 0 ? Math.max(0, (rx - root.lastNet.rx) / dt) : 0;
-                root.txRate = dt > 0 ? Math.max(0, (tx - root.lastNet.tx) / dt) : 0;
-            }
-            root.lastNet = { rx, tx, time: now };
         }
     }
 

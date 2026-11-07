@@ -310,12 +310,11 @@ Item {
                     onClicked: Panels.systemOpen = true
                 }
                 Gauge {
-                    visible: Battery.available
-                    value: Battery.percent / 100
-                    color: Battery.percent <= 15 && !Battery.charging ? Theme.error : Theme.accent
-                    text: Battery.percent
-                    caption: Battery.charging ? Tr.t("CHG") : Tr.t("BAT")
-                    onClicked: Panels.batteryOpen = true
+                    value: SystemStats.disk
+                    color: parent.tint(SystemStats.disk)
+                    text: Math.round(SystemStats.disk * 100)
+                    caption: Tr.t("Disk")
+                    onClicked: Panels.systemOpen = true
                 }
             }
         }

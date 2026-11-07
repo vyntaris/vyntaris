@@ -94,29 +94,5 @@ Item {
             tint: root.s.temperature > 85 ? Theme.error : root.s.temperature > 70 ? Theme.warning : Theme.accent
             valueText: Math.round(root.s.temperature) + " °C"
         }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Theme.space10
-
-            Icon { name: "wifi"; size: 16; color: Theme.overlay1 }
-            Label { Layout.preferredWidth: Theme.fontSizeSmall * 6.5; overline: true; color: Theme.overlay1; text: Tr.t("Network") }
-            Item { Layout.fillWidth: true }
-            Icon { name: "arrow-down"; size: 13; color: Theme.accentInk }
-            Label {
-                mono: true
-                font.pixelSize: Theme.fontSizeLabel
-                Layout.minimumWidth: 72
-                text: root.s.formatBytes(root.s.rxRate) + "/s"
-            }
-            Icon { name: "arrow-up"; size: 13; color: Theme.overlay1 }
-            Label {
-                mono: true
-                font.pixelSize: Theme.fontSizeLabel
-                Layout.minimumWidth: 72
-                horizontalAlignment: Text.AlignRight
-                text: root.s.formatBytes(root.s.txRate) + "/s"
-            }
-        }
     }
 }
