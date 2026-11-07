@@ -75,12 +75,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: The version a push to main goes out as, in VERSION for the package (none when it's tagged already)
+      - name: The version a push to main goes out as, in VERSION for the package (its tag's when a failed publish is run again)
         id: version
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           v="$(tools/next-version.sh)"
+          if [ -z "$v" ]; then
+              # only the newest tag: an old run run again mustn't put an older package back
+              t="$(git describe --tags --exact-match --match 'v*' HEAD 2>/dev/null || :)"
+              [ "$t" != "$(git tag -l 'v*' --sort=-v:refname | head -1)" ] || v="${t#v}"
+          fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
           [ -z "$v" ] || echo "$v" > VERSION
       - name: Any other build is named by its tag, or by the version it would go out as
@@ -192,12 +197,13 @@ jobs:
       - name: The tag names the version in VERSION (what pacman will see)
         if: startsWith(github.ref, 'refs/tags/v')
         run: '[ "${GITHUB_REF_NAME}" = "v$(cat VERSION)" ] || { echo "tag $GITHUB_REF_NAME, but VERSION says $(cat VERSION)" >&2; exit 1; }'
-      - name: A push to main is tagged with the version it goes out as
+      - name: A push to main is tagged with the version it goes out as (unless a failed publish tagged it already)
         if: github.ref == 'refs/heads/main'
         env:
           VERSION: ${{ needs.package.outputs.version }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [ -n "$(git ls-remote --tags origin "refs/tags/v$VERSION")" ]; then echo "v$VERSION is tagged already"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
           git tag -a "v$VERSION" -m "$VERSION"
