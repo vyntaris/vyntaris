@@ -2,8 +2,12 @@
 since="$1"
 [ -n "$since" ] || since="$(stat -c %Y /var/lib/pacman/db.lck 2>/dev/null || date +%s)"
 busy=0
-{ [ -e /var/lib/pacman/db.lck ] || pgrep -x 'yay|paru|makepkg|pikaur|trizen|pamac' >/dev/null \
-    || pgrep -a -x pacman | grep -qv -- '--dbpath'; } && busy=1
+# Only what changes the system counts: a query (yay -Qua checking for updates at login, pacman -Q) doesn't, or the
+# shell said Installing for as long as it took.
+query=' -(Q|Ss|Si|Sl|Sg|Sp|F|T|G|P)[[:alnum:]]*( |$)| --(query|search|info|print|getpkgbuild|show)( |$)'
+{ [ -e /var/lib/pacman/db.lck ] || pgrep -x 'makepkg' >/dev/null \
+    || pgrep -a -x 'yay|paru|pikaur|trizen|pamac' | grep -qvE -- "$query" \
+    || pgrep -a -x pacman | grep -v -- '--dbpath' | grep -qvE -- "$query"; } && busy=1
 from="$(date -d "@$((since - 1))" +%Y-%m-%dT%H:%M:%S)"
 
 window_screen() {

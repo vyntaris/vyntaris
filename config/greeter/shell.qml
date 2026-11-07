@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Greetd
 import Quickshell.Services.UPower
+import Quickshell.Io
 import QtQuick
 import qs.config
 import qs.components
@@ -10,7 +11,15 @@ ShellRoot {
     id: root
 
     readonly property var cfg: Config.cfg
-    readonly property string user: cfg.user || Quickshell.env("USER") || ""
+    // Everyone who can log in (a person's uid and a real shell), from /etc/passwd, which the greeter may read;
+    // the one the settings came from first, and any other a click away.
+    FileView { id: passwd; path: "/etc/passwd"; blockLoading: true; printErrors: false }
+    readonly property var people: passwd.text().split("\n").map(l => l.split(":"))
+        .filter(f => f.length >= 7 && +f[2] >= 1000 && +f[2] < 60000 && !/(nologin|false)$/.test(f[6]))
+        .map(f => ({ name: f[0], full: (f[4] || "").split(",")[0] }))
+    property string picked: ""
+    readonly property string user: picked || cfg.user || (people[0]?.name ?? "")
+    readonly property bool synced: user === cfg.user
     readonly property var session: cfg.session ?? ["vyntaris-session"]
     property string status: Greetd.available ? "" : "Preview — not under greetd (Esc quits)"
     property string pending: ""
@@ -59,9 +68,11 @@ ShellRoot {
                 active: win.primary
                 user: root.user
                 battery: UPower.displayDevice.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) : -1
-                charging: UPower.displayDevice.state === UPowerDeviceState.Charging || UPower.displayDevice.state === UPowerDeviceState.FullyCharged
-                fullName: root.cfg.fullName || ""
-                face: root.cfg.face || ""
+                charging: UPower.displayDevice.state === UPowerDeviceState.Charging
+                fullName: root.synced ? (root.cfg.fullName || "") : (root.people.find(p => p.name === root.user)?.full ?? "")
+                face: root.synced ? (root.cfg.face || "") : ""
+                others: root.people.filter(p => p.name !== root.user)
+                onUserPicked: name => { if (root.status === "checking") return; root.picked = name; root.status = Greetd.available ? "" : root.status; }
                 status: root.status
                 wallpaper: root.cfg.wallpaper || ""
                 title: "Welcome"

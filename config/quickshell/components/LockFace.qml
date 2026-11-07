@@ -18,6 +18,8 @@ Item {
     property int battery: -1
     property bool charging: false
     property bool showPower: false
+    // The other people who can log in here ({ name, full }), to switch to; `userPicked` says who.
+    property var others: []
     property bool active: true
     property var tr: s => s
     property var dateOf: d => Tr.dates.toString(d, "dddd · d MMMM")
@@ -26,6 +28,7 @@ Item {
     signal submit(string password)
     signal layoutClicked()
     signal powerClicked(string action)
+    signal userPicked(string name)
 
     property bool showPassword: false
     readonly property bool busy: status === "checking"
@@ -104,16 +107,15 @@ Item {
             visible: root.battery >= 0
             anchors.verticalCenter: parent.verticalCenter
             spacing: Theme.space4
-            Icon {
+            // The bar's own glyph, so the battery looks the same before and after logging in.
+            BatteryGlyph {
                 anchors.verticalCenter: parent.verticalCenter
-                name: "battery"
-                level: Math.min(7, Math.round(root.battery / 100 * 7))
+                percent: root.battery
+                charging: root.charging
                 size: 22
-                filled: true
                 color: root.charging ? Theme.accentInk : root.battery <= 15 ? Theme.error : root.battery <= 30 ? Theme.warning : Theme.accentInk
             }
-            Icon { visible: root.charging; anchors.verticalCenter: parent.verticalCenter; name: "bolt"; filled: true; size: 13; color: Theme.accentInk }
-            Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.pixelSize: Theme.fontSizeLabel; text: root.battery }
+            Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.pixelSize: Theme.fontSizeLabel; text: root.battery + "%" }
         }
     }
 
@@ -244,6 +246,23 @@ Item {
                     visible: root.status === ""
                     keys: [["↵", root.t(Tr.t("unlock"))], ["esc", root.t(Tr.t("clear"))]]
                 }
+            }
+        }
+    }
+
+    Row {
+        visible: root.others.length > 0
+        anchors { horizontalCenter: parent.horizontalCenter; top: card.bottom; topMargin: Theme.space20 }
+        opacity: root.reveal
+        spacing: Theme.space10
+        Repeater {
+            model: root.others
+            Button {
+                required property var modelData
+                radius: Theme.r(12)
+                icon: "users"
+                text: modelData.full || modelData.name
+                onClicked: { root.userPicked(modelData.name); input.text = ""; input.forceActiveFocus(); }
             }
         }
     }
