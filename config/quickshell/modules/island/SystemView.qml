@@ -36,7 +36,8 @@ Item {
         Layout.fillWidth: true
         spacing: Theme.space10
 
-        Icon { name: parent.icon; size: 16; color: Theme.overlay1 }
+        // the outlined ones: filled, the chip stays an outline while memory and disk turn into blocks
+        Icon { name: parent.icon; size: 16; color: Theme.overlay1; filled: false }
         Label { Layout.preferredWidth: Theme.fontSizeSmall * 6.5; overline: true; color: Theme.overlay1; text: parent.label }
         Meter {
             Layout.fillWidth: true
