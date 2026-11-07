@@ -128,40 +128,57 @@ SettingsPage {
         }
     }
 
-    SettingsSection { text: Tr.t("Add someone") }
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Theme.space8
+    // Like the password above: a button until it's wanted, then the few things to fill in, in the same card.
+    property bool adding: false
+    function stopAdding() { adding = false; newFull.text = ""; newName.text = ""; newName.edited = false; newPass.text = ""; newAdmin.checked = false; }
+    SettingsRow {
+        title: Tr.t("Add someone")
+        RowLayout {
+            spacing: Theme.space8
+            Button { visible: page.adding; text: Tr.t("Cancel"); onClicked: page.stopAdding() }
+            Button {
+                primary: page.adding
+                icon: "plus"
+                text: Tr.t("Add")
+                active: !page.adding || (newFull.text.trim() !== "" && /^[a-z_][a-z0-9_-]{0,31}$/.test(newName.text) && newPass.text.length >= 4 && !Accounts.busy)
+                onClicked: {
+                    if (!page.adding) { page.adding = true; newFull.input.forceActiveFocus(); return; }
+                    Accounts.add(newName.text, newFull.text.trim(), newAdmin.checked, newPass.text);
+                    page.stopAdding();
+                }
+            }
+        }
+    }
+    SettingsRow {
+        visible: page.adding
+        title: Tr.t("Full name")
         Field {
             id: newFull
-            Layout.fillWidth: true
+            implicitWidth: 260
             placeholder: Tr.t("Full name")
             onTextChanged: if (!newName.edited) newName.text = Accounts.nameFor(text)
         }
+    }
+    SettingsRow {
+        visible: page.adding
+        title: Tr.t("User name")
         Field {
             id: newName
             property bool edited: false
-            implicitWidth: 150
+            implicitWidth: 260
             mono: true
             placeholder: Tr.t("user name")
             input.onTextEdited: edited = true
         }
     }
-    RowLayout {
-        Layout.fillWidth: true
-        spacing: Theme.space8
-        Field { id: newPass; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("Password") }
-        Caption { text: Tr.t("Administrator") }
-        Switch { id: newAdmin }
-        Button {
-            primary: true
-            icon: "plus"
-            text: Tr.t("Add")
-            active: newFull.text.trim() !== "" && /^[a-z_][a-z0-9_-]{0,31}$/.test(newName.text) && newPass.text.length >= 4 && !Accounts.busy
-            onClicked: {
-                Accounts.add(newName.text, newFull.text.trim(), newAdmin.checked, newPass.text);
-                newFull.text = ""; newName.text = ""; newName.edited = false; newPass.text = ""; newAdmin.checked = false;
-            }
-        }
+    SettingsRow {
+        visible: page.adding
+        title: Tr.t("Password")
+        Field { id: newPass; implicitWidth: 260; secret: true; canReveal: true; placeholder: Tr.t("Password") }
+    }
+    SettingsRow {
+        visible: page.adding
+        title: Tr.t("Administrator")
+        Switch { id: newAdmin; onToggled: on => checked = on }
     }
 }
