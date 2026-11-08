@@ -22,7 +22,8 @@ Item {
         const kind = activity?.kind;
         if (kind === "timer" || kind === "stopwatch") { Panels.timerTab = kind; Panels.timerOpen = true; }
         else if (kind === "download") Activities.openDownloads();
-        else if (kind === "packages") Panels.packagesOpen = true;
+        // An update is pacman installing too: it opens where the bar's package icon does, with the update's console.
+        else if (kind === "packages") { if (Updates.upgrading) Panels.updatesOpen = true; else Panels.packagesOpen = true; }
         else if (kind === "backup") Panels.cloudOpen = true;
         else Panels.controlOpen = true;
     }

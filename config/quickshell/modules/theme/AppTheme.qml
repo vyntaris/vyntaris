@@ -92,7 +92,8 @@ Scope {
     }
 
     function applyFastfetch() {
-        const svg = LogoArt.full(hex(Theme.accent), hex(LogoArt.partner(Theme.palette, Theme.accentName)), hex(Theme.base), 600, false);
+        const from = LogoArt.turn(hex(Theme.accent), 0, 0.1), to = LogoArt.turn(hex(Theme.accent), 70, 0.15);
+        const svg = LogoArt.full(from, to, hex(Theme.base), 600, false, to);
         Quickshell.execDetached(["sh", "-c", 'mkdir -p "$1" && printf "%s" "$2" > "$1/logo.svg" && '
             + 'rsvg-convert "$1/logo.svg" -o "$1/logo.png.new" && mv "$1/logo.png.new" "$1/logo.png" && rm -rf "$3"',
             "sh", cacheHome + "/vyntaris", svg, cacheHome + "/fastfetch/images" + cacheHome + "/vyntaris"]);
