@@ -20,7 +20,8 @@ ColumnLayout {
     readonly property real atTop: (void [y, parent?.y, island?.height], parent && island ? parent.mapToItem(island, 0, y).y : y)
     readonly property real widest: out(atTop)
 
-    x: Theme.panelInset - widest
+    // on whole pixels: the slant leaves a fraction, and icons (images) placed on half a pixel come out blurred
+    x: Math.round(Theme.panelInset - widest)
     y: Theme.panelTop
     width: parent.width - 2 * Theme.panelInset + 2 * widest
     spacing: Theme.space12
