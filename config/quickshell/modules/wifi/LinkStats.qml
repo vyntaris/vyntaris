@@ -13,7 +13,7 @@ RowLayout {
         model: [
             { value: root.link.speed(root.link.down), label: Tr.t("Download"), waiting: root.link.down < 0 },
             { value: root.link.speed(root.link.up), label: Tr.t("Upload"), waiting: root.link.up < 0 },
-            { value: root.link.ping >= 0 ? Math.round(root.link.ping) + " ms" : "–", label: Tr.t("Ping"), waiting: !root.link.ready },
+            { value: root.link.ping >= 0 ? Math.round(root.link.ping) + " ms" : "–", label: Tr.t("Ping"), waiting: !root.link.pinged },
             { value: root.link.rate || "–", label: Tr.t("Link"), waiting: !root.link.ready },
         ]
         ColumnLayout {
