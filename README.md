@@ -906,8 +906,8 @@ itself (`vyntaris-refresh.hook`).
 - the XDG folders;
 - `~/.config/kitty/kitty.conf` including Vyntaris's, and `~/.zshrc` sourcing Vyntaris's zshrc;
 - VS Code's settings and theme;
-- Thunar's custom actions (Quick Look, Set as Wallpaper, Send to Phone, Send via Bluetooth, rotate and
-  flip pictures);
+- Thunar's custom actions (Open Code Here, Quick Look, Set as Wallpaper, Send to Phone, Send via Bluetooth,
+  rotate and flip pictures);
 - the default apps for each file type;
 - yay's `--save --removemake`.
 
