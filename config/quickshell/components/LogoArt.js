@@ -12,8 +12,7 @@ function partner(palette, accentName) {
     return mix(Palettes.accent(palette, accentName), "#000000", 0.18);
 }
 
-// The accent turned along the colour wheel and a little brighter: a gradient from it to the accent has more life
-// than the accent and its own shade (the fastfetch logo).
+// Rotates the hue and adds saturation (fastfetch logo gradient).
 function turn(color, degrees, saturation) {
     var c = Palettes.hsl(color);
     return Palettes.fromHsl(c.h + degrees, Math.min(1, c.s + saturation), c.l);
