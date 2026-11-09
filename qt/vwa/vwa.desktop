@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=VWA
+GenericName=WhatsApp
+Comment=WhatsApp in its own window, with notifications and the unread count in the bar
+Icon=internet-chat
+Exec=vyntaris-app vwa open %u
+Categories=Network;InstantMessaging;Chat;
+Keywords=whatsapp;chat;messages;messenger;wa;
+MimeType=x-scheme-handler/whatsapp;
+StartupWMClass=vwa

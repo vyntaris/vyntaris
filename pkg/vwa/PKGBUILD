@@ -1,0 +1,20 @@
+pkgname=vwa
+pkgver=$(cat ../../VERSION 2>/dev/null || echo 0)
+pkgrel=1
+pkgdesc="VWA: WhatsApp in its own window for Vyntaris, calls included"
+arch=(x86_64)
+url="https://vyntarisos.com/"
+license=(GPL-3.0-or-later)
+depends=(vyntaris qt6-base qt6-webengine)
+makedepends=(cmake)
+options=(!debug)
+
+build() {
+    cmake -S "$startdir/../../qt/vwa" -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+    install -Dm644 "$startdir/../../qt/vwa/vwa.desktop" "$pkgdir/usr/share/applications/vwa.desktop"
+}

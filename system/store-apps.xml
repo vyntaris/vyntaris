@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Vyntaris's own apps that aren't installed from the start: the Store lists them with Arch's. -->
+<components version="0.16" origin="vyntaris">
+  <component type="desktop-application">
+    <id>vwa</id>
+    <pkgname>vwa</pkgname>
+    <name>VWA</name>
+    <summary>WhatsApp in its own window, calls included</summary>
+    <description>
+      <p>WhatsApp Web in its own window: notifications, calls, dark mode and the desktop's accent colour. It keeps running in the background when closed, so messages still come in.</p>
+    </description>
+    <icon type="stock">internet-chat</icon>
+    <categories>
+      <category>Network</category>
+      <category>InstantMessaging</category>
+    </categories>
+  </component>
+</components>

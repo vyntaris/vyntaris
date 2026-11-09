@@ -71,7 +71,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Tools
-        run: pacman -Syu --noconfirm base-devel git rust gtk4 libadwaita
+        run: pacman -Syu --noconfirm base-devel git rust gtk4 libadwaita qt6-webengine cmake
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -108,6 +108,7 @@ jobs:
           path: |
             pkg/vyntaris-*.pkg.tar.zst
             pkg/yay-bin-*.pkg.tar.zst
+            pkg/vwa-*.pkg.tar.zst
           retention-days: 3
 
   smoke:
@@ -220,7 +221,7 @@ jobs:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
         run: |
           printf '%s\n' "$SIGNING_KEY" | gpg --batch --quiet --import
-          tools/publish-repo.sh pkg/vyntaris-*.pkg.tar.zst pkg/yay-bin-*.pkg.tar.zst
+          tools/publish-repo.sh pkg/vyntaris-*.pkg.tar.zst pkg/yay-bin-*.pkg.tar.zst pkg/vwa-*.pkg.tar.zst
 
   iso:
     needs: smoke

@@ -496,6 +496,12 @@ VDoc (documents), VSheet (spreadsheets) and VSlide (presentations), with the Off
 PowerPoint files, open password-protected ones (and save them protected again), and VSheet computes old
 workbooks the way Excel does. Their source is a repository of its own (`vyntaris-office`).
 
+### VWA
+
+WhatsApp in its own window, calls included: in the Store, or `sudo pacman -S vwa`. Notifications open the
+chat, closing it keeps it running, and it follows light/dark and the accent. It's Qt WebEngine (Chromium:
+WebKitGTK has no WebRTC on Arch), so it isn't installed from the start (`qt/vwa`, `pkg/vwa`).
+
 ---
 
 ## Everyday apps

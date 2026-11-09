@@ -1010,5 +1010,9 @@
  "{0}: {1} free": "{0}: {1} liberi",
  "{0}?": "{0}?",
  "“{0}”{1}: some updates need a step of your own, and the news says which.": "«{0}»{1}: alcuni aggiornamenti richiedono un tuo intervento, e la notizia dice quali.",
- "↓  Latest": "↓  Ultime"
+ "↓  Latest": "↓  Ultime",
+ "Reload": "Ricarica",
+ "Start at login": "Avvia all'accesso",
+ "Quit": "Esci",
+ "Couldn't download": "Download non riuscito"
 }
