@@ -69,17 +69,22 @@ static QString T(const char *s) {
 }
 
 // Accent and window colour from the Qt palette the shell writes.
-struct Look { QString accent; QColor window, text; bool dark; };
+struct Look { QString accent; QColor window, text; bool dark; QStringList shades; };
 static Look look() {
     QFile f(palettePath());
     if (f.open(QIODevice::ReadOnly)) {
         for (const QString &line : QString::fromUtf8(f.readAll()).split('\n')) {
             if (!line.startsWith("active_colors=")) continue;
             QStringList c = line.mid(14).split(QRegularExpression(",\\s*"));
-            if (c.size() > 12) return { c[12].trimmed(), QColor(c[10].trimmed()), QColor(c[0].trimmed()), QColor(c[10].trimmed()).lightness() < 128 };
+            if (c.size() > 20) {
+                // crust, mantle, base, surface 0-2, overlay, text
+                QStringList shades;
+                for (int i : {4, 9, 10, 1, 3, 2, 20, 0}) shades << c[i].trimmed();
+                return { c[12].trimmed(), QColor(c[10].trimmed()), QColor(c[0].trimmed()), QColor(c[10].trimmed()).lightness() < 128, shades };
+            }
         }
     }
-    return { "#cba6f7", QColor("#1e1e2e"), QColor("#cdd6f4"), true };
+    return { "#cba6f7", QColor("#1e1e2e"), QColor("#cdd6f4"), true, {} };
 }
 
 // wa.me and whatsapp: links, opened in WhatsApp Web.
@@ -262,11 +267,15 @@ private:
     std::map<uint, std::unique_ptr<QWebEngineNotification>> open;
 };
 
+static QString shadesJson(const Look &l) {
+    return QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(l.shades)).toJson(QJsonDocument::Compact));
+}
+
 static QString accentScript(const Look &l) {
     QFile f(":/accent.js");
     if (!f.open(QIODevice::ReadOnly)) return {};
-    return QString("window.__vyntarisAccent = \"%1\"; window.__vyntarisDark = %2;\n").arg(l.accent, l.dark ? "true" : "false")
-        + QString::fromUtf8(f.readAll());
+    return QString("window.__vyntarisAccent = \"%1\"; window.__vyntarisDark = %2; window.__vyntarisShades = %3;\n")
+        .arg(l.accent, l.dark ? "true" : "false", shadesJson(l)) + QString::fromUtf8(f.readAll());
 }
 
 // WhatsApp's loading screen is always light; it gets the theme's colours before anything draws.
@@ -374,7 +383,7 @@ int main(int argc, char **argv) {
         profile.scripts()->insert(splash);
         profile.scripts()->remove(profile.scripts()->find("accent").value(0));
         profile.scripts()->insert(accent);
-        window.page()->runJavaScript(QString("window.__vyntarisRecolour?.(\"%1\", %2)").arg(l.accent, l.dark ? "true" : "false"));
+        window.page()->runJavaScript(QString("window.__vyntarisRecolour?.(\"%1\", %2, %3)").arg(l.accent, l.dark ? "true" : "false", shadesJson(l)));
     });
 
     auto open = [&](bool bg, const QString &to) {

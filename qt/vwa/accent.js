@@ -1,7 +1,7 @@
-// WhatsApp's greens in the accent, changed in its own stylesheets.
+// WhatsApp in the theme's colours, changed in its own stylesheets: greys along the theme's shades, greens in the accent.
 (() => {
-    let accent = window.__vyntarisAccent, dark = window.__vyntarisDark;
-    let done = new WeakSet(), total = -1;
+    let accent = window.__vyntarisAccent, dark = window.__vyntarisDark, ramp = [];
+    let done = new WeakSet(), mine = new WeakMap(), total = -1;
     const changed = [];
 
     function parse(v) {
@@ -42,13 +42,36 @@
         return mid ? css(A.h, A.s, dark ? A.l : Math.min(A.l, 0.42), c.a) : css(A.h, Math.min(A.s, h.s), h.l, c.a);
     }
 
+    // The theme's shades, darkest to lightest.
+    function shades(list) {
+        ramp = (list || []).map(parse).filter(Boolean).map(c => ({ c, l: hsl(c).l })).sort((a, b) => a.l - b.l);
+    }
+
+    // A grey's lightness, from black to white, picks the same place along the theme's shades.
+    function neutral(c, h) {
+        if (ramp.length < 2) return null;
+        const t = ramp[0].l + (ramp[ramp.length - 1].l - ramp[0].l) * h.l;
+        let i = 0;
+        while (i < ramp.length - 2 && ramp[i + 1].l < t) i++;
+        const a = ramp[i], b = ramp[i + 1], f = b.l === a.l ? 0 : Math.min(1, Math.max(0, (t - a.l) / (b.l - a.l)));
+        const mix = k => Math.round(a.c[k] + (b.c[k] - a.c[k]) * f);
+        return `rgba(${mix("r")}, ${mix("g")}, ${mix("b")}, ${c.a})`;
+    }
+
     function recolour(style) {
+        let own = mine.get(style);
+        if (!own) mine.set(style, own = new Map());
         for (let i = 0; i < style.length; i++) {
-            const p = style[i], v = style.getPropertyValue(p), c = parse(v);
-            if (!c || !green(hsl(c))) continue;
+            const p = style[i], v = style.getPropertyValue(p);
+            if (own.get(p) === v) continue;
+            const c = parse(v);
+            if (!c) continue;
+            const h = hsl(c), out = green(h) ? shade(c) : h.s < 0.35 ? neutral(c, h) : null;
+            if (!out) continue;
             const priority = style.getPropertyPriority(p);
             changed.push([style, p, v, priority]);
-            style.setProperty(p, shade(c), priority);
+            style.setProperty(p, out, priority);
+            own.set(p, style.getPropertyValue(p));
         }
     }
 
@@ -73,14 +96,17 @@
         for (const sh of sheets) { try { walk(sh.cssRules); } catch (e) {} }
     }
 
-    window.__vyntarisRecolour = (hex, isDark) => {
-        for (const [style, p, v, priority] of changed.splice(0)) style.setProperty(p, v, priority);
+    window.__vyntarisRecolour = (hex, isDark, list) => {
+        for (const [style, p, v, priority] of changed.splice(0).reverse()) style.setProperty(p, v, priority);
         accent = hex;
         dark = isDark;
+        shades(list);
         done = new WeakSet();
+        mine = new WeakMap();
         scan(true);
     };
 
+    shades(window.__vyntarisShades);
     scan(true);
     setInterval(() => scan(false), 1500);
 })();
