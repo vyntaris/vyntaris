@@ -307,6 +307,16 @@ Scope {
     }
 
     IpcHandler {
+        target: "passwords"
+        function open(): void { Passwords.open(false) }
+        function toggle(): void { if (Panels.passwordsOpen) Panels.passwordsOpen = false; else Passwords.open(false) }
+        function lock(): void { Passwords.lock() }
+        function offer(): void { Passwords.takeOffer() }
+        function saveOffer(): void { Passwords.saveOffer() }
+        function userField(site: string): void { Passwords.atUserField(site) }
+    }
+
+    IpcHandler {
         target: "screenshot"
         function region(): void { Screenshot.capture("region") }
         function screen(): void { Screenshot.capture("screen") }
