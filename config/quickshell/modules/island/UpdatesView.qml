@@ -27,13 +27,12 @@ Item {
         icon: "package-update"
         title: Updates.upgrading ? Tr.t("Updating…") : Updates.count === 1 ? Tr.t("1 update") : Updates.count > 1 ? Tr.f("{0} updates", Updates.count) : Updates.firmware.length > 0 ? Tr.t("Firmware")
             : Updates.failed ? Tr.t("Couldn't check") : Tr.t("Up to date")
-        Spinner { visible: Updates.upgrading; size: 14 }
+        Spinner { visible: Updates.upgrading || Updates.checking; size: 14 }
         HeaderButton {
-            visible: !Updates.upgrading
+            visible: !Updates.upgrading && !Updates.checking
             icon: "refresh"
             label: Tr.t("Check again")
             onClicked: { Updates.check(); Updates.checkFirmware(); }
-            RotationAnimation on rotation { running: Updates.checking; loops: Animation.Infinite; from: 0; to: 360; duration: 900 }
         }
     }
 

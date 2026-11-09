@@ -12,6 +12,12 @@ function partner(palette, accentName) {
     return mix(Palettes.accent(palette, accentName), "#000000", 0.18);
 }
 
+// Rotates the hue and adds saturation (fastfetch logo gradient).
+function turn(color, degrees, saturation) {
+    var c = Palettes.hsl(color);
+    return Palettes.fromHsl(c.h + degrees, Math.min(1, c.s + saturation), c.l);
+}
+
 function mix(a, b, t) {
     var out = "#";
     for (var i = 1; i < 7; i += 2) {
@@ -57,8 +63,8 @@ function layers(set, names) {
     return out;
 }
 
-function full(accent, partnerColor, base, px, glow) {
+function full(accent, partnerColor, base, px, glow, planetColor) {
     var p = shape.orbit.planet;
     return svg("-2 -2 28 28", defs(accent, partnerColor, base) + layers("full", ["back", "v", "front"])
-        + '<g transform="translate(' + p.x + ' ' + p.y + ') scale(' + p.r + ')">' + planet(accent, glow) + '</g>', px);
+        + '<g transform="translate(' + p.x + ' ' + p.y + ') scale(' + p.r + ')">' + planet(planetColor || accent, glow) + '</g>', px);
 }
