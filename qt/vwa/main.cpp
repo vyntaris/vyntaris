@@ -68,8 +68,19 @@ static QString T(const char *s) {
     return t.isEmpty() ? QString::fromUtf8(s) : t;
 }
 
+// red, blue and mauve from Qt's palette; yellow, pink and teal from the terminal's, which the shell writes too.
+static QStringList hues(QStringList out) {
+    QFile f(configHome() + "/kitty/theme.conf");
+    if (f.open(QIODevice::ReadOnly))
+        for (const QString &line : QString::fromUtf8(f.readAll()).split('\n')) {
+            QStringList kv = line.split(' ', Qt::SkipEmptyParts);
+            if (kv.size() == 2 && (kv[0] == "color3" || kv[0] == "color5" || kv[0] == "color6")) out << kv[1];
+        }
+    return out;
+}
+
 // Accent and window colour from the Qt palette the shell writes.
-struct Look { QString accent; QColor window, text; bool dark; QStringList shades; };
+struct Look { QString accent; QColor window, text; bool dark; QStringList shades, hues; };
 static Look look() {
     QFile f(palettePath());
     if (f.open(QIODevice::ReadOnly)) {
@@ -80,7 +91,8 @@ static Look look() {
                 // crust, mantle, base, surface 0-2, overlay, text
                 QStringList shades;
                 for (int i : {4, 9, 10, 1, 3, 2, 20, 0}) shades << c[i].trimmed();
-                return { c[12].trimmed(), QColor(c[10].trimmed()), QColor(c[0].trimmed()), QColor(c[10].trimmed()).lightness() < 128, shades };
+                return { c[12].trimmed(), QColor(c[10].trimmed()), QColor(c[0].trimmed()), QColor(c[10].trimmed()).lightness() < 128, shades,
+                         hues({c[7].trimmed(), c[14].trimmed(), c[15].trimmed()}) };
             }
         }
     }
@@ -271,17 +283,22 @@ static QString shadesJson(const Look &l) {
     return QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(l.shades)).toJson(QJsonDocument::Compact));
 }
 
+static QString huesJson(const Look &l) {
+    return QString::fromUtf8(QJsonDocument(QJsonArray::fromStringList(l.hues)).toJson(QJsonDocument::Compact));
+}
+
 static QString accentScript(const Look &l) {
     QFile f(":/accent.js");
     if (!f.open(QIODevice::ReadOnly)) return {};
-    return QString("window.__vyntarisAccent = \"%1\"; window.__vyntarisDark = %2; window.__vyntarisShades = %3;\n")
-        .arg(l.accent, l.dark ? "true" : "false", shadesJson(l)) + QString::fromUtf8(f.readAll());
+    return QString("window.__vyntarisAccent = \"%1\"; window.__vyntarisDark = %2; window.__vyntarisShades = %3; window.__vyntarisHues = %4;\n")
+        .arg(l.accent, l.dark ? "true" : "false", shadesJson(l), huesJson(l)) + QString::fromUtf8(f.readAll());
 }
 
-// WhatsApp's loading screen is always light; it gets the theme's colours before anything draws.
+// WhatsApp's loading screen is always light; it gets the theme's colours before anything draws, on every
+// element, since WhatsApp sets some of them again further in.
 static QString splashScript(const Look &l) {
     auto rgba = [](const QColor &c, double a) { return QString("rgba(%1, %2, %3, %4)").arg(c.red()).arg(c.green()).arg(c.blue()).arg(a); };
-    QString w = l.window.name(), css = QString(":root {"
+    QString w = l.window.name(), css = QString("* {"
         "--splashscreen-startup-background: %1 !important; --splashscreen-startup-background-plain: %1 !important;"
         "--splashscreen-startup-background-rgb: %2, %3, %4 !important; --splashscreen-primary-title: %5 !important;"
         "--splashscreen-startup-content-deemphasized: %6 !important; --splashscreen-secondary-lighter: %6 !important;"
@@ -337,7 +354,7 @@ int main(int argc, char **argv) {
 
     QWebEngineScript accent;
     accent.setName("accent");
-    accent.setInjectionPoint(QWebEngineScript::DocumentReady);
+    accent.setInjectionPoint(QWebEngineScript::DocumentCreation);
     accent.setWorldId(QWebEngineScript::MainWorld);
     accent.setSourceCode(accentScript(now));
     profile.scripts()->insert(accent);
@@ -383,7 +400,7 @@ int main(int argc, char **argv) {
         profile.scripts()->insert(splash);
         profile.scripts()->remove(profile.scripts()->find("accent").value(0));
         profile.scripts()->insert(accent);
-        window.page()->runJavaScript(QString("window.__vyntarisRecolour?.(\"%1\", %2, %3)").arg(l.accent, l.dark ? "true" : "false", shadesJson(l)));
+        window.page()->runJavaScript(QString("window.__vyntarisRecolour?.(\"%1\", %2, %3, %4)").arg(l.accent, l.dark ? "true" : "false", shadesJson(l), huesJson(l)));
     });
 
     auto open = [&](bool bg, const QString &to) {

@@ -1,6 +1,6 @@
-// WhatsApp in the theme's colours, changed in its own stylesheets: greys along the theme's shades, greens in the accent.
+// WhatsApp in the theme's colours, changed in its own stylesheets: greys become the theme's shades, greens the accent.
 (() => {
-    let accent = window.__vyntarisAccent, dark = window.__vyntarisDark, ramp = [];
+    let accent = window.__vyntarisAccent, ramp = [], hues = [];
     let done = new WeakSet(), mine = new WeakMap(), total = -1;
     const changed = [];
 
@@ -25,21 +25,22 @@
         return { h: (h + 360) % 360, s, l };
     }
 
-    function css(h, s, l, a) {
-        const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
-        const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x]
-            : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
-        const v = n => Math.round((n + m) * 255);
-        return `rgba(${v(r)}, ${v(g)}, ${v(b)}, ${a})`;
-    }
-
+    const rgba = (c, a) => `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`;
     const green = c => c.h >= 135 && c.h <= 185 && c.s > 0.25;
 
-    // Buttons, icons, ticks: the accent (darker on light pages). Bubbles and tints keep their lightness.
-    function shade(c) {
-        const A = hsl(parse(accent)), h = hsl(c);
-        const mid = h.l > 0.25 && h.l < 0.65;
-        return mid ? css(A.h, A.s, dark ? A.l : Math.min(A.l, 0.42), c.a) : css(A.h, Math.min(A.s, h.s), h.l, c.a);
+    // The theme's colours (red, yellow, pink, teal, blue, mauve) by hue.
+    function colours(list) {
+        hues = (list || []).map(parse).filter(Boolean).map(c => ({ c, h: hsl(c).h }));
+    }
+    const apart = (a, b) => Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+
+    // Greys: the theme's shades. Dark colours (behind coloured text): a dark shade. Greens: the accent.
+    // Other colours: the theme's colour nearest in hue.
+    function theme(c, h) {
+        if (h.s < 0.35 || h.l < 0.3) return neutral(c, h);
+        if (green(h)) return rgba(parse(accent), c.a);
+        if (!hues.length) return null;
+        return rgba(hues.reduce((best, t) => apart(t.h, h.h) < apart(best.h, h.h) ? t : best).c, c.a);
     }
 
     // The theme's shades, darkest to lightest.
@@ -47,15 +48,47 @@
         ramp = (list || []).map(parse).filter(Boolean).map(c => ({ c, l: hsl(c).l })).sort((a, b) => a.l - b.l);
     }
 
-    // A grey's lightness, from black to white, picks the same place along the theme's shades.
+    // A grey becomes the theme's shade at the same place between darkest and lightest.
     function neutral(c, h) {
         if (ramp.length < 2) return null;
         const t = ramp[0].l + (ramp[ramp.length - 1].l - ramp[0].l) * h.l;
-        let i = 0;
-        while (i < ramp.length - 2 && ramp[i + 1].l < t) i++;
-        const a = ramp[i], b = ramp[i + 1], f = b.l === a.l ? 0 : Math.min(1, Math.max(0, (t - a.l) / (b.l - a.l)));
-        const mix = k => Math.round(a.c[k] + (b.c[k] - a.c[k]) * f);
-        return `rgba(${mix("r")}, ${mix("g")}, ${mix("b")}, ${c.a})`;
+        const near = ramp.reduce((best, s) => Math.abs(s.l - t) < Math.abs(best.l - t) ? s : best);
+        return rgba(near.c, c.a);
+    }
+
+    // Own messages in the accent, their text in the theme's darkest colour (lightest, on a dark accent).
+    const sheet = new CSSStyleSheet();
+    let bubbleRules = "";
+    function bubbles() {
+        const A = parse(accent);
+        if (!A || ramp.length < 2) return sheet.replaceSync("");
+        const light = hsl(A).l > 0.6;
+        const ink = rgba(light ? ramp[0].c : ramp[ramp.length - 1].c, 1);
+        const soft = rgba(light ? ramp[Math.min(4, ramp.length - 1)].c : ramp[ramp.length - 2].c, 1);
+        // Whatever draws the outgoing bubble, found in WhatsApp's styles so new class names don't matter.
+        // and the loading screen's shine and pulse, which Chromium draws here as dark boxes over the logo.
+        const found = new Set(), shine = new Set(), pulse = new Set();
+        for (const sh of document.styleSheets) {
+            try {
+                for (const r of sh.cssRules) {
+                    if (!r.style) continue;
+                    if (/bubble-surface-outgoing\)/.test(r.style.getPropertyValue("background-color"))) found.add(r.selectorText);
+                    if (/startup-background-rgb/i.test(r.style.getPropertyValue("background-image") + r.style.getPropertyValue("background"))) shine.add(r.selectorText);
+                    if (/startup/.test(r.style.getPropertyValue("animation-name") + r.style.getPropertyValue("animation"))) pulse.add(r.selectorText);
+                }
+            } catch (e) {}
+        }
+        const inside = [...found].join(", ");
+        const rules = (shine.size ? `${[...shine].join(", ")} { display: none !important; }\n` : "")
+            + (pulse.size ? `${[...pulse].join(", ")} { animation: none !important; will-change: auto !important; }\n` : "") + `* { --WDS-systems-bubble-surface-outgoing: ${rgba(A, 1)} !important;
+                --WDS-systems-bubble-surface-outgoing-RGB: ${A.r}, ${A.g}, ${A.b} !important; --outgoing-background: ${rgba(A, 1)} !important; }`
+            + (inside ? `${inside} { color: ${ink} !important; --WDS-content-default: ${ink} !important; --primary: ${ink} !important;
+                --primary-strong: ${ink} !important; --primary-stronger: ${ink} !important; --message-primary: ${ink} !important;
+                --WDS-content-deemphasized: ${soft} !important; --secondary: ${soft} !important; --secondary-stronger: ${soft} !important;
+                --WDS-systems-bubble-content-deemphasized: ${soft} !important; --bubble-meta: ${soft} !important;
+                --bubble-meta-icon: ${soft} !important; --icon-ack: ${ink} !important; }` : "");
+        if (rules !== bubbleRules) sheet.replaceSync(bubbleRules = rules);
+        if (!document.adoptedStyleSheets.includes(sheet)) document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
     }
 
     function recolour(style) {
@@ -64,10 +97,13 @@
         for (let i = 0; i < style.length; i++) {
             const p = style[i], v = style.getPropertyValue(p);
             if (own.get(p) === v) continue;
-            const c = parse(v);
+            // Colours kept as bare "r, g, b" for rgba(var(...), a) are changed the same way.
+            const bare = v.match(/^\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*$/);
+            const c = bare ? { r: +bare[1], g: +bare[2], b: +bare[3], a: 1 } : parse(v);
             if (!c) continue;
-            const h = hsl(c), out = green(h) ? shade(c) : h.s < 0.35 ? neutral(c, h) : null;
+            let out = theme(c, hsl(c));
             if (!out) continue;
+            if (bare) out = out.replace(/^rgba\((\d+), (\d+), (\d+), [\d.]+\)$/, "$1, $2, $3");
             const priority = style.getPropertyPriority(p);
             changed.push([style, p, v, priority]);
             style.setProperty(p, out, priority);
@@ -94,19 +130,29 @@
         if (!force && n === total) return;
         total = n;
         for (const sh of sheets) { try { walk(sh.cssRules); } catch (e) {} }
+        bubbles();
     }
 
-    window.__vyntarisRecolour = (hex, isDark, list) => {
+    window.__vyntarisRecolour = (hex, isDark, list, others) => {
+        colours(others);
         for (const [style, p, v, priority] of changed.splice(0).reverse()) style.setProperty(p, v, priority);
         accent = hex;
-        dark = isDark;
         shades(list);
         done = new WeakSet();
         mine = new WeakMap();
         scan(true);
     };
 
+    // From the first moment, so the loading screen is in the theme too: new styles are recoloured as they come.
+    let queued = false;
+    const soon = () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => { queued = false; scan(false); });
+    };
+    new MutationObserver(soon).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
     shades(window.__vyntarisShades);
+    colours(window.__vyntarisHues);
     scan(true);
     setInterval(() => scan(false), 1500);
 })();
