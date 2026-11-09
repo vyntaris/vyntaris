@@ -37,7 +37,8 @@ Item {
         from: 1; to: 0
         duration: root.timeout
         paused: running && hover.containsMouse
-        onFinished: root.n?.expire()
+        // Out of the pop-up, still open in its app: the list can still take you to it.
+        onFinished: if (root.n) Notifications.remove(root.n)
     }
 
     transform: Translate { id: shift }

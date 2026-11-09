@@ -40,7 +40,27 @@ Singleton {
         queue = queue.filter(x => x !== n);
     }
 
+    // A notification still open in its app, for one in the list: clicking it does what clicking the pop-up does
+    // (VWA opens the chat). Kept until it leaves the list.
+    function live(entry) {
+        return server.trackedNotifications.values.find(n => n.id === entry.id && n.appName === entry.appName) ?? null;
+    }
+    function activate(entry) {
+        const n = live(entry);
+        const def = (n?.actions ?? []).find(a => a.identifier === "default");
+        if (def) def.invoke();
+        focusApp(entry.desktopEntry, entry.appName);
+    }
+    // Gone from the list: closed in its app too.
+    function forget(entries) {
+        for (const e of entries) {
+            const n = live(e);
+            if (n && !queue.includes(n)) n.dismiss();
+        }
+    }
+
     function clearHistory() {
+        forget(history);
         history = [];
         unread = 0;
     }
@@ -68,10 +88,12 @@ Singleton {
     }
 
     function removeAt(index) {
+        forget(history.filter((e, i) => i === index));
         history = history.filter((e, i) => i !== index);
     }
 
     function removeIndexes(list) {
+        forget(history.filter((e, i) => list.includes(i)));
         history = history.filter((e, i) => !list.includes(i));
     }
 
@@ -80,6 +102,7 @@ Singleton {
     }
 
     NotificationServer {
+        id: server
         keepOnReload: true
         actionsSupported: true
         imageSupported: true
@@ -104,7 +127,9 @@ Singleton {
             };
             const seen = root.history.some(e => e.id === n.id && e.appName === n.appName && e.summary === n.summary);
             if (!seen) {
-                root.history = [entry].concat(root.history).slice(0, root.maxHistory);
+                const all = [entry].concat(root.history);
+                root.forget(all.slice(root.maxHistory));
+                root.history = all.slice(0, root.maxHistory);
                 root.unread++;
             }
 

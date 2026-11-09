@@ -135,7 +135,7 @@ ColumnLayout {
                     // A stack opens; a notification takes you to its app.
                     onClicked: {
                         if (group.many && !group.open) { root.toggle(group.modelData.app); return; }
-                        Notifications.focusApp(entry.desktopEntry, entry.appName);
+                        Notifications.activate(entry);
                         Panels.closeAll?.();
                     }
                     onDismissed: group.many && !group.open ? Notifications.removeIndexes(group.items) : Notifications.removeAt(modelData)
