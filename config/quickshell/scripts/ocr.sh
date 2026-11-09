@@ -24,9 +24,11 @@ langs=eng
 for l in $want; do printf '%s\n' "$have" | grep -qx "$l" && langs="$l+$langs"; done
 
 # Screen text is small for Tesseract, and dark themes are light on dark: bigger, grey, dark on light.
-set -- $(magick "$img" -colorspace Gray -format "%w %h %[fx:mean<0.5]" info:)
-grow=100%; [ "$1" -lt 2000 ] && [ "$2" -lt 2000 ] && grow=200%; [ "$1" -lt 1000 ] && [ "$2" -lt 1000 ] && grow=300%
-neg=; [ "$3" = 1 ] && neg=-negate
+read -r w h dark <<EOF
+$(magick "$img" -colorspace Gray -format "%w %h %[fx:mean<0.5]" info:)
+EOF
+grow=100%; [ "$w" -lt 2000 ] && [ "$h" -lt 2000 ] && grow=200%; [ "$w" -lt 1000 ] && [ "$h" -lt 1000 ] && grow=300%
+neg=; [ "$dark" = 1 ] && neg=-negate
 magick "$img" -colorspace Gray $neg -normalize -filter Lanczos -resize "$grow" "$img"
 
 # Lines it isn't sure of (the half-cut ones at a region's edge) are left out.
