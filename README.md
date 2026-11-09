@@ -223,6 +223,10 @@ takes the keys again whenever the screen's window comes back, after a suspend or
   the app and can close it. The desktop's own passive links (the noise filter) don't count.
 - **Screenshots and recording**: a region is drawn over the dimmed screen; the picture goes to Pictures and
   the clipboard. Recording shows a countdown, then a stop in the island.
+- **Copying text from the screen** (SUPER+SHIFT+T, the Capture panel's Text, `copy text` in the launcher, a
+  screenshot's Text, Quick Look's Copy text on a picture): Tesseract reads it offline (`scripts/ocr.sh`) and it
+  goes to the clipboard. English always, plus the system's language, whose data the installer and a language
+  change in Settings add.
 - **Password prompts** for administrator rights are the shell's own (a polkit agent), in the lock screen's
   style.
 - **Screen sharing** asks in `vyntaris-share-picker` (a GTK app): a screen, a window, or a part of the
@@ -1018,6 +1022,7 @@ resize, ALT is for workspaces. Help lists every key, read from Hyprland.
 | SUPER+ALT+← / → / ↓ | previous / next / an empty workspace |
 | SUPER+\` / SHIFT+\` | the scratchpad / send the window there |
 | SUPER+SHIFT+S, PRINT / SHIFT+PRINT | screenshot of a region / of the screen |
+| SUPER+SHIFT+T | copy the text in a region of the screen |
 | SUPER+SHIFT+R / CTRL+R | record a region / the screen (again: stop) |
 | SUPER+W / SHIFT+W | the wallpaper picker / a random wallpaper |
 | SUPER+K, SUPER+SPACE | keyboard layouts / the next layout |

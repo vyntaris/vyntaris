@@ -315,6 +315,7 @@ Item {
         case "logout": Leaving.run("logout", Config.power.logout); break;
         case "screenshot": Screenshot.capture("screen"); break;
         case "screenshot-region": Screenshot.capture("region"); break;
+        case "copy-text": Screenshot.copyText(""); break;
         case "record": Recorder.toggle("screen"); break;
         case "updates": Panels.updatesOpen = true; break;
         case "health": Panels.openApp("doctor"); break;

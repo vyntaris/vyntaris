@@ -1014,5 +1014,11 @@
  "Reload": "Recharger",
  "Start at login": "Lancer à la connexion",
  "Quit": "Quitter",
- "Couldn't download": "Échec du téléchargement"
+ "Couldn't download": "Échec du téléchargement",
+ "Copy": "Copier",
+ "Copy text": "Copier le texte",
+ "Text copied": "Texte copié",
+ "No text found": "Aucun texte trouvé",
+ "{0} lines": "{0} lignes",
+ "Copy text from the screen": "Copier le texte de l’écran"
 }

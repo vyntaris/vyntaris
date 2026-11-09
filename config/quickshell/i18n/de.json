@@ -1014,5 +1014,11 @@
  "Reload": "Neu laden",
  "Start at login": "Beim Anmelden starten",
  "Quit": "Beenden",
- "Couldn't download": "Download fehlgeschlagen"
+ "Couldn't download": "Download fehlgeschlagen",
+ "Copy": "Kopieren",
+ "Copy text": "Text kopieren",
+ "Text copied": "Text kopiert",
+ "No text found": "Kein Text gefunden",
+ "{0} lines": "{0} Zeilen",
+ "Copy text from the screen": "Text vom Bildschirm kopieren"
 }

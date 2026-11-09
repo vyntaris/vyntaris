@@ -1014,5 +1014,11 @@
  "Reload": "Odśwież",
  "Start at login": "Uruchamiaj po zalogowaniu",
  "Quit": "Zakończ",
- "Couldn't download": "Nie udało się pobrać"
+ "Couldn't download": "Nie udało się pobrać",
+ "Copy": "Kopiuj",
+ "Copy text": "Kopiuj tekst",
+ "Text copied": "Tekst skopiowany",
+ "No text found": "Nie znaleziono tekstu",
+ "{0} lines": "{0} wierszy",
+ "Copy text from the screen": "Kopiuj tekst z ekranu"
 }

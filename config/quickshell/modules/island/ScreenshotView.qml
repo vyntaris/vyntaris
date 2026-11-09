@@ -7,7 +7,7 @@ import qs.services
 
 Item {
     id: root
-    readonly property real fullWidth: 570
+    readonly property real fullWidth: 650
     readonly property real hang: content.implicitHeight + 26
 
     width: fullWidth
@@ -62,6 +62,7 @@ Item {
                     Layout.fillWidth: true
                     spacing: Theme.space6
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "image"; text: Tr.t("Edit"); onClicked: Screenshot.editShot() }
+                    Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "font"; text: Tr.t("Text"); onClicked: Screenshot.copyText(Screenshot.lastPath) }
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "external"; text: Tr.t("Open"); onClicked: Screenshot.open() }
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "folder"; text: Tr.t("Folder"); onClicked: Screenshot.openFolder() }
                     Button { Layout.fillWidth: true; Layout.preferredWidth: 1; icon: "trash"; text: Tr.t("Trash"); danger: true; onClicked: Screenshot.remove() }

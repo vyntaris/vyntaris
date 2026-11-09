@@ -1014,5 +1014,11 @@
  "Reload": "Učitaj ponovo",
  "Start at login": "Pokreni pri prijavi",
  "Quit": "Izađi",
- "Couldn't download": "Preuzimanje nije uspelo"
+ "Couldn't download": "Preuzimanje nije uspelo",
+ "Copy": "Kopiraj",
+ "Copy text": "Kopiraj tekst",
+ "Text copied": "Tekst kopiran",
+ "No text found": "Nema teksta",
+ "{0} lines": "{0} redova",
+ "Copy text from the screen": "Kopiraj tekst sa ekrana"
 }

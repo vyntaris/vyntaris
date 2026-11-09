@@ -302,6 +302,7 @@ hl.bind(mainMod .. " + SHIFT + S",  qs("screenshot region"), { description = "Sc
 hl.bind("Print",                    qs("screenshot region"), { description = "Screenshot of a region" })
 hl.bind("XF86SelectiveScreenshot",  qs("screenshot region"), { description = "Screenshot of a region" })
 hl.bind("SHIFT + Print",            qs("screenshot screen"), { description = "Screenshot of the screen" })
+hl.bind(mainMod .. " + SHIFT + T",  qs("screenshot text"), { description = "Copy text from the screen" })
 hl.bind(mainMod .. " + SHIFT + R",  qs("record toggle"), { description = "Record a region (again: stop)" })
 hl.bind(mainMod .. " + CTRL + R",   qs("record screen"), { description = "Record the screen" })
 

@@ -310,6 +310,8 @@ Scope {
         target: "screenshot"
         function region(): void { Screenshot.capture("region") }
         function screen(): void { Screenshot.capture("screen") }
+        function text(): void { Screenshot.copyText("") }
+        function textFrom(file: string): void { Screenshot.copyText(file) }
     }
 
     IpcHandler {

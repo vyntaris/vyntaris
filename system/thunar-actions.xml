@@ -27,6 +27,17 @@
 	<video-files/>
 </action>
 <action>
+	<icon>edit-copy</icon>
+	<name>Copy Text</name>
+	<submenu></submenu>
+	<unique-id>shell-copy-text</unique-id>
+	<command>qs -c vyntaris ipc call screenshot textFrom %f</command>
+	<description>Copy the text in this picture</description>
+	<range>1-1</range>
+	<patterns>*</patterns>
+	<image-files/>
+</action>
+<action>
 	<icon>preferences-desktop-wallpaper</icon>
 	<name>Set as Wallpaper</name>
 	<submenu></submenu>

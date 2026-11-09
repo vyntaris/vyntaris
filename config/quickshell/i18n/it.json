@@ -1014,5 +1014,11 @@
  "Reload": "Ricarica",
  "Start at login": "Avvia all'accesso",
  "Quit": "Esci",
- "Couldn't download": "Download non riuscito"
+ "Couldn't download": "Download non riuscito",
+ "Copy": "Copia",
+ "Copy text": "Copia testo",
+ "Text copied": "Testo copiato",
+ "No text found": "Nessun testo trovato",
+ "{0} lines": "{0} righe",
+ "Copy text from the screen": "Copia il testo dallo schermo"
 }

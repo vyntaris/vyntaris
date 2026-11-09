@@ -7,7 +7,7 @@ import qs.services
 
 Item {
     id: root
-    readonly property real fullWidth: 500
+    readonly property real fullWidth: 610
     readonly property real hang: content.implicitHeight + 28
     readonly property bool active: Panels.captureOpen
 
@@ -19,6 +19,7 @@ Item {
         { id: "shot-screen", icon: "windows", label: Tr.t("Screen"), group: Tr.t("Picture") },
         { id: "rec-region", icon: "record", label: Tr.t("Region"), group: Tr.t("Video") },
         { id: "rec-screen", icon: "record", label: Tr.t("Screen"), group: Tr.t("Video") },
+        { id: "text", icon: "font", label: Tr.t("Copy"), group: Tr.t("Text") },
     ]
     property int current: 0
 
@@ -28,6 +29,7 @@ Item {
         Panels.captureOpen = false;
         if (a.id === "shot-region") Screenshot.capture("region");
         else if (a.id === "shot-screen") Screenshot.capture("screen");
+        else if (a.id === "text") Screenshot.copyText("");
         else if (a.id === "rec-region") Recorder.start("region");
         else Recorder.start("screen");
     }
@@ -39,12 +41,12 @@ Item {
         id: keys
         anchors.fill: parent
         Keys.onEscapePressed: Panels.captureOpen = false
-        Keys.onLeftPressed: root.current = (root.current + 3) % 4
-        Keys.onRightPressed: root.current = (root.current + 1) % 4
-        Keys.onTabPressed: root.current = (root.current + 1) % 4
+        Keys.onLeftPressed: root.current = (root.current + 4) % 5
+        Keys.onRightPressed: root.current = (root.current + 1) % 5
+        Keys.onTabPressed: root.current = (root.current + 1) % 5
         Keys.onReturnPressed: Recorder.recording ? Recorder.stop() : root.take(root.current)
         Keys.onEnterPressed: Recorder.recording ? Recorder.stop() : root.take(root.current)
-        Keys.onPressed: event => { const n = parseInt(event.text); if (n >= 1 && n <= 4) { root.take(n - 1); event.accepted = true; } }
+        Keys.onPressed: event => { const n = parseInt(event.text); if (n >= 1 && n <= 5) { root.take(n - 1); event.accepted = true; } }
     }
 
     PanelHeader {
@@ -85,8 +87,8 @@ Item {
                     id: opt
                     required property var modelData
                     required property int index
-                    Layout.preferredWidth: (content.width - options.Layout.leftMargin - options.Layout.rightMargin - 3 * 8 - 10) / 4
-                    Layout.leftMargin: index === 2 ? 10 : 0
+                    Layout.preferredWidth: (content.width - options.Layout.leftMargin - options.Layout.rightMargin - 4 * 8 - 20) / 5
+                    Layout.leftMargin: index === 2 || index === 4 ? 10 : 0
                     implicitHeight: 88
                     marked: root.current === index
                     solid: true

@@ -179,7 +179,31 @@ pub fn set_locale(sys: &mut dyn System, language: &str, formats: Option<&str>) -
     }
     let mut cmd = vec!["localectl", "set-locale"];
     cmd.extend(values.iter().map(String::as_str));
-    sys.run(&cmd, None)
+    sys.run(&cmd, None)?;
+    // Reading text in pictures in the language too; English is always there. Without internet, later.
+    let data = ocr_data(language);
+    if !data.is_empty() {
+        let mut cmd = vec!["pacman", "-S", "--needed", "--noconfirm"];
+        cmd.extend(data);
+        let _ = sys.run(&cmd, None);
+    }
+    Ok(())
+}
+
+pub fn ocr_data(language: &str) -> Vec<&'static str> {
+    let (lang, latin) = (language.split(['_', '.', '@']).next().unwrap_or(""), language.contains("@latin"));
+    match lang {
+        "sr" if latin => vec!["tesseract-data-srp_latn"],
+        "sr" => vec!["tesseract-data-srp", "tesseract-data-srp_latn"],
+        "hr" => vec!["tesseract-data-hrv"],
+        "de" => vec!["tesseract-data-deu"],
+        "fr" => vec!["tesseract-data-fra"],
+        "it" => vec!["tesseract-data-ita"],
+        "pt" => vec!["tesseract-data-por"],
+        "es" => vec!["tesseract-data-spa"],
+        "pl" => vec!["tesseract-data-pol"],
+        _ => vec![],
+    }
 }
 
 pub fn nvidia_start(sys: &mut dyn System, at_boot: bool) -> Result<(), Refused> {
@@ -373,11 +397,12 @@ mod tests {
         f.ran.clear();
         set_locale(&mut f, "sr_RS@latin", None).unwrap();
         let names: Vec<&str> = f.ran.iter().map(|(c, _)| c[0].as_str()).collect();
-        assert_eq!(names, ["locale-gen", "localectl"]);
+        assert_eq!(names, ["locale-gen", "localectl", "pacman"]);
         assert_eq!(f.ran[1].0, ["localectl", "set-locale", "LANG=sr_RS@latin"]);
+        assert_eq!(f.ran[2].0.last().unwrap(), "tesseract-data-srp_latn");
         f.ran.clear();
         set_locale(&mut f, "sr_RS@latin", Some("de_DE")).unwrap();
-        let last = &f.ran.last().unwrap().0;
+        let last = &f.ran.iter().rfind(|(c, _)| c[0] == "localectl").unwrap().0;
         assert_eq!(&last[..4], ["localectl", "set-locale", "LANG=sr_RS@latin", "LC_TIME=de_DE.UTF-8"]);
         assert_eq!(last.len(), 8);
         assert!(!f.ran.iter().any(|(c, _)| c[0] == "locale-gen"), "nothing to make: no locale-gen");
