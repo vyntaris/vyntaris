@@ -150,6 +150,7 @@ package() {
 
     install -Dm644 "$r/system/vyntaris.desktop" "$d/usr/share/wayland-sessions/vyntaris.desktop"
     install -Dm644 -t "$d/usr/share/applications" "$r"/config/applications/*.desktop
+    gzip -c "$r/system/store-apps.xml" | install -Dm644 /dev/stdin "$d/usr/share/swcatalog/xml/vyntaris.xml.gz"
     install -d "$d/usr/share/icons"
     cp -r "$r/config/icons/Bibata-Modern-Ice" "$d/usr/share/icons/"
     install -Dm644 "$r/system/vyntaris-logo.svg" "$d/usr/share/icons/hicolor/scalable/apps/vyntaris.svg"

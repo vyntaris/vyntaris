@@ -9,4 +9,7 @@ aur="$(mktemp -d)"; trap 'rm -rf "$aur"' EXIT
 git clone -q --depth 1 https://aur.archlinux.org/yay-bin.git "$aur/yay-bin"
 (cd "$aur/yay-bin" && makepkg -f --nodeps --noconfirm >/dev/null)
 cp "$aur"/yay-bin/yay-bin-[0-9]*.pkg.tar.zst .
-ls -1 "$PWD"/vyntaris-*.pkg.tar.zst "$PWD"/yay-bin-*.pkg.tar.zst
+# VWA is its own package, installed from the Store.
+(cd vwa && rm -rf src pkg build ./*.pkg.tar.* && makepkg -f --nodeps --noconfirm >/dev/null)
+cp vwa/vwa-[0-9]*.pkg.tar.zst .
+ls -1 "$PWD"/vyntaris-*.pkg.tar.zst "$PWD"/yay-bin-*.pkg.tar.zst "$PWD"/vwa-*.pkg.tar.zst

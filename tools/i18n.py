@@ -11,6 +11,7 @@ CALL = re.compile(r'Tr\.[tf]\(\s*"((?:[^"\\]|\\.)*)"')
 SHOWN = [SHELL / "modules/settings/SettingsIndex.js", SHELL / "components/BarStyles.js"]
 STEPS = re.compile(r'readonly property var pages: \[([^\]]*)\]')
 FIELD = re.compile(r'\b(?:label|title):\s*"((?:[^"\\]|\\.)*)"')
+CPP = re.compile(r'\bT\(\s*"((?:[^"\\]|\\.)*)"')
 RUST = re.compile(r'\b(?:tr\(|trf!\()\s*"((?:[^"\\]|\\.)*)"')
 
 def rust_text(s):
@@ -39,6 +40,8 @@ def texts():
         sections = re.search(r"const SECTIONS[^=]*= &\[(.*?)\];", text, re.S)
         if sections:
             out.update(re.findall(r'\("[^"]*", "([^"]+)"', sections.group(1)))
+    for f in sorted((ROOT / "qt").rglob("*.cpp")):
+        out.update(rust_text(m.group(1)) for m in CPP.finditer(f.read_text()))
     search = (SHELL / "modules/island/Search.js").read_text()
     out.update(json.loads(f'"{m.group(1)}"') for m in COMMANDS.finditer(search))
     for f in [*sorted((SHELL / "scripts").glob("*.sh")), *sorted((ROOT / "system/bin").iterdir()), *sorted((ROOT / "system/gaming").glob("*.sh"))]:

@@ -1010,5 +1010,9 @@
  "{0}: {1} free": "{0}: {1} slobodno",
  "{0}?": "{0}?",
  "“{0}”{1}: some updates need a step of your own, and the news says which.": "„{0}”{1}: nekim ažuriranjima treba tvoj korak, a vest kaže kojima.",
- "↓  Latest": "↓  Najnovije"
+ "↓  Latest": "↓  Najnovije",
+ "Reload": "Učitaj ponovo",
+ "Start at login": "Pokreni pri prijavi",
+ "Quit": "Izađi",
+ "Couldn't download": "Preuzimanje nije uspelo"
 }

@@ -1010,5 +1010,9 @@
  "{0}: {1} free": "{0}: {1} frei",
  "{0}?": "{0}?",
  "“{0}”{1}: some updates need a step of your own, and the news says which.": "„{0}“{1}: manche Updates brauchen einen eigenen Schritt, und die Meldung sagt, welche.",
- "↓  Latest": "↓  Neueste"
+ "↓  Latest": "↓  Neueste",
+ "Reload": "Neu laden",
+ "Start at login": "Beim Anmelden starten",
+ "Quit": "Beenden",
+ "Couldn't download": "Download fehlgeschlagen"
 }

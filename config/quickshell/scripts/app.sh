@@ -5,12 +5,12 @@ name="${1:-}"
 call="${2:-open}"
 arg="${3:-}"
 case "$name" in
-    settings|store|help|doctor|backup) ;;
-    *) echo "usage: ${0##*/} settings|store|help|doctor|backup [CALL [ARG]]" >&2; exit 2 ;;
+    settings|store|help|doctor|backup|vwa) ;;
+    *) echo "usage: ${0##*/} settings|store|help|doctor|backup|vwa [CALL [ARG]]" >&2; exit 2 ;;
 esac
 
 case "$name" in
-    doctor|store|backup)
+    doctor|store|backup|vwa)
         program="vyntaris-$name"
         [ "$name" = doctor ] && program=vyntaris-health
         grep -q '/app\.slice/run-[^/]*\.scope$' /proc/self/cgroup && exec "$program" "$call" ${arg:+"$arg"}

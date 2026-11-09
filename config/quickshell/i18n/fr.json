@@ -1010,5 +1010,9 @@
  "{0}: {1} free": "{0} : {1} libres",
  "{0}?": "{0} ?",
  "“{0}”{1}: some updates need a step of your own, and the news says which.": "« {0} »{1} : certaines mises à jour demandent une action de votre part, et l’actualité dit lesquelles.",
- "↓  Latest": "↓  Dernières"
+ "↓  Latest": "↓  Dernières",
+ "Reload": "Recharger",
+ "Start at login": "Lancer à la connexion",
+ "Quit": "Quitter",
+ "Couldn't download": "Échec du téléchargement"
 }

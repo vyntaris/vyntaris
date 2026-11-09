@@ -10,3 +10,6 @@ pkg/pkg/
 pkg/powerlevel10k/
 pkg/*.pkg.tar.*
 rust/target/
+pkg/vwa/src/
+pkg/vwa/pkg/
+pkg/vwa/*.pkg.tar.*
