@@ -41,10 +41,11 @@ Singleton {
     property bool backupOpen: false
     property bool healthOpen: false
     property bool storeOpen: false
+    property bool passwordsOpen: false
 
     readonly property var islandPanels: [
         "launcher", "system", "battery", "wallpaper", "control", "media", "updates", "packages", "cloud", "night", "game", "sound", "overview",
-        "awake", "apps", "wiki", "wifi", "vpn", "keyboard", "bluetooth", "phone", "capture", "power", "privacy", "gpu", "timer",
+        "awake", "apps", "wiki", "wifi", "vpn", "keyboard", "bluetooth", "phone", "capture", "power", "privacy", "gpu", "timer", "passwords",
     ]
 
     function only(name) {
@@ -80,6 +81,7 @@ Singleton {
     onTimerOpenChanged: if (timerOpen) only("timer")
     onPrivacyOpenChanged: if (privacyOpen) only("privacy")
     onGpuOpenChanged: if (gpuOpen) only("gpu")
+    onPasswordsOpenChanged: if (passwordsOpen) only("passwords")
 
     property string app: ""
     readonly property var appFlags: ({ settings: "settings", store: "store", help: "help", doctor: "health", backup: "backup" })

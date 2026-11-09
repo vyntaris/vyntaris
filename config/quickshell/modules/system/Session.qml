@@ -11,6 +11,7 @@ Scope {
     readonly property var displays: Displays.waiting
     readonly property var rollback: UpdateGuard.rollback
     readonly property var drivers: Drivers.missing
+    readonly property bool passwords: Passwords.installed
 
     BatteryWatch {}
 

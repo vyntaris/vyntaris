@@ -150,6 +150,9 @@ Singleton {
             sub: Keyboard.layouts.map(l => l.toUpperCase()).join(" · "),
             dimmed: false,
         };
+        case "password-copied": return { icon: "copy", level: -1, label: Tr.t("Password copied"), value: -1,
+                                         text: Tr.t("Cleared in 45 seconds"), sub: "", dimmed: false };
+        case "username-copied": return { icon: "users", level: -1, label: Tr.t("Username copied"), value: -1, text: "", sub: "", dimmed: false };
         case "text": {
             const lines = Screenshot.copiedText.split("\n").filter(l => l.trim());
             return { icon: Screenshot.noText ? "font" : "copy", level: -1, label: Screenshot.noText ? Tr.t("Copy text") : Tr.t("Text copied"),

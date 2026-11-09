@@ -10,6 +10,10 @@ PanelSurface {
     property bool canReveal: false
     property bool invalid: false
     property bool revealed: false
+    // One more button inside, before the eye (a new password, say).
+    property string extraIcon: ""
+    property string extraLabel: ""
+    signal extraClicked()
     property string label: {
         for (let p = parent; p; p = p.parent)
             if (p.isOption === true) return p.title;
@@ -29,7 +33,7 @@ PanelSurface {
 
     TextInput {
         id: input
-        anchors { fill: parent; leftMargin: Theme.space16; rightMargin: root.canReveal ? 44 : 16 }
+        anchors { fill: parent; leftMargin: Theme.space16; rightMargin: 16 + (root.canReveal ? 28 : 0) + (root.extraIcon ? 32 : 0) }
         activeFocusOnTab: true
         Accessible.role: Accessible.EditableText
         Accessible.name: root.label
@@ -53,6 +57,14 @@ PanelSurface {
         }
     }
 
+    IconButton {
+        visible: root.extraIcon !== ""
+        anchors { right: parent.right; rightMargin: Theme.space6 + (root.canReveal ? 32 : 0); verticalCenter: parent.verticalCenter }
+        size: 30
+        icon: root.extraIcon
+        label: root.extraLabel
+        onClicked: { root.extraClicked(); input.forceActiveFocus(); }
+    }
     IconButton {
         visible: root.canReveal
         anchors { right: parent.right; rightMargin: Theme.space6; verticalCenter: parent.verticalCenter }

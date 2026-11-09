@@ -9,6 +9,9 @@ Rectangle {
     property bool on: false
     property bool active: true
     property string label
+    // On a coloured surface (a chosen row): its ink, and no fade on hover.
+    property color ink: "transparent"
+    readonly property bool inked: ink.a > 0
     signal clicked()
 
     implicitWidth: size
@@ -16,12 +19,12 @@ Rectangle {
     radius: size / 2
     opacity: active ? 1 : Theme.disabledOpacity
     color: primary ? (area.containsMouse && active ? Qt.lighter(Theme.accent, 1.08) : Theme.accent)
-                   : (area.containsMouse && active ? Theme.hoverOn(parent) : "transparent")
+                   : (area.containsMouse && active ? (inked ? Qt.alpha(ink, 0.16) : Theme.hoverOn(parent)) : "transparent")
     scale: area.pressed && active ? 0.9 : 1
-    Behavior on color { ColorAnim {} }
+    Behavior on color { enabled: !root.inked; ColorAnim {} }
     Behavior on scale { Anim { duration: Theme.durationFast; easing.bezierCurve: Theme.curveSpring } }
 
-    Icon { anchors.centerIn: parent; name: root.icon; size: Math.round(root.size * 0.45); color: root.primary ? Theme.textOnAccent : root.on ? Theme.accentInk : Theme.text }
+    Icon { anchors.centerIn: parent; name: root.icon; size: Math.round(root.size * 0.45); color: root.primary ? Theme.textOnAccent : root.inked ? root.ink : root.on ? Theme.accentInk : Theme.text }
     PressArea {
         id: area
         anchors.fill: parent
