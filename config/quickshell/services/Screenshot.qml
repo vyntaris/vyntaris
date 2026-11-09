@@ -62,6 +62,28 @@ Singleton {
         shown = false;
     }
 
+    // Text in a region of the screen, or in a picture, to the clipboard.
+    function copyText(file) {
+        if (reader.running) return;
+        shown = false;
+        reader.command = file ? [Quickshell.shellPath("scripts/ocr.sh"), file]
+            : [Quickshell.shellPath("scripts/ocr.sh"), "region", String(Theme.accent) + "ff"];
+        if (file) reader.running = true; else textDelay.start();
+    }
+    Timer { id: textDelay; interval: 350; onTriggered: reader.running = true }
+    property string copiedText: ""
+    property bool noText: false
+    Process {
+        id: reader
+        stdout: StdioCollector { id: readOut }
+        onExited: code => {
+            if (code !== 0 && code !== 3 && code !== 4) return;
+            root.noText = code !== 0;
+            root.copiedText = code === 0 ? readOut.text.trim() : "";
+            Osd.show("text");
+        }
+    }
+
     function remove() {
         if (lastPath) Quickshell.execDetached(["gio", "trash", lastPath]);
         lastPath = "";

@@ -13,6 +13,8 @@ depends=(
     inter-font ttf-jetbrains-mono ttf-nerd-fonts-symbols-mono noto-fonts noto-fonts-emoji
     ttf-carlito ttf-caladea ttf-liberation
     awww hypridle hyprsunset hyprpicker wl-clipboard cliphist grim slurp swappy wf-recorder cava
+    tesseract tesseract-data-eng  # text from pictures and the screen
+    pass python-gobject at-spi2-core  # passwords, and noticing password fields in any app
     libnotify gnome-keyring xdg-user-dirs xdg-utils power-profiles-daemon upower pacman-contrib
     timeshift rsync rclone fuse3 zram-generator nftables fastfetch imagemagick librsvg eza greetd plymouth
     archlinux-appstream-data fwupd
@@ -88,6 +90,10 @@ package() {
     install -Dm644 -t "$d/usr/share/vyntaris" "$r/config/vscode-settings.json" "$r/system/thunar-actions.xml" \
         "$r/system/timeshift.json" "$r/system/nftables.conf" "$r/system/autologin.conf" "$r/packages.txt"
     install -Dm644 "$r/system/firefox-policies.json" "$d/etc/firefox/policies/policies.json"
+    # The passwords extension (installed by the policy) and its way to the island.
+    install -d "$d/usr/share/vyntaris/firefox"
+    (cd "$r/firefox/passwords" && bsdtar --format zip -cf "$d/usr/share/vyntaris/firefox/vyntaris-passwords.xpi" -- *)
+    install -Dm644 "$r/firefox/vyntaris_passwords.json" "$d/usr/lib/mozilla/native-messaging-hosts/vyntaris_passwords.json"
     install -Dm644 "$r/system/makepkg-vyntaris.conf" "$d/etc/makepkg.conf.d/vyntaris.conf"
     install -Dm755 "$srcdir/target/release/vyntaris-portal" "$d/usr/lib/vyntaris/portal"
     install -Dm644 -t "$d/usr/share/xdg-desktop-portal/portals" "$r/system/portal/vyntaris.portal"

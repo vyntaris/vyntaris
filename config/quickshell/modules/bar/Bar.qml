@@ -27,7 +27,7 @@ PanelWindow {
     readonly property bool resting: overFullscreen && mode === "clock"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: popupOpen ? WlrKeyboardFocus.Exclusive
-        : primary && Screenshot.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        : primary && (Screenshot.shown || Passwords.offer) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     anchors { top: true; left: true; right: true }
     implicitHeight: resting ? 1 : modelData.height
     exclusiveZone: Theme.barHeight + Theme.notchDepth
@@ -123,6 +123,7 @@ PanelWindow {
     readonly property string mode: !primary ? "clock"
         : Recorder.counting ? "countdown"
         : Screenshot.shown ? "screenshot"
+        : Passwords.offer ? "passoffer"
         : Panels.launcherOpen ? "launcher"
         : Panels.overviewOpen ? "overview"
         : Panels.powerOpen ? "power"
@@ -136,6 +137,7 @@ PanelWindow {
         : Panels.wifiOpen ? "wifi"
         : Panels.vpnOpen ? "vpn"
         : Panels.wikiOpen ? "wiki"
+        : Panels.passwordsOpen ? "passwords"
         : Panels.keyboardOpen ? "keyboard"
         : Panels.bluetoothOpen ? "bluetooth"
         : Panels.phoneOpen ? "phone"
@@ -157,7 +159,7 @@ PanelWindow {
     readonly property var views: ({
         clock: clockView.item, launcher: launcherView.item, overview: overviewView.item, power: powerView.item,
         wallpaper: wallpaperView.item, control: controlView.item, media: mediaView.item,
-        screenshot: screenshotView.item, updates: updatesView.item, packages: packagesView.item, cloud: cloudView.item, night: nightView.item, gamepanel: gameModeView.item, sound: soundView.item, awake: awakeView.item, apps: appsView.item, wifi: wifiPanel.item, vpn: vpnPanel.item, wiki: wikiView.item, keyboard: keyboardView.item, bluetooth: bluetoothView.item, phone: phoneView.item, capture: captureView.item, system: systemView.item, battery: batteryView.item, osd: osdView.item, notification: notificationView.item, privacy: privacyView.item, gpu: gpuView.item, timer: timerView.item,
+        screenshot: screenshotView.item, updates: updatesView.item, packages: packagesView.item, cloud: cloudView.item, night: nightView.item, gamepanel: gameModeView.item, sound: soundView.item, awake: awakeView.item, apps: appsView.item, wifi: wifiPanel.item, vpn: vpnPanel.item, wiki: wikiView.item, passwords: passwordsView.item, passoffer: passOfferView.item, keyboard: keyboardView.item, bluetooth: bluetoothView.item, phone: phoneView.item, capture: captureView.item, system: systemView.item, battery: batteryView.item, osd: osdView.item, notification: notificationView.item, privacy: privacyView.item, gpu: gpuView.item, timer: timerView.item,
         activity: activityView.item, countdown: countdownView.item, game: gameView.item,
     })
     readonly property Item activeView: views[mode] ?? clockView.item
@@ -335,6 +337,8 @@ PanelWindow {
             View { id: wifiPanel; name: "wifi"; WifiPanel {} }
             View { id: vpnPanel; name: "vpn"; VpnPanel {} }
             View { id: wikiView; name: "wiki"; WikiView {} }
+            View { id: passwordsView; name: "passwords"; PasswordsView {} }
+            View { id: passOfferView; name: "passoffer"; PasswordOfferView {} }
             View { id: gameView; name: "game"; GameView {} }
         }
 

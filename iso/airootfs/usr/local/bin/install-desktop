@@ -263,6 +263,15 @@ if [ -z "$from_usb" ]; then
     }
 fi
 mapfile -t apps < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$APPS" | grep -v '^$')
+# Reading text in pictures in the system's language (online; from a USB stick only English).
+if [ -z "$from_usb" ]; then
+    case "$INSTALL_LOCALE" in
+        sr_*@latin*) apps+=(tesseract-data-srp_latn) ;; sr_*) apps+=(tesseract-data-srp tesseract-data-srp_latn) ;;
+        hr_*) apps+=(tesseract-data-hrv) ;; de_*) apps+=(tesseract-data-deu) ;; fr_*) apps+=(tesseract-data-fra) ;;
+        it_*) apps+=(tesseract-data-ita) ;; pt_*) apps+=(tesseract-data-por) ;; es_*) apps+=(tesseract-data-spa) ;;
+        pl_*) apps+=(tesseract-data-pol) ;;
+    esac
+fi
 firmware=("${FIRMWARE[@]}")
 for dev in /sys/bus/pci/devices/*; do
     case "$(cat "$dev/class" 2>/dev/null)" in 0x03*) ;; *) continue ;; esac

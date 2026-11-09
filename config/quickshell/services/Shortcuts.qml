@@ -31,7 +31,7 @@ Singleton {
         { id: "hardware", label: Tr.t("Hardware keys"), icon: "sliders" },
     ]
     function group(key, what) {
-        if (/^(Screenshot|Record)/.test(what)) return "screenshots";
+        if (/^(Screenshot|Record|Copy text)/.test(what)) return "screenshots";
         if (/^(XF86|switch:)/.test(key) || key === "Help") return "hardware";
         if (/^(Terminal|Files|Browser|Code editor|Task manager|Pick a color)/.test(what)) return "apps";
         if (/workspace|scratchpad/i.test(what)) return "workspaces";

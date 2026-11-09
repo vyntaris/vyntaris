@@ -192,6 +192,7 @@ Scope {
                             + (info.mime ? " · " + info.mime : "")
                     }
                 }
+                Button { visible: root.kind === "image"; icon: "font"; text: Tr.t("Copy text"); onClicked: { Screenshot.copyText(root.path); root.close(); } }
                 Button { icon: "external"; text: Tr.t("Open"); primary: true; onClicked: root.open() }
                 IconButton { icon: "close"; label: Tr.t("Close"); onClicked: root.close() }
             }

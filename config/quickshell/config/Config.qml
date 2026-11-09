@@ -31,6 +31,7 @@ Singleton {
     property alias edges: adapter.edges
     property alias gameMode: adapter.gameMode
     property alias phone: adapter.phone
+    property alias passwords: adapter.passwords
     property alias cloudBackup: adapter.cloudBackup
     property alias audio: adapter.audio
     property alias weather: adapter.weather
@@ -256,6 +257,11 @@ Singleton {
 
             property JsonObject launcher: JsonObject {
                 property int maxVisible: 8
+            }
+
+            property JsonObject passwords: JsonObject {
+                property bool autoOpen: true
+                property var never: []
             }
 
             property JsonObject notifications: JsonObject {

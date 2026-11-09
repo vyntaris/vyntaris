@@ -223,6 +223,18 @@ takes the keys again whenever the screen's window comes back, after a suspend or
   the app and can close it. The desktop's own passive links (the noise filter) don't count.
 - **Screenshots and recording**: a region is drawn over the dimmed screen; the picture goes to Pictures and
   the clipboard. Recording shows a countdown, then a stop in the island.
+- **Copying text from the screen** (SUPER+SHIFT+T, the Capture panel's Text, `copy text` in the launcher, a
+  screenshot's Text, Quick Look's Copy text on a picture): Tesseract reads it offline (`scripts/ocr.sh`) and it
+  goes to the clipboard. English always, plus the system's language, whose data the installer and a language
+  change in Settings add.
+- **Passwords** (SUPER+SHIFT+P, `passwords` in the launcher): kept by `pass`, GPG-encrypted on this computer
+  under a master password, which is asked again after 30 minutes unused and whenever the screen locks.
+  The island opens by itself on a password field in any app (`scripts/pass-watch.py` listens on the
+  accessibility bus), searched for that site, and Enter fills it. In Firefox the Vyntaris Passwords
+  extension (`firefox/passwords`, installed by the policy) does more: a username field opens it too, the
+  fields are filled directly rather than typed, and after a login the island offers to save the password,
+  or to update a saved one that changed. The extension talks to the island through `scripts/pass-host.py`.
+  Copied passwords stay out of the clipboard history and are cleared after 45 seconds.
 - **Password prompts** for administrator rights are the shell's own (a polkit agent), in the lock screen's
   style.
 - **Screen sharing** asks in `vyntaris-share-picker` (a GTK app): a screen, a window, or a part of the
@@ -506,7 +518,7 @@ WebKitGTK has no WebRTC on Arch), so it isn't installed from the start (`qt/vwa`
 
 ## Everyday apps
 
-What every install comes with (`packages.txt`, nothing to pick): Firefox (with uBlock Origin, Bitwarden,
+What every install comes with (`packages.txt`, nothing to pick): Firefox (with uBlock Origin, Vyntaris Passwords,
 SponsorBlock and Privacy Badger from the start, through its policies), Thunar with archive support and
 thumbnails, kitty, VS Code, Loupe (pictures), mpv (video and music), GNOME Text Editor, Calculator,
 Disks, System Monitor (CTRL+SHIFT+ESC) and Simple Scan, CUPS, network shares (gvfs-smb), phones over
@@ -1018,6 +1030,8 @@ resize, ALT is for workspaces. Help lists every key, read from Hyprland.
 | SUPER+ALT+← / → / ↓ | previous / next / an empty workspace |
 | SUPER+\` / SHIFT+\` | the scratchpad / send the window there |
 | SUPER+SHIFT+S, PRINT / SHIFT+PRINT | screenshot of a region / of the screen |
+| SUPER+SHIFT+T | copy the text in a region of the screen |
+| SUPER+SHIFT+P | passwords |
 | SUPER+SHIFT+R / CTRL+R | record a region / the screen (again: stop) |
 | SUPER+W / SHIFT+W | the wallpaper picker / a random wallpaper |
 | SUPER+K, SUPER+SPACE | keyboard layouts / the next layout |

@@ -23,7 +23,7 @@ Singleton {
 
     Timer {
         id: hideTimer
-        interval: root.kind === "media" ? 2600 : 1600
+        interval: root.kind === "media" || root.kind === "text" ? 2600 : 1600
         onTriggered: root.shown = false
     }
 
@@ -150,6 +150,15 @@ Singleton {
             sub: Keyboard.layouts.map(l => l.toUpperCase()).join(" · "),
             dimmed: false,
         };
+        case "password-copied": return { icon: "copy", level: -1, label: Tr.t("Password copied"), value: -1,
+                                         text: Tr.t("Cleared in 45 seconds"), sub: "", dimmed: false };
+        case "username-copied": return { icon: "users", level: -1, label: Tr.t("Username copied"), value: -1, text: "", sub: "", dimmed: false };
+        case "text": {
+            const lines = Screenshot.copiedText.split("\n").filter(l => l.trim());
+            return { icon: Screenshot.noText ? "font" : "copy", level: -1, label: Screenshot.noText ? Tr.t("Copy text") : Tr.t("Text copied"),
+                     value: -1, text: Screenshot.noText ? Tr.t("No text found") : (lines[0] ?? ""),
+                     sub: lines.length > 1 ? Tr.f("{0} lines", lines.length) : "", dimmed: Screenshot.noText };
+        }
         case "media": return {
             icon: Media.active?.isPlaying ? "play" : "pause",
             level: -1,
