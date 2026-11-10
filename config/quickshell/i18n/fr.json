@@ -275,7 +275,6 @@
  "Exchange rate of {0}": "Taux de change de {0}",
  "Extras": "Extras",
  "FPS": "FPS",
- "FPS and temperatures in the island": "FPS et températures dans l’îlot",
  "Fastest": "Le plus rapide",
  "Few people use it.": "Peu de gens l'utilisent.",
  "File manager": "Gestionnaire de fichiers",
@@ -555,7 +554,6 @@
  "Paused": "En pause",
  "Peach": "Pêche",
  "Performance": "Performance",
- "Performance mode": "Mode performance",
  "Performance when plugged in": "Performances sur secteur",
  "Phone": "Téléphone",
  "Phone connected": "Téléphone connecté",
@@ -731,7 +729,6 @@
  "Signed in to Google Drive": "Connecté à Google Drive",
  "Signing in didn't finish.": "La connexion n'a pas abouti.",
  "Signing in…": "Connexion…",
- "Silence notifications": "Faire taire les notifications",
  "Silent": "Silencieux",
  "Since the last start, from {0}. Most are harmless; one that repeats points at what's wrong.": "Depuis le dernier démarrage, venant de {0}. La plupart sont sans gravité ; une qui revient montre ce qui cloche.",
  "Skip": "Passer",
@@ -759,7 +756,6 @@
  "Springs past and settles": "Dépasse puis se pose",
  "Start": "Démarrer",
  "Start a timer": "Lancer un minuteur",
- "Start by itself": "Démarrer tout seul",
  "Start here": "Commencer ici",
  "Start it again": "Le relancer",
  "Start its driver with the system": "Démarrer son pilote avec le système",
@@ -767,7 +763,6 @@
  "Start · type to search": "Démarrer · tapez pour chercher",
  "Start ↵": "Démarrer ↵",
  "Starting…": "Démarrage…",
- "Starts with games": "Démarre avec les jeux",
  "Startup apps": "Apps au démarrage",
  "Stay on screen": "Rester à l’écran",
  "Stop": "Arrêter",
@@ -1064,5 +1059,7 @@
  "Turn on anyway": "Activer quand même",
  "Turning off…": "Désactivation…",
  "Turning on…": "Activation…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Votre internet passe par le Wi-Fi, et la carte ne peut pas le partager en même temps : l’activer le déconnecte. Branchez un câble, ou votre téléphone en USB, pour partager celui-ci."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Votre internet passe par le Wi-Fi, et la carte ne peut pas le partager en même temps : l’activer le déconnecte. Branchez un câble, ou votre téléphone en USB, pour partager celui-ci.",
+ "With games": "Avec les jeux",
+ "Quiet": "Silence"
 }

@@ -275,7 +275,6 @@
  "Exchange rate of {0}": "Tasso di cambio di {0}",
  "Extras": "Extra",
  "FPS": "FPS",
- "FPS and temperatures in the island": "FPS e temperature nell’isola",
  "Fastest": "Il più veloce",
  "Few people use it.": "Poche persone la usano.",
  "File manager": "Gestore file",
@@ -555,7 +554,6 @@
  "Paused": "In pausa",
  "Peach": "Pesca",
  "Performance": "Prestazioni",
- "Performance mode": "Modalità prestazioni",
  "Performance when plugged in": "Prestazioni con l'alimentatore",
  "Phone": "Telefono",
  "Phone connected": "Telefono collegato",
@@ -731,7 +729,6 @@
  "Signed in to Google Drive": "Accesso a Google Drive effettuato",
  "Signing in didn't finish.": "L'accesso non è terminato.",
  "Signing in…": "Accesso in corso…",
- "Silence notifications": "Silenzia le notifiche",
  "Silent": "Silenzioso",
  "Since the last start, from {0}. Most are harmless; one that repeats points at what's wrong.": "Dall’ultimo avvio, da {0}. La maggior parte è innocua; uno che si ripete indica cosa non va.",
  "Skip": "Salta",
@@ -759,7 +756,6 @@
  "Springs past and settles": "Supera e si assesta",
  "Start": "Avvia",
  "Start a timer": "Avvia un timer",
- "Start by itself": "Avvia da solo",
  "Start here": "Inizia qui",
  "Start it again": "Avvialo di nuovo",
  "Start its driver with the system": "Avvia il suo driver con il sistema",
@@ -767,7 +763,6 @@
  "Start · type to search": "Start · digita per cercare",
  "Start ↵": "Avvia ↵",
  "Starting…": "Avvio…",
- "Starts with games": "Si avvia con i giochi",
  "Startup apps": "App all’avvio",
  "Stay on screen": "Resta sullo schermo",
  "Stop": "Ferma",
@@ -1064,5 +1059,7 @@
  "Turn on anyway": "Attiva comunque",
  "Turning off…": "Disattivazione…",
  "Turning on…": "Attivazione…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet arriva via Wi-Fi e la scheda non può condividerlo nello stesso momento: attivarlo lo disconnette. Collega un cavo, o il telefono via USB, per condividere quello."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet arriva via Wi-Fi e la scheda non può condividerlo nello stesso momento: attivarlo lo disconnette. Collega un cavo, o il telefono via USB, per condividere quello.",
+ "With games": "Con i giochi",
+ "Quiet": "Silenzio"
 }
