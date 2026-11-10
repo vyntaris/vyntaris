@@ -345,7 +345,18 @@ Item {
                     titleY: calendar.titleY
                     datesBaseline: calendar.datesBaseline
                 }
-                MonthCalendar { id: calendar; Layout.alignment: Qt.AlignTop; Layout.fillWidth: true; Layout.maximumWidth: implicitWidth }
+                MonthCalendar {
+                    id: calendar
+                    Layout.alignment: Qt.AlignTop; Layout.fillWidth: true; Layout.maximumWidth: implicitWidth
+                    marked: d => Calendar.on(d).length > 0
+                }
+            }
+            DayEvents {
+                Layout.fillWidth: true
+                Layout.topMargin: Theme.space4
+                Layout.leftMargin: Theme.space4
+                Layout.rightMargin: Theme.space4
+                day: calendar.picked
             }
         }
 

@@ -16,6 +16,7 @@ depends=(
     tesseract tesseract-data-eng  # text from pictures and the screen
     pass python-gobject at-spi2-core  # passwords, and noticing password fields in any app
     qrencode  # the hotspot's QR code
+    gnome-online-accounts gnome-online-accounts-gtk  # the calendar's Google sign-in
     libnotify gnome-keyring xdg-user-dirs xdg-utils power-profiles-daemon upower pacman-contrib
     timeshift rsync rclone fuse3 zram-generator nftables fastfetch imagemagick librsvg eza greetd plymouth
     archlinux-appstream-data fwupd

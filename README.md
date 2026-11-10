@@ -205,6 +205,13 @@ Beside it, `TodayWeather.qml` shows today large, the week of the year, then:
   keeps where the city is, so another place of the same name isn't taken. Without the internet, the last
   one read.
 
+- **Events**: a dot under the days that have some, and the picked day's under the month; a click opens
+  Calendar on that day. Calendar (`calendar.qml`, an app of its own like Settings) shows a week by the hour:
+  a click on an empty hour adds an event there, a click on one changes or deletes it, with its reminder (a
+  notification, 15 minutes before by default). Events are kept in `~/.local/share/vyntaris/calendar`
+  (`scripts/calendar.py`); with a Google account added in Online Accounts (`gnome-online-accounts-gtk`, which
+  signs in for us), they're Google Calendar's too, both ways, synced every 5 minutes.
+
 Their sizes come from the theme's font size, none fixed, and the two sides line up with each other to the
 pixel: today's name with the month's, the city's baseline with the last week's numbers.
 

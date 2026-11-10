@@ -23,6 +23,8 @@ Item {
     property int year: today.getFullYear()
     property int month: today.getMonth()
     property date picked: today
+    // A dot under the days it says yes to (the control center's: days with events).
+    property var marked: null
     function reset() { year = today.getFullYear(); month = today.getMonth(); picked = today; }
     function step(d) {
         const m = month + d;
@@ -110,6 +112,12 @@ Item {
                         radius: root.mark / 2
                         color: day.isPicked ? Theme.accent : dayArea.containsMouse ? Theme.hoverOn(parent) : "transparent"
                         border { width: day.isToday && !day.isPicked ? 1.5 : 0; color: Theme.accent }
+                    }
+                    Rectangle {
+                        visible: root.marked !== null && root.marked(day.modelData)
+                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Math.max(1, (root.rowHeight - root.mark) / 2 + 2) }
+                        width: 4; height: 4; radius: 2
+                        color: day.isPicked ? Theme.textOnAccent : Theme.accent
                     }
                     Label {
                         anchors.centerIn: parent

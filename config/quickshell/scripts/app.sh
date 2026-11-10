@@ -5,8 +5,8 @@ name="${1:-}"
 call="${2:-open}"
 arg="${3:-}"
 case "$name" in
-    settings|store|help|doctor|backup|vwa) ;;
-    *) echo "usage: ${0##*/} settings|store|help|doctor|backup|vwa [CALL [ARG]]" >&2; exit 2 ;;
+    settings|store|help|doctor|backup|vwa|calendar) ;;
+    *) echo "usage: ${0##*/} settings|store|help|doctor|backup|vwa|calendar [CALL [ARG]]" >&2; exit 2 ;;
 esac
 
 case "$name" in
