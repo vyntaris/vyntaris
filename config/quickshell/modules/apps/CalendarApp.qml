@@ -208,7 +208,7 @@ Scope {
                                         readonly property date day: new Date(modelData.start.slice(0, 10) + "T00:00")
                                         readonly property bool isToday: Calendar.key(day) === Calendar.key(root.today)
                                         width: parent.width
-                                        implicitHeight: 48
+                                        implicitHeight: 54
                                         radius: Theme.r(9)
                                         // From the card's own colour, not "transparent" (black at 0): that dimmed mid-way.
                                         color: nextArea.containsMouse ? Theme.blend(root.card, Theme.text, 0.06) : root.card
@@ -228,13 +228,12 @@ Scope {
                                                 spacing: -2
                                                 Caption {
                                                     anchors.horizontalCenter: parent.horizontalCenter
-                                                    font.weight: Font.DemiBold
+                                                    font.weight: Font.Medium
                                                     color: next.isToday ? Theme.accentInk : Theme.overlay1
                                                     text: Tr.dates.toString(next.day, "ddd").toUpperCase()
                                                 }
                                                 Label {
                                                     anchors.horizontalCenter: parent.horizontalCenter
-                                                    font.weight: Font.Bold
                                                     color: next.isToday ? Theme.accentInk : Theme.text
                                                     text: next.day.getDate()
                                                 }
@@ -641,7 +640,7 @@ Scope {
     }
 
     component SectionTitle: Label {
-        Layout.topMargin: Theme.space16
+        Layout.topMargin: Theme.space24
         Layout.bottomMargin: Theme.space4
         Layout.leftMargin: Theme.space6
         font.weight: Font.Bold
