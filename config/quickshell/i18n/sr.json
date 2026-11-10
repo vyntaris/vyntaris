@@ -1064,5 +1064,6 @@
  "Turn on anyway": "Ipak uključi",
  "Turning off…": "Isključivanje…",
  "Turning on…": "Uključivanje…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet ti dolazi preko Wi-Fi-ja, a kartica ne može istovremeno i da ga deli: uključivanje ga prekida. Priključi kabl ili telefon preko USB-a da bi delio taj internet."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet ti dolazi preko Wi-Fi-ja, a kartica ne može istovremeno i da ga deli: uključivanje ga prekida. Priključi kabl ili telefon preko USB-a da bi delio taj internet.",
+ "Hotspot · on": "Hotspot · uključen"
 }

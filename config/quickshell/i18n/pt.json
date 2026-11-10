@@ -1064,5 +1064,6 @@
  "Turn on anyway": "Ligar mesmo assim",
  "Turning off…": "Desligando…",
  "Turning on…": "Ligando…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Sua internet vem pelo Wi-Fi, e a placa não consegue compartilhá-la ao mesmo tempo: ligar isto a desconecta. Conecte um cabo, ou o celular por USB, para compartilhar essa."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Sua internet vem pelo Wi-Fi, e a placa não consegue compartilhá-la ao mesmo tempo: ligar isto a desconecta. Conecte um cabo, ou o celular por USB, para compartilhar essa.",
+ "Hotspot · on": "Ponto de acesso · ligado"
 }

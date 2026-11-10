@@ -1064,5 +1064,6 @@
  "Turn on anyway": "Activer quand même",
  "Turning off…": "Désactivation…",
  "Turning on…": "Activation…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Votre internet passe par le Wi-Fi, et la carte ne peut pas le partager en même temps : l’activer le déconnecte. Branchez un câble, ou votre téléphone en USB, pour partager celui-ci."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Votre internet passe par le Wi-Fi, et la carte ne peut pas le partager en même temps : l’activer le déconnecte. Branchez un câble, ou votre téléphone en USB, pour partager celui-ci.",
+ "Hotspot · on": "Point d’accès · activé"
 }

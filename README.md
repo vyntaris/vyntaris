@@ -366,7 +366,7 @@ choice of notification sounds.
   the bar and its notifications on the desktop, one clipboard for both, find my phone, files both ways,
   and the phone as a touchpad, keyboard and remote. It's off until turned on, as it makes the computer
   visible on the network.
-- **Hotspot** (its tile in the control center, `hotspot` in the launcher): this computer's internet shared over
+- **Hotspot** (SUPER+SHIFT+N, its button in the Wi-Fi panel, `hotspot` in the launcher): this computer's internet shared over
   its Wi-Fi card, a NetworkManager connection (`scripts/hotspot.sh`) named after the computer with a password
   made for it; the panel changes both and shows a QR code phones scan to join. A Wi-Fi card uses one channel at
   a time, so internet that itself comes over Wi-Fi can't be shared: the panel says so before turning it on.
@@ -1036,6 +1036,7 @@ resize, ALT is for workspaces. Help lists every key, read from Hyprland.
 | SUPER+SHIFT+S, PRINT / SHIFT+PRINT | screenshot of a region / of the screen |
 | SUPER+SHIFT+T | copy the text in a region of the screen |
 | SUPER+SHIFT+P | passwords |
+| SUPER+SHIFT+N | hotspot |
 | SUPER+SHIFT+R / CTRL+R | record a region / the screen (again: stop) |
 | SUPER+W / SHIFT+W | the wallpaper picker / a random wallpaper |
 | SUPER+K, SUPER+SPACE | keyboard layouts / the next layout |

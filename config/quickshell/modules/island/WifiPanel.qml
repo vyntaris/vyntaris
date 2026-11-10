@@ -18,6 +18,12 @@ Item {
     PanelHeader {
         icon: wifi.wiredOnly ? "ethernet" : "wifi"
         title: root.wired ? Tr.t("Network") : Tr.t("Wi-Fi")
+        HeaderButton {
+            visible: root.device !== null
+            icon: "hotspot"
+            label: Hotspot.active ? Tr.t("Hotspot · on") : Tr.t("Hotspot")
+            onClicked: Panels.hotspotOpen = true
+        }
         Switch {
             visible: root.device !== null && !wifi.wiredOnly
             checked: Networking.wifiEnabled
