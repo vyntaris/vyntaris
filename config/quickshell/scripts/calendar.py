@@ -10,6 +10,7 @@
 #   delete ID
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -51,6 +52,15 @@ def client():
             continue
         if vals.get("GOOGLE_CLIENT_ID") and vals.get("GOOGLE_CLIENT_SECRET"):
             return vals["GOOGLE_CLIENT_ID"].strip(), vals["GOOGLE_CLIENT_SECRET"].strip()
+    # Else the one Backup signs in to Google Drive with.
+    try:
+        text = open("/usr/bin/vyntaris-cloud-backup").read()
+        cid = re.search(r'^client_id="([^"]+)"', text, re.M)
+        secret = re.search(r'^client_secret="([^"]+)"', text, re.M)
+        if cid and secret:
+            return cid.group(1), secret.group(1)
+    except OSError:
+        pass
     return None, None
 
 
@@ -137,11 +147,14 @@ def connect():
                        "redirect_uri": redirect, "grant_type": "authorization_code"})
     if not tok.get("refresh_token"):
         sys.exit("Google gave no refresh token")
-    keyring("store", "--label=Vyntaris Calendar (Google)", *KEYRING, secret=tok["refresh_token"])
-    # The primary calendar's id is the account's address.
+    # The primary calendar's id is the account's address; kept only once the calendar answers.
     cal = call(tok["access_token"], "GET", "/calendars/primary")
+    keyring("store", "--label=Vyntaris Calendar (Google)", *KEYRING, secret=tok["refresh_token"])
     data = load()
     data["google"] = cal.get("id", "")
+    # Events made on this computer before go to Google too, once.
+    waiting = {e["id"] for e in data["pending"]}
+    data["pending"] += [e for e in data["events"] if not e.get("google") and e["id"] not in waiting]
     store(data)
     sync()
 

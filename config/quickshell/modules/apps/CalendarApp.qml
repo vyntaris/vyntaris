@@ -12,6 +12,8 @@ Scope {
 
     QtObject { id: clock; property date now: new Date() }
     Timer { running: Panels.calendarOpen; repeat: true; interval: 30000; onTriggered: clock.now = new Date() }
+    // Changes made on Google (phone, web): in while it's open.
+    Timer { running: Panels.calendarOpen && Calendar.google !== ""; repeat: true; interval: 60000; onTriggered: Calendar.sync() }
     readonly property date today: new Date(clock.now.getFullYear(), clock.now.getMonth(), clock.now.getDate())
 
     // Monday of the week shown.
@@ -21,6 +23,11 @@ Scope {
     function show(iso) { const p = iso.split("-").map(Number); go(new Date(p[0], p[1] - 1, p[2])); }
     function go(d) { week = monday(d); month.year = d.getFullYear(); month.month = d.getMonth(); month.picked = d; }
     readonly property var days: [0, 1, 2, 3, 4, 5, 6].map(i => addDays(week, i))
+    // ISO: the week with the year's first Thursday is 1.
+    readonly property int weekNumber: {
+        const th = addDays(week, 3), jan1 = new Date(th.getFullYear(), 0, 1);
+        return Math.floor(Math.round((th - jan1) / 86400000) / 7) + 1;
+    }
     readonly property int hourHeight: 52
     readonly property int gutter: 58
     readonly property color card: Theme.isDark ? Theme.surface0 : Theme.mantle
@@ -30,10 +37,12 @@ Scope {
     readonly property color eventFill: Theme.accent
     readonly property color eventHover: Theme.accentBright
     function pad(n) { return String(n).padStart(2, "0"); }
+    // An event's start or end in this day's hours (fallback when it's on another day).
+    function hourOf(iso, day, fallback) { return iso.slice(0, 10) === Calendar.key(day) ? parseInt(iso.slice(11, 13)) + parseInt(iso.slice(14, 16)) / 60 : fallback; }
 
     Connections {
         target: Panels
-        function onCalendarOpenChanged() { if (Panels.calendarOpen) { Calendar.refresh(); Calendar.sync(); scrollLater.restart(); } }
+        function onCalendarOpenChanged() { if (Panels.calendarOpen) { Calendar.status(); Calendar.refresh(); Calendar.sync(); scrollLater.restart(); } }
     }
     Component.onCompleted: if (Panels.calendarOpen) scrollLater.restart()
     Timer { id: scrollLater; interval: 80; onTriggered: grid.contentY = Math.max(0, Math.min(grid.contentHeight - grid.height, (clock.now.getHours() - 1) * root.hourHeight)) }
@@ -41,7 +50,10 @@ Scope {
     // What's next, from now.
     readonly property var coming: {
         const now = Calendar.key(clock.now) + "T" + pad(clock.now.getHours()) + ":" + pad(clock.now.getMinutes());
-        return Calendar.events.filter(e => e.end > now).sort((a, b) => a.start.localeCompare(b.start)).slice(0, 4);
+        // Everything left of the week shown (all of it, for a week ahead).
+        const from = Calendar.key(week) + "T00:00", to = Calendar.key(addDays(week, 7)) + "T00:00";
+        const after = from > now ? from : now;
+        return Calendar.events.filter(e => e.end > after && e.start < to).sort((a, b) => a.start.localeCompare(b.start));
     }
     function when(e) {
         return e.allDay ? Tr.t("All day") : e.start.slice(11, 16) + " – " + e.end.slice(11, 16);
@@ -105,162 +117,163 @@ Scope {
             // The side, as Settings' is: name and account, a new event, the month, what's coming up, Google.
             Rectangle {
                 Layout.fillHeight: true
-                Layout.preferredWidth: Theme.navWidth + 24
+                Layout.preferredWidth: Theme.navWidth + 96
                 color: Theme.mantle
 
-                ColumnLayout {
-                    anchors { fill: parent; margins: Theme.navInset }
-                    spacing: Theme.space4
+                // Scrolls when the window is too short for it all.
+                Flickable {
+                    id: sideFlick
+                    anchors.fill: parent
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+                    contentHeight: Math.max(height, sideColumn.implicitHeight + 2 * Theme.navInset)
 
-                    RowLayout {
-                        Layout.bottomMargin: Theme.space12
-                        Layout.leftMargin: Theme.space6
-                        spacing: Theme.space10
-                        Icon { name: "calendar"; size: 22; color: Theme.accentInk }
-                        ColumnLayout {
-                            spacing: 0
-                            Label { font.weight: Font.Bold; text: Tr.t("Calendar") }
-                            Caption { text: Calendar.google || Tr.t("On this computer") }
-                        }
-                    }
-                    Button {
-                        Layout.fillWidth: true
-                        Layout.bottomMargin: Theme.space12
-                        primary: true
-                        icon: "plus"
-                        text: Tr.t("New event")
-                        onClicked: root.newAt(root.days.some(d => Calendar.key(d) === Calendar.key(root.today)) ? root.today : root.week, clock.now.getHours() + 1)
-                    }
-                    // The month, in a card like the week's.
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: month.implicitHeight + 2 * Theme.space10
-                        radius: Theme.r(12)
-                        color: root.card
-                        MonthCalendar {
-                            id: month
-                            anchors { fill: parent; margins: Theme.space10 }
-                            showPicked: false
-                            marked: d => Calendar.on(d).length > 0
-                            onPickedChanged: root.week = root.monday(picked)
-                        }
-                    }
+                    ColumnLayout {
+                        id: sideColumn
+                        x: Theme.navInset; y: Theme.navInset
+                        width: sideFlick.width - 2 * Theme.navInset
+                        height: sideFlick.contentHeight - 2 * Theme.navInset
+                        spacing: Theme.space4
 
-                    SectionTitle { text: Tr.t("Coming up") }
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: comingList.implicitHeight + 2 * Theme.space4
-                        radius: Theme.r(12)
-                        color: root.card
-                        Column {
-                            id: comingList
-                            anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space4 }
-                            Repeater {
-                                model: root.coming
-                                Rectangle {
-                                    id: next
-                                    required property var modelData
-                                    required property int index
-                                    readonly property date day: new Date(modelData.start.slice(0, 10) + "T00:00")
-                                    readonly property bool isToday: Calendar.key(day) === Calendar.key(root.today)
-                                    width: parent.width
-                                    implicitHeight: 48
-                                    radius: Theme.r(9)
-                                    color: nextArea.containsMouse ? Theme.blend(root.card, Theme.text, 0.06) : "transparent"
-                                    Behavior on color { ColorAnim {} }
-                                    Rectangle {
-                                        visible: next.index > 0
-                                        anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 52; rightMargin: Theme.space8 }
-                                        height: 1
-                                        color: root.line
-                                    }
-                                    RowLayout {
-                                        anchors { fill: parent; leftMargin: Theme.space4; rightMargin: Theme.space10 }
-                                        spacing: Theme.space6
-                                        // The day, as the week's header shows it.
-                                        Column {
-                                            Layout.preferredWidth: 42
-                                            spacing: -2
-                                            Caption {
-                                                anchors.horizontalCenter: parent.horizontalCenter
-                                                font.weight: Font.DemiBold
-                                                color: next.isToday ? Theme.accentInk : Theme.overlay1
-                                                text: Tr.dates.toString(next.day, "ddd").toUpperCase()
-                                            }
-                                            Label {
-                                                anchors.horizontalCenter: parent.horizontalCenter
-                                                font.weight: Font.Bold
-                                                color: next.isToday ? Theme.accentInk : Theme.text
-                                                text: next.day.getDate()
-                                            }
-                                        }
-                                        ColumnLayout {
-                                            Layout.fillWidth: true
-                                            spacing: 0
-                                            Label { Layout.fillWidth: true; elide: Text.ElideRight; text: next.modelData.title }
-                                            Caption { Layout.fillWidth: true; elide: Text.ElideRight; text: root.when(next.modelData) }
-                                        }
-                                    }
-                                    PressArea {
-                                        id: nextArea
-                                        anchors.fill: parent
-                                        label: next.modelData.title
-                                        onClicked: { root.go(new Date(next.modelData.start.slice(0, 10) + "T00:00")); root.edit(next.modelData); }
-                                    }
-                                }
-                            }
-                            Caption {
-                                visible: root.coming.length === 0
-                                width: parent.width
-                                topPadding: Theme.space12
-                                bottomPadding: Theme.space12
-                                horizontalAlignment: Text.AlignHCenter
-                                text: Tr.t("Nothing coming up")
-                            }
-                        }
-                    }
-
-                    Item { Layout.fillHeight: true }
-
-                    // Google, one row: who, and what can be done.
-                    Rectangle {
-                        Layout.fillWidth: true
-                        implicitHeight: 56
-                        radius: Theme.r(12)
-                        color: root.card
                         RowLayout {
-                            anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space8 }
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Theme.space16
+                            Layout.leftMargin: Theme.space6
                             spacing: Theme.space10
-                            Icon { name: "users"; size: 18; color: Calendar.google ? Theme.accentInk : Theme.overlay1 }
+                            Icon { name: "calendar"; size: 22; color: Theme.accentInk }
                             ColumnLayout {
                                 Layout.fillWidth: true
                                 spacing: 0
-                                Label { Layout.fillWidth: true; elide: Text.ElideRight; text: "Google" }
-                                Caption {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    text: Calendar.connecting ? Tr.t("Waiting for the browser…")
-                                        : Calendar.google || (Calendar.client ? Tr.t("Not connected") : Tr.t("Not set up"))
-                                }
+                                Label { font.weight: Font.Bold; text: Tr.t("Calendar") }
+                                Caption { Layout.fillWidth: true; elide: Text.ElideRight; text: Calendar.google || Tr.t("On this computer") }
                             }
+                            // Signed in: the way out, asking once (it goes red), as Backup's.
                             IconButton {
-                                visible: Calendar.google !== ""
-                                icon: "refresh"
-                                label: Tr.t("Sync now")
-                                active: !Calendar.syncing
-                                onClicked: Calendar.sync()
-                            }
-                            IconButton {
+                                id: signOut
+                                property bool asking: false
                                 visible: Calendar.google !== ""
                                 icon: "logout"
-                                label: Tr.t("Sign out")
-                                onClicked: Calendar.disconnect()
+                                ink: asking ? Theme.error : "transparent"
+                                label: asking ? Tr.t("Sign out (events stay on Google)") : Tr.t("Sign out")
+                                onClicked: {
+                                    if (!asking) { asking = true; askTimer.restart(); return; }
+                                    asking = false;
+                                    Calendar.disconnect();
+                                }
+                                Timer { id: askTimer; interval: 5000; onTriggered: signOut.asking = false }
                             }
-                            Button {
-                                visible: Calendar.google === "" && Calendar.client && !Calendar.connecting
-                                text: Tr.t("Connect")
-                                onClicked: Calendar.connect()
+                        }
+                        // The month, in a card like the week's.
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: month.implicitHeight + 2 * Theme.space16
+                            radius: Theme.r(12)
+                            color: root.card
+                            MonthCalendar {
+                                id: month
+                                anchors { fill: parent; margins: Theme.space16 }
+                                showPicked: false
+                                marked: d => Calendar.on(d).length > 0
+                                onPickedChanged: root.week = root.monday(picked)
                             }
+                        }
+
+                        SectionTitle { text: Tr.t("Coming up") }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: comingList.implicitHeight + 2 * Theme.space4
+                            radius: Theme.r(12)
+                            color: root.card
+                            Column {
+                                id: comingList
+                                anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space4 }
+                                // The row under the mouse: its lines go, so they don't cut through the highlight.
+                                property int hovered: -1
+                                Repeater {
+                                    model: root.coming
+                                    Rectangle {
+                                        id: next
+                                        required property var modelData
+                                        required property int index
+                                        readonly property date day: new Date(modelData.start.slice(0, 10) + "T00:00")
+                                        readonly property bool isToday: Calendar.key(day) === Calendar.key(root.today)
+                                        width: parent.width
+                                        implicitHeight: 48
+                                        radius: Theme.r(9)
+                                        // From the card's own colour, not "transparent" (black at 0): that dimmed mid-way.
+                                        color: nextArea.containsMouse ? Theme.blend(root.card, Theme.text, 0.06) : root.card
+                                        Behavior on color { ColorAnim {} }
+                                        Rectangle {
+                                            visible: next.index > 0 && comingList.hovered !== next.index && comingList.hovered !== next.index - 1
+                                            anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 52; rightMargin: Theme.space8 }
+                                            height: 1
+                                            color: root.line
+                                        }
+                                        RowLayout {
+                                            anchors { fill: parent; leftMargin: Theme.space4; rightMargin: Theme.space10 }
+                                            spacing: Theme.space6
+                                            // The day, as the week's header shows it.
+                                            Column {
+                                                Layout.preferredWidth: 42
+                                                spacing: -2
+                                                Caption {
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    font.weight: Font.DemiBold
+                                                    color: next.isToday ? Theme.accentInk : Theme.overlay1
+                                                    text: Tr.dates.toString(next.day, "ddd").toUpperCase()
+                                                }
+                                                Label {
+                                                    anchors.horizontalCenter: parent.horizontalCenter
+                                                    font.weight: Font.Bold
+                                                    color: next.isToday ? Theme.accentInk : Theme.text
+                                                    text: next.day.getDate()
+                                                }
+                                            }
+                                            ColumnLayout {
+                                                Layout.fillWidth: true
+                                                spacing: 0
+                                                Label { Layout.fillWidth: true; elide: Text.ElideRight; text: next.modelData.title }
+                                                Caption { Layout.fillWidth: true; elide: Text.ElideRight; text: root.when(next.modelData) }
+                                            }
+                                        }
+                                        PressArea {
+                                            id: nextArea
+                                            anchors.fill: parent
+                                            onContainsMouseChanged: if (containsMouse) comingList.hovered = next.index; else if (comingList.hovered === next.index) comingList.hovered = -1
+                                            label: next.modelData.title
+                                            onClicked: { root.go(new Date(next.modelData.start.slice(0, 10) + "T00:00")); root.edit(next.modelData); }
+                                        }
+                                    }
+                                }
+                                Caption {
+                                    visible: root.coming.length === 0
+                                    width: parent.width
+                                    topPadding: Theme.space12
+                                    bottomPadding: Theme.space12
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: Tr.t("Nothing coming up")
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillHeight: true }
+
+                        // Google: Connect until signed in (then who and Sign out are at the top).
+                        Button {
+                            Layout.fillWidth: true
+                            visible: Calendar.client && !Calendar.google
+                            icon: "users"
+                            busy: Calendar.connecting
+                            active: !Calendar.connecting
+                            text: Calendar.connecting ? Tr.t("Waiting for the browser…") : Tr.t("Connect Google")
+                            onClicked: Calendar.connect()
+                        }
+                        Button {
+                            Layout.fillWidth: true
+                            primary: true
+                            icon: "plus"
+                            text: Tr.t("New event")
+                            onClicked: root.newAt(root.days.some(d => Calendar.key(d) === Calendar.key(root.today)) ? root.today : root.week, clock.now.getHours() + 1)
                         }
                     }
                 }
@@ -277,17 +290,25 @@ Scope {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Theme.space8
-                    Label {
-                        font.pixelSize: Theme.fontSizeHeading
-                        font.weight: Font.Bold
-                        text: Tr.dates.toString(root.addDays(root.week, 3), "MMMM yyyy")
-                    }
-                    Caption {
+                    // The month, and under it which days and which week.
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignBaseline
-                        text: Tr.dates.toString(root.days[0], "d MMM") + " – " + Tr.dates.toString(root.days[6], "d MMM")
+                        spacing: 0
+                        Label {
+                            font.pixelSize: Theme.fontSizeHeading
+                            font.weight: Font.Bold
+                            text: Tr.dates.toString(root.addDays(root.week, 3), "MMMM yyyy")
+                        }
+                        Dotted {
+                            caption: false
+                            color: Theme.subtext0
+                            parts: [root.days[0].getMonth() === root.days[6].getMonth()
+                                ? root.days[0].getDate() + " – " + Tr.dates.toString(root.days[6], "d MMMM")
+                                : Tr.dates.toString(root.days[0], "d MMM") + " – " + Tr.dates.toString(root.days[6], "d MMM"),
+                                Tr.f("Week {0}", root.weekNumber)]
+                        }
                     }
-                    Button { text: Tr.t("Today"); onClicked: { root.go(root.today); scrollLater.restart(); } }
+                    Item { Layout.fillWidth: true }
                     IconButton { icon: "chevron-left"; label: Tr.t("Previous week"); onClicked: root.go(root.addDays(root.week, -7)) }
                     IconButton { icon: "chevron-right"; label: Tr.t("Next week"); onClicked: root.go(root.addDays(root.week, 7)) }
                 }
@@ -352,28 +373,22 @@ Scope {
                                             onClicked: root.edit({ title: "", day: head.modelData, start: "", end: "", allDay: true, remind: 0 })
                                         }
                                     }
-                                    Repeater {
-                                        model: Calendar.on(head.modelData).filter(e => e.allDay)
-                                        Rectangle {
-                                            id: chip
-                                            required property var modelData
-                                            Layout.fillWidth: true
-                                            Layout.preferredWidth: 0
-                                            Layout.leftMargin: 3; Layout.rightMargin: 3
-                                            implicitHeight: 24
-                                            radius: Theme.r(6)
-                                            color: chipArea.containsMouse ? root.eventHover : root.eventFill
-                                            Behavior on color { ColorAnim {} }
-                                            Label {
-                                                anchors { fill: parent; leftMargin: Theme.space8; rightMargin: Theme.space6 }
-                                                verticalAlignment: Text.AlignVCenter
-                                                elide: Text.ElideRight
-                                                font.pixelSize: Theme.fontSizeSmall
-                                                font.weight: Font.DemiBold
-                                                color: Theme.textOnAccent
-                                                text: chip.modelData.title
-                                            }
-                                            PressArea { id: chipArea; anchors.fill: parent; label: chip.modelData.title; onClicked: root.edit(chip.modelData) }
+                                    // All day: its name, quiet, under the date; a click opens it.
+                                    Caption {
+                                        id: allDay
+                                        readonly property var events: Calendar.on(head.modelData).filter(e => e.allDay)
+                                        Layout.fillWidth: true
+                                        Layout.leftMargin: Theme.space4; Layout.rightMargin: Theme.space4
+                                        horizontalAlignment: Text.AlignHCenter
+                                        elide: Text.ElideRight
+                                        color: allDayArea.containsMouse ? Theme.text : Theme.accentInk
+                                        text: events.length === 0 ? " " : events[0].title + (events.length > 1 ? " +" + (events.length - 1) : "")
+                                        PressArea {
+                                            id: allDayArea
+                                            anchors.fill: parent
+                                            visible: allDay.events.length > 0
+                                            label: allDay.events.map(e => e.title).join(", ")
+                                            onClicked: root.edit(allDay.events[0])
                                         }
                                     }
                                 }
@@ -438,7 +453,11 @@ Scope {
                                             Rectangle {
                                                 id: hoverSlot
                                                 readonly property int hour: Math.floor(slot.mouseY / root.hourHeight)
-                                                visible: slot.containsMouse && root.editing === null
+                                                // Not under an event (it showed around it, like a shadow).
+                                                readonly property bool onEvent: Calendar.on(column.modelData).some(e => !e.allDay
+                                                    && slot.mouseY >= root.hourOf(e.start, column.modelData, 0) * root.hourHeight
+                                                    && slot.mouseY < root.hourOf(e.end, column.modelData, 24) * root.hourHeight)
+                                                visible: slot.containsMouse && root.editing === null && !onEvent
                                                 x: 3; width: parent.width - 6
                                                 y: hour * root.hourHeight + 2
                                                 height: root.hourHeight - 4

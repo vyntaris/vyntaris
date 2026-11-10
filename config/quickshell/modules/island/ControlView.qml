@@ -198,7 +198,7 @@ Item {
                 icon: KeepAwake.icon
                 title: Tr.t("Keep awake")
                 subtitle: !KeepAwake.active ? Tr.t("Off")
-                    : (KeepAwake.inhibitDisplay ? Tr.t("Screen stays on") : Tr.t("System stays on")) + (KeepAwake.minutes > 0 ? " · " + KeepAwake.minutes + Tr.t(" min") : "")
+                    : (KeepAwake.inhibitDisplay ? Tr.t("Screen stays on") : Tr.t("System stays on")) + (KeepAwake.minutes > 0 ? ", " + KeepAwake.minutes + Tr.t(" min") : "")
                 on: KeepAwake.active
                 more: true
                 onClicked: KeepAwake.toggle()
@@ -349,14 +349,8 @@ Item {
                     id: calendar
                     Layout.alignment: Qt.AlignTop; Layout.fillWidth: true; Layout.maximumWidth: implicitWidth
                     marked: d => Calendar.on(d).length > 0
+                    onDayClicked: d => { Panels.controlOpen = false; Panels.openApp("calendar", "open", Calendar.key(d)); }
                 }
-            }
-            DayEvents {
-                Layout.fillWidth: true
-                Layout.topMargin: Theme.space4
-                Layout.leftMargin: Theme.space4
-                Layout.rightMargin: Theme.space4
-                day: calendar.picked
             }
         }
 

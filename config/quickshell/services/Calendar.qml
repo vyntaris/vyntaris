@@ -126,7 +126,7 @@ Singleton {
                 } catch (e) {}
             }
         }
-        onExited: { root.syncing = false; root.refresh(); }
+        onExited: { root.syncing = false; root.status(); root.refresh(); }
     }
     Process {
         id: addProc
@@ -142,26 +142,38 @@ Singleton {
     Timer { running: Config.leader; repeat: true; interval: 300000; onTriggered: root.sync() }
     Component.onCompleted: { refresh(); status(); if (Config.leader) sync(); }
 
-    // Each minute: what's due to be reminded of since the last look, as a notification.
+    // Reminders, as notifications: an event at its time (15 min before, unless it says otherwise), and a
+    // day's all-day events together at 9, or at the start if that's later; once a day, kept over restarts.
     property real lastLook: Date.now()
+    FileView {
+        id: told
+        path: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/vyntaris-calendar-told"
+        blockLoading: true
+        printErrors: false
+    }
+    function notify(title, body) {
+        Quickshell.execDetached(["notify-send", "-a", Tr.t("Calendar"), "-i", "x-office-calendar", title, body]);
+    }
     Timer {
         running: Config.leader
         repeat: true
         interval: 30000
         onTriggered: {
-            const now = Date.now();
+            const now = Date.now(), today = new Date();
             for (const e of root.events) {
-                if (e.remind < 0) continue;
+                if (e.allDay || e.remind < 0) continue;
                 const start = new Date(e.start);
-                const at = e.allDay ? new Date(start.getFullYear(), start.getMonth(), start.getDate(), 9).getTime()
-                    : start.getTime() - e.remind * 60000;
-                if (at > root.lastLook && at <= now) {
-                    const when = e.allDay ? Tr.t("Today")
-                        : e.remind === 0 ? Tr.t("Now") : Tr.f("In {0} min · {1}", e.remind, Qt.formatTime(start, "HH:mm"));
-                    Quickshell.execDetached(["notify-send", "-a", Tr.t("Calendar"), "-i", "x-office-calendar", e.title, when]);
-                }
+                const at = start.getTime() - e.remind * 60000;
+                if (at > root.lastLook && at <= now)
+                    root.notify(e.title, e.remind === 0 ? Tr.t("Now") : Tr.f("In {0} min, at {1}", e.remind, Qt.formatTime(start, "HH:mm")));
             }
             root.lastLook = now;
+            // Holidays and others with no reminder of their own stay quiet.
+            const allDay = root.on(today).filter(e => e.allDay && e.remind >= 0);
+            if (today.getHours() >= 9 && allDay.length > 0 && told.text().trim() !== root.key(today)) {
+                told.setText(root.key(today));
+                root.notify(Tr.t("Today"), allDay.map(e => e.title).join("\n"));
+            }
         }
     }
 }
