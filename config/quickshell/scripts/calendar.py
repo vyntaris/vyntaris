@@ -8,6 +8,7 @@
 #   add                    {"title", "start", "end", "allDay", "remind"} on stdin (local times, ISO); prints the event
 #   update ID              the event's new fields on stdin, like add
 #   delete ID
+import hashlib
 import json
 import os
 import re
@@ -41,6 +42,8 @@ def store(data):
 TOKEN = "https://oauth2.googleapis.com/token"
 SCOPE = "https://www.googleapis.com/auth/calendar"
 KEYRING = ["service", "vyntaris-calendar", "account", "google"]
+# A short-lived access token, so not every call asks Google for one.
+CACHE = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "/tmp", "vyntaris-calendar-token")
 
 
 def client():
@@ -83,10 +86,11 @@ def google():
     if not refresh or not cid:
         return None, None
     who = load().get("google") or ""
-    cache = os.path.join(os.environ.get("XDG_RUNTIME_DIR") or "/tmp", "vyntaris-calendar-token")
+    # Kept only for this sign-in: one from before (signed out and in again) was revoked.
+    signin = hashlib.sha256(refresh.encode()).hexdigest()[:16]
     try:
-        t = json.load(open(cache))
-        if t["expires"] > datetime.now().timestamp() + 60:
+        t = json.load(open(CACHE))
+        if t.get("for") == signin and t["expires"] > datetime.now().timestamp() + 60:
             return who, t["token"]
     except (OSError, ValueError, KeyError):
         pass
@@ -96,9 +100,10 @@ def google():
         return who or None, None
     except (urllib.error.URLError, OSError):
         return who or None, None
-    fd = os.open(cache, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    fd = os.open(CACHE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as f:
-        json.dump({"token": got["access_token"], "expires": datetime.now().timestamp() + got.get("expires_in", 3000)}, f)
+        json.dump({"token": got["access_token"], "for": signin,
+                   "expires": datetime.now().timestamp() + got.get("expires_in", 3000)}, f)
     return who, got["access_token"]
 
 
@@ -167,6 +172,10 @@ def disconnect():
         except (urllib.error.URLError, OSError):
             pass
     keyring("clear", *KEYRING)
+    try:
+        os.unlink(CACHE)
+    except OSError:
+        pass
     data = load()
     data["google"] = ""
     data["events"] = [e for e in data["events"] if not e.get("google")]
