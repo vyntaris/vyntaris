@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Vyntaris Passwords",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Logins saved and filled by the Vyntaris island, kept by pass on this computer.",
   "icons": {
     "48": "icon.svg",

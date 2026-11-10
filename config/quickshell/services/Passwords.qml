@@ -27,8 +27,6 @@ Singleton {
         statusProc.running = false; statusProc.running = true;
         listProc.running = false; listProc.running = true;
     }
-    // Known from the start, for Firefox's fields and logins before the island was ever opened.
-    Component.onCompleted: refresh()
 
     // The entries for this site first: "github.com/me", "github.com", "work/github.com".
     function matches(entry, place) {
