@@ -67,7 +67,7 @@ Item {
 
     PanelHeader {
         icon: root.critical ? "alert" : "bell"
-        title: (root.critical ? Tr.t("Critical") + " · " : "") + (root.n?.appName || Tr.t("System"))
+        title: (root.critical ? Tr.t("Critical") + ", " : "") + (root.n?.appName || Tr.t("System"))
         tint: root.tint
         Label {
             visible: Notifications.waiting > 0

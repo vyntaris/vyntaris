@@ -147,7 +147,7 @@ Singleton {
             label: Tr.t("Keyboard"),
             value: -1,
             text: Keyboard.name || Keyboard.code,
-            sub: Keyboard.layouts.map(l => l.toUpperCase()).join(" · "),
+            sub: Keyboard.layouts.map(l => l.toUpperCase()).join(", "),
             dimmed: false,
         };
         case "password-copied": return { icon: "copy", level: -1, label: Tr.t("Password copied"), value: -1,

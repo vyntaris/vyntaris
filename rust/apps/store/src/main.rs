@@ -178,7 +178,7 @@ impl Store {
 
     fn helper_shown(&self) {
         let on = !self.aur.borrow().is_empty() && self.aur_on.get();
-        self.title.set_subtitle(&if on { tr("Arch · AUR") } else { tr("Arch") });
+        self.title.set_subtitle(&if on { tr("Arch, AUR") } else { tr("Arch") });
     }
 
     fn index(self: &Rc<Self>, extra: &[&str]) {
@@ -416,9 +416,9 @@ impl Store {
                 let name = s(r, "Name");
                 let (votes, modified) = (r["NumVotes"].as_i64().unwrap_or(0), r["LastModified"].as_i64().unwrap_or(0));
                 let desc = format!("{}{}{}", if r["OutOfDate"].is_null() { String::new() } else { tr("Flagged out of date. ") },
-                    trf!("{0} votes · version {1}", votes, s(r, "Version")),
-                    if r["Maintainer"].is_string() { trf!(" · kept by {0}", s(r, "Maintainer")) } else { tr(" · without a maintainer") });
-                let summary = format!("{} · {}", trf!("{0} votes · changed {1}", votes, day(modified)), s(r, "Description"));
+                    trf!("{0} votes, version {1}", votes, s(r, "Version")),
+                    if r["Maintainer"].is_string() { trf!(", kept by {0}", s(r, "Maintainer")) } else { tr(", without a maintainer") });
+                let summary = format!("{}, {}", trf!("{0} votes, changed {1}", votes, day(modified)), s(r, "Description"));
                 serde_json::json!({"id": name, "name": name, "summary": summary, "desc": desc, "source": "aur", "pkg": name,
                     "icon": format!("theme:{name}"), "group": "", "installed": foreign.contains(name),
                     "votes": votes, "modified": modified, "submitted": r["FirstSubmitted"].as_i64().unwrap_or(0),

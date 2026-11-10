@@ -13,7 +13,7 @@ Singleton {
     function open(d) { if (d.mount) Config.launch(["xdg-open", d.mount]); }
     function eject(d) {
         Quickshell.execDetached(["sh", "-c",
-            'udisksctl unmount -b "$1" --no-user-interaction && { udisksctl power-off -b "$2" --no-user-interaction 2>/dev/null; notify-send -a Devices -i drive-removable-media "$4" "$3"; } || notify-send -a Devices -u critical -i dialog-warning "$5" "$3 · $6"',
+            'udisksctl unmount -b "$1" --no-user-interaction && { udisksctl power-off -b "$2" --no-user-interaction 2>/dev/null; notify-send -a Devices -i drive-removable-media "$4" "$3"; } || notify-send -a Devices -u critical -i dialog-warning "$5" "$3, $6"',
             "sh", d.path, d.parent, d.label, Tr.t("Safe to remove"), Tr.t("Cannot eject"), Tr.t("still in use")]);
         later.restart();
     }
@@ -68,7 +68,7 @@ Singleton {
         } else if (p.SUBSYSTEM === "usb" && p.DEVTYPE === "usb_device" && p.ACTION === "add" && (p.ID_MTP_DEVICE === "1" || p.ID_MEDIA_PLAYER)) {
             const name = (p.ID_MODEL_FROM_DATABASE || p.ID_MODEL || Tr.t("Phone")).replace(/_/g, " ");
             Quickshell.execDetached(["sh", "-c",
-                'a=$(notify-send -a Devices -i phone -A "open=$2" "$3" "$1 · $4") && [ "$a" = open ] && xdg-open mtp://',
+                'a=$(notify-send -a Devices -i phone -A "open=$2" "$3" "$1, $4") && [ "$a" = open ] && xdg-open mtp://',
                 "sh", name, Tr.t("Open"), Tr.t("Phone connected"), Tr.t("unlock it and allow file access")]);
         }
     }

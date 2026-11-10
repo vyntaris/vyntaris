@@ -176,7 +176,7 @@ Item {
                 icon: "wifi"
                 iconLevel: Icons.wifiLevel(root.connected?.signalStrength ?? 0)
                 level: Icons.signal(root.connected?.signalStrength ?? 0)
-                details: [link.band, link.address, root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : ""].filter(s => s).join("  ·  ")
+                details: [link.band, link.address, root.connected?.security === WifiSecurityType.Open ? Tr.t("Open") : ""].filter(s => s).join(", ")
             }
 
             LinkStats { link: link }

@@ -102,7 +102,7 @@ impl Agent {
         let (t, n) = (transfer.clone(), name.clone());
         let proc = notify(
             &["-u", "critical", "-A", "accept=Accept", "-A", "decline=Decline",
-              &format!("{} wants to send a file", self.sender_name(&transfer)), &format!("{name} · {}", size_text(size))],
+              &format!("{} wants to send a file", self.sender_name(&transfer)), &format!("{name}, {}", size_text(size))],
             Some(Box::new(move |choice| me.answered(&t, &n, &choice))),
         );
         match proc {

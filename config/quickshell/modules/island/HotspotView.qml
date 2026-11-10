@@ -95,8 +95,8 @@ Item {
                         font.weight: Font.DemiBold
                         text: Hotspot.busy ? (Hotspot.active ? Tr.t("Turning off…") : Tr.t("Turning on…"))
                             : !Hotspot.active ? Tr.t("Off")
-                            : Hotspot.clients === 1 ? Tr.t("On · 1 device joined")
-                            : Tr.f("On · {0} devices joined", Hotspot.clients)
+                            : Hotspot.clients === 1 ? Tr.t("On, 1 device joined")
+                            : Tr.f("On, {0} devices joined", Hotspot.clients)
                     }
                 }
                 Field {

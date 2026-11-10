@@ -136,15 +136,17 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Theme.space6
+                    Caption { visible: root.critical; color: Theme.error; text: Tr.t("Critical") }
+                    Dot { visible: root.critical }
                     Label {
                         Layout.maximumWidth: 180
                         overline: true
                         elide: Text.ElideRight
                         font.pixelSize: Theme.fontSizeSmall
                         color: root.critical ? Theme.error : Theme.overlay1
-                        text: (root.critical ? Tr.t("Critical") + " · " : "") + (root.entry.appName || Tr.t("System"))
+                        text: root.entry.appName || Tr.t("System")
                     }
-                    Rectangle { implicitWidth: 3; implicitHeight: 3; radius: 1.5; color: Theme.overlay0 }
+                    Dot {}
                     Label { font.pixelSize: Theme.fontSizeSmall; color: Theme.overlay0; text: root.ago }
                     Item { Layout.fillWidth: true }
                     Rectangle {

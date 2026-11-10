@@ -101,11 +101,12 @@ Item {
                 color: root.player?.trackTitle ? Theme.text : Theme.overlay1
                 text: root.player?.trackTitle || Tr.t("Nothing playing")
             }
-            Label {
+            Dotted {
                 Layout.fillWidth: true
-                elide: Text.ElideRight
+                clip: true
+                caption: false
                 color: Theme.subtext0
-                text: [root.player?.trackArtist, root.player?.trackAlbum].filter(s => s).join(" · ")
+                parts: [root.player?.trackArtist, root.player?.trackAlbum]
             }
 
             Item {

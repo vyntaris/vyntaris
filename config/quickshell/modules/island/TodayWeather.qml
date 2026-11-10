@@ -38,7 +38,7 @@ ColumnLayout {
         mono: true
         text: clock.date.getDate()
     }
-    Caption { text: Tr.f("{0} · Week {1}", root.en.toString(clock.date, "MMMM"), root.week(clock.date)) }
+    Dotted { parts: [root.en.toString(clock.date, "MMMM"), Tr.f("Week {0}", root.week(clock.date))] }
 
     readonly property date born: /^\d{4}-\d{2}-\d{2}$/.test(Config.life.birthday) ? new Date(Config.life.birthday + "T00:00:00") : new Date(NaN)
     readonly property bool mori: !isNaN(born.getTime())

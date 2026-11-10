@@ -186,10 +186,10 @@ Scope {
                     Layout.fillWidth: true
                     spacing: Theme.space2
                     Label { Layout.fillWidth: true; elide: Text.ElideMiddle; font.weight: Font.DemiBold; font.pixelSize: Theme.fontSizeLarge; text: root.name }
-                    Caption {
-                        text: (info.dir ? Tr.f("{0} items", root.folder.length) : root.size(info.size))
-                            + (info.modified ? " · " + Qt.formatDateTime(new Date(info.modified * 1000), "d MMM yyyy, hh:mm") : "")
-                            + (info.mime ? " · " + info.mime : "")
+                    Dotted {
+                        parts: [info.dir ? Tr.f("{0} items", root.folder.length) : root.size(info.size),
+                                info.modified ? Qt.formatDateTime(new Date(info.modified * 1000), "d MMM yyyy, hh:mm") : "",
+                                info.mime ?? ""]
                     }
                 }
                 Button { visible: root.kind === "image"; icon: "font"; text: Tr.t("Copy text"); onClicked: { Screenshot.copyText(root.path); root.close(); } }
@@ -353,7 +353,7 @@ Scope {
                         sourceSize: Qt.size(192, 192)
                         source: Quickshell.iconPath(info.mime.replace("/", "-") || "text-x-generic", true) || Quickshell.iconPath("text-x-generic", true)
                     }
-                    Label { Layout.alignment: Qt.AlignHCenter; color: Theme.subtext0; text: Tr.t("No preview · Enter opens it") }
+                    Label { Layout.alignment: Qt.AlignHCenter; color: Theme.subtext0; text: Tr.t("No preview. Enter opens it") }
                 }
                 Column {
                     anchors.centerIn: parent

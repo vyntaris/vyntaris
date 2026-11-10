@@ -20,8 +20,8 @@ Item {
         icon: "package-update"
         tint: root.pk?.state === "failed" ? Theme.red : Theme.accent
         title: !root.pk ? Tr.t("Packages")
-            : Activities.removing ? Tr.f("Removing · {0}", root.pk.count)
-            : Activities.installing ? (root.pk.count > 0 ? Tr.f("Installing · {0}", root.pk.count) : Tr.t("Installing"))
+            : Activities.removing ? Tr.f("Removing: {0}", root.pk.count)
+            : Activities.installing ? (root.pk.count > 0 ? Tr.f("Installing: {0}", root.pk.count) : Tr.t("Installing"))
             : root.pk.state === "failed" ? Tr.t("Installation failed")
             : root.pk.state === "done" && root.pk.count > 0 && root.pk.removed === root.pk.count
                 ? (root.pk.count === 1 ? Tr.t("1 package removed") : Tr.f("{0} packages removed", root.pk.count))

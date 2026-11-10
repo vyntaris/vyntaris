@@ -214,7 +214,7 @@ PanelWindow {
             color: root.text
             font.family: Theme.fontFamily
             font.pixelSize: Theme.fontSizeLarge
-            text: CloudBackup.backingUp ? Tr.f("Backing up to Google Drive · {0} {1}%", CloudBackup.folder, Math.round(CloudBackup.progress * 100))
+            text: CloudBackup.backingUp ? Tr.f("Backing up to Google Drive: {0} {1}%", CloudBackup.folder, Math.round(CloudBackup.progress * 100))
                 : Tr.t("Backing up to Google Drive…")
         }
         Rectangle {

@@ -242,9 +242,9 @@ impl Backup {
         } else if last <= 0.0 {
             tr("No backup yet")
         } else if failed {
-            tr("Last backup didn't finish · ") + &at
+            tr("Last backup didn't finish: ") + &at
         } else {
-            tr("Last backup · ") + &at
+            tr("Last backup: ") + &at
         });
         for c in ["error", "dim-label"] {
             self.caption.remove_css_class(c);
@@ -262,7 +262,7 @@ impl Backup {
         let folder: Vec<&str> = parts.collect();
         self.progress.set_reveal_child(busy);
         if self.backing_up() {
-            self.folder.set_label(&trf!("Backing up · {0}", folder.join(" ")));
+            self.folder.set_label(&trf!("Backing up: {0}", folder.join(" ")));
             self.percent.set_label(&format!("{}%", pct.round()));
             self.bar.set_fraction(pct / 100.0);
         } else if busy {

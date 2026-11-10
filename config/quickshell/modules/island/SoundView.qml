@@ -81,7 +81,7 @@ Item {
                             elide: Text.ElideRight
                             font.weight: row.chosen ? Font.DemiBold : Font.Normal
                             color: row.chosen ? Theme.accentInk : Theme.text
-                            text: row.twin && row.modelData.sub ? `${row.modelData.label} · ${row.modelData.sub}` : row.modelData.label
+                            text: row.twin && row.modelData.sub ? `${row.modelData.label}, ${row.modelData.sub}` : row.modelData.label
                         }
                         Caption {
                             visible: !row.can

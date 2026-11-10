@@ -35,7 +35,7 @@ SettingsPage {
                 wrapMode: Text.Wrap
                 visible: CloudBackup.connected && CloudBackup.last > 0
                 color: CloudBackup.result === "failed" ? Theme.error : Theme.overlay1
-                text: (CloudBackup.result === "failed" ? Tr.t("Last backup didn't finish · ") : Tr.t("Last backup · "))
+                text: (CloudBackup.result === "failed" ? Tr.t("Last backup didn't finish: ") : Tr.t("Last backup: "))
                       + new Date(CloudBackup.last * 1000).toLocaleString(Tr.dates, Locale.ShortFormat)
             }
         }
@@ -76,14 +76,14 @@ SettingsPage {
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
                 visible: UpdateGuard.guarded && UpdateGuard.point !== ""
-                text: (UpdateGuard.pending ? Tr.t("Last update not started yet · ") : "") + Tr.t("Can go back to ") + UpdateGuard.pointDate
+                text: (UpdateGuard.pending ? Tr.t("Last update not started yet. ") : "") + Tr.t("Can go back to ") + UpdateGuard.pointDate
             }
             Caption {
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
                 visible: UpdateGuard.rollback !== null
                 color: Theme.accentInk
-                text: Tr.t("An update was undone · ") + UpdateGuard.when(UpdateGuard.rollback?.at ?? "")
+                text: Tr.t("An update was undone: ") + UpdateGuard.when(UpdateGuard.rollback?.at ?? "")
             }
         }
         Button {

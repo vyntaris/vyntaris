@@ -13,7 +13,7 @@ SettingsPage {
         Button { icon: "printer"; text: Tr.t("Add"); onClicked: Printers.addPrinter() }
         Button { icon: "refresh"; text: Tr.t("Refresh"); onClicked: Printers.refresh() }
     }
-    SettingsSection { text: Printers.list.length === 0 ? Tr.t("None") : Printers.list.length + (Printers.jobs ? " · " + Printers.jobs + Tr.t(" waiting") : "") }
+    SettingsSection { text: Printers.list.length === 0 ? Tr.t("None") : Printers.list.length + (Printers.jobs ? ", " + Printers.jobs + Tr.t(" waiting") : "") }
     Repeater {
         model: Printers.list
         RowLayout {
@@ -25,7 +25,7 @@ SettingsPage {
                 Layout.fillWidth: true
                 spacing: 0
                 Label { Layout.fillWidth: true; elide: Text.ElideRight; font.weight: Font.DemiBold; text: modelData.name.replace(/_/g, " ") }
-                Caption { text: modelData.state + (modelData.default ? Tr.t(" · default") : "") }
+                Dotted { parts: [modelData.state, modelData.default ? Tr.t("default") : ""] }
             }
             Button { visible: !modelData.default; text: Tr.t("Default"); onClicked: Printers.setDefault(modelData.name) }
             Button { text: Tr.t("Test"); onClicked: Printers.testPage(modelData.name) }
