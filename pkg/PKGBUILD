@@ -91,8 +91,7 @@ package() {
         "$r/system/timeshift.json" "$r/system/nftables.conf" "$r/system/autologin.conf" "$r/packages.txt"
     install -Dm644 "$r/system/firefox-policies.json" "$d/etc/firefox/policies/policies.json"
     # The passwords extension (installed by the policy) and its way to the island.
-    install -d "$d/usr/share/vyntaris/firefox"
-    (cd "$r/firefox/passwords" && bsdtar --format zip -cf "$d/usr/share/vyntaris/firefox/vyntaris-passwords.xpi" -- *)
+    install -Dm644 "$r/firefox/vyntaris-passwords.xpi" "$d/usr/share/vyntaris/firefox/vyntaris-passwords.xpi"  # signed by Mozilla (tools/sign-extension.py)
     install -Dm644 "$r/firefox/vyntaris_passwords.json" "$d/usr/lib/mozilla/native-messaging-hosts/vyntaris_passwords.json"
     install -Dm644 "$r/system/makepkg-vyntaris.conf" "$d/etc/makepkg.conf.d/vyntaris.conf"
     install -Dm755 "$srcdir/target/release/vyntaris-portal" "$d/usr/lib/vyntaris/portal"

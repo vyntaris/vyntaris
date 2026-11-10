@@ -59,6 +59,7 @@ Item {
             if (mouse.button !== Qt.LeftButton) { root.n?.dismiss(); return; }
             // The app is told (Discord opens the conversation), and its window comes forward, which it can't do itself.
             const app = [root.n?.desktopEntry, root.n?.appName];
+            if (root.n) Notifications.opened(root.n.id, root.n.appName);
             if (def) def.invoke(); else root.n?.dismiss();
             Notifications.focusApp(app[0], app[1]);
         }

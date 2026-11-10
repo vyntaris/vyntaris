@@ -142,7 +142,15 @@ Scope {
   --toolbar-text-color: ${h(t.text)} !important;
   --chrome-content-separator-color: ${h(t.surface0)} !important;
   --tabpanel-background-color: ${h(t.base)} !important;
+  --toolbox-bgcolor: ${h(t.crust)} !important;
+  --toolbox-bgcolor-inactive: ${h(t.crust)} !important;
+  --toolbox-non-lwt-bgcolor: ${h(t.crust)} !important;
+  --toolbox-non-lwt-bgcolor-inactive: ${h(t.crust)} !important;
+  --toolbox-textcolor: ${h(t.text)} !important;
+  --toolbox-non-lwt-textcolor: ${h(t.text)} !important;
 }
+/* Vertical tabs, beside the page. */
+#sidebar-main, sidebar-main, #vertical-tabs, #sidebar-box, #browser { background-color: ${h(t.crust)} !important; }
 #navigator-toolbox, #TabsToolbar, #titlebar { background-color: ${h(t.crust)} !important; }
 #nav-bar, #PersonalToolbar { background: ${h(t.mantle)} !important; color: ${h(t.text)} !important; border: none !important; box-shadow: none !important; }
 #navigator-toolbox { border-bottom: 1px solid ${h(t.surface0)} !important; }
