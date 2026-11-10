@@ -184,7 +184,6 @@ Scope {
                                 id: month
                                 anchors { fill: parent; margins: Theme.space16 }
                                 showPicked: false
-                                marked: d => Calendar.on(d).length > 0
                                 onPickedChanged: root.week = root.monday(picked)
                             }
                         }
@@ -330,9 +329,11 @@ Scope {
                         // Day names, dates, and the all-day events.
                         RowLayout {
                             id: headRow
+                            // A line for all-day names only in a week that has some.
+                            readonly property bool anyAllDay: root.days.some(d => Calendar.on(d).some(e => e.allDay))
                             Layout.fillWidth: true
                             Layout.topMargin: Theme.space12
-                            Layout.bottomMargin: Theme.space8
+                            Layout.bottomMargin: Theme.space12
                             Layout.rightMargin: Theme.space12
                             spacing: 0
                             Item { Layout.preferredWidth: root.gutter }
@@ -378,6 +379,7 @@ Scope {
                                     Caption {
                                         id: allDay
                                         readonly property var events: Calendar.on(head.modelData).filter(e => e.allDay)
+                                        visible: headRow.anyAllDay
                                         Layout.fillWidth: true
                                         Layout.leftMargin: Theme.space4; Layout.rightMargin: Theme.space4
                                         horizontalAlignment: Text.AlignHCenter
