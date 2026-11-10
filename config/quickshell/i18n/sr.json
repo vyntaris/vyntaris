@@ -1080,13 +1080,11 @@
  "Reminder": "Podsetnik",
  "Sync now": "Sinhronizuj sada",
  "Title": "Naslov",
- "Day": "Dan",
- "Ends": "Kraj",
- "Starts": "Početak",
  "Google isn't set up on this computer yet.": "Google još nije podešen na ovom računaru.",
  "Coming up": "Uskoro",
  "Nothing coming up": "Ništa uskoro",
  "On this computer": "Na ovom računaru",
  "Synced with Google Calendar.": "Sinhronizovano sa Google kalendarom.",
- "Week": "Nedelja"
+ "In the morning": "Ujutru",
+ "Waiting for the browser…": "Čeka se pregledač…"
 }

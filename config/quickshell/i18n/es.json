@@ -1080,13 +1080,11 @@
  "Reminder": "Recordatorio",
  "Sync now": "Sincronizar ahora",
  "Title": "Título",
- "Day": "Día",
- "Ends": "Termina",
- "Starts": "Empieza",
  "Google isn't set up on this computer yet.": "Google aún no está configurado en este equipo.",
  "Coming up": "Próximamente",
  "Nothing coming up": "Nada próximamente",
  "On this computer": "En este equipo",
  "Synced with Google Calendar.": "Sincronizado con Google Calendar.",
- "Week": "Semana"
+ "In the morning": "Por la mañana",
+ "Waiting for the browser…": "Esperando al navegador…"
 }

@@ -14,6 +14,24 @@ Singleton {
     property string google: ""
     property bool syncing: false
     property bool failed: false
+    // A Google client is set up (Vyntaris's, or the user's own), so Connect Google can sign in.
+    property bool client: false
+    property bool connecting: false
+    function status() { statusProc.running = false; statusProc.running = true; }
+    Process {
+        id: statusProc
+        command: [root.tool, "status"]
+        stdout: StdioCollector {
+            onStreamFinished: { try { const s = JSON.parse(text); root.google = s.google ?? ""; root.client = !!s.client; } catch (e) {} }
+        }
+    }
+    // Signing in waits for the browser; signing out forgets the token and Google's events here.
+    function connect() { if (!connectProc.running) { connecting = true; connectProc.command = [tool, "connect"]; connectProc.running = true; } }
+    function disconnect() { if (!connectProc.running) { connectProc.command = [tool, "disconnect"]; connectProc.running = true; } }
+    Process {
+        id: connectProc
+        onExited: { root.connecting = false; root.status(); root.refresh(); }
+    }
 
     function key(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
     // Events by day ("2026-11-12": [...]), an all-day one on each of its days.
@@ -122,7 +140,7 @@ Singleton {
 
     // The shell syncs and reminds; the calendar app (not the leader) only shows.
     Timer { running: Config.leader; repeat: true; interval: 300000; onTriggered: root.sync() }
-    Component.onCompleted: { refresh(); sync(); }
+    Component.onCompleted: { refresh(); status(); if (Config.leader) sync(); }
 
     // Each minute: what's due to be reminded of since the last look, as a notification.
     property real lastLook: Date.now()

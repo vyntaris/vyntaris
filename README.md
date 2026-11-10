@@ -510,7 +510,7 @@ come only when the first AUR app needs them; builds make no `-debug` packages
 
 ### Calendar
 
-Calendar (`rust/apps/calendar`) shows a week by the hour: a click on an empty hour adds an event there, a click
+Calendar (`calendar.qml`, made by the shell like Settings) shows a week by the hour: a click on an empty hour adds an event there, a click
 on one changes or deletes it, with its reminder, which comes as a notification (15 minutes before by default).
 The events are kept by `scripts/calendar.py` in `~/.local/share/vyntaris/calendar`, which the shell reads too.
 Connect Google signs in to Google Calendar in the browser (Vyntaris's own sign-in, the token kept in the

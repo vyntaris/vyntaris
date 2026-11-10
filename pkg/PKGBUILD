@@ -51,7 +51,7 @@ build() {
 package() {
     local r="$startdir/.." d="$pkgdir"
     install -Dm755 -t "$d/usr/bin" "$srcdir/target/release/vyntaris-health" "$srcdir/target/release/vyntaris-store" \
-        "$srcdir/target/release/vyntaris-backup" "$srcdir/target/release/vyntaris-calendar" \
+        "$srcdir/target/release/vyntaris-backup" \
         "$srcdir/target/release/vyntaris-share-picker" \
         "$srcdir/target/release/vyntaris-obex-agent" "$srcdir/target/release/vyntaris-bt-send"
     install -Dm755 "$srcdir/target/release/vyntaris-laptop-switches" "$d/usr/lib/vyntaris/laptop-switches"

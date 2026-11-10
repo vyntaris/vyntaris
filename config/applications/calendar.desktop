@@ -5,6 +5,5 @@ GenericName=Calendar
 Comment=Events by the hour, reminders, and Google Calendar
 Icon=x-office-calendar
 Exec=vyntaris-app calendar toggle
-StartupWMClass=org.vyntaris.Calendar
 Categories=Office;Calendar;
 Keywords=calendar;events;reminders;agenda;schedule;google;
