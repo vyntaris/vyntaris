@@ -20,7 +20,11 @@ Scope {
     property date week: monday(today)
     function monday(d) { const m = new Date(d.getFullYear(), d.getMonth(), d.getDate()); m.setDate(m.getDate() - (m.getDay() + 6) % 7); return m; }
     function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-    function show(iso) { const p = iso.split("-").map(Number); go(new Date(p[0], p[1] - 1, p[2])); }
+    function show(iso) { const p = iso.split("-").map(Number); go(new Date(p[0], p[1] - 1, p[2])); chosen = month.picked; }
+    // A day picked in the month (or from the control center): the side lists it, New event goes there.
+    property var chosen: null
+    readonly property bool chosenToday: chosen !== null && Calendar.key(chosen) === Calendar.key(today)
+    readonly property var listed: chosen !== null ? Calendar.on(chosen) : coming
     function go(d) { week = monday(d); month.year = d.getFullYear(); month.month = d.getMonth(); month.picked = d; }
     readonly property var days: [0, 1, 2, 3, 4, 5, 6].map(i => addDays(week, i))
     // ISO: the week with the year's first Thursday is 1.
@@ -185,10 +189,28 @@ Scope {
                                 anchors { fill: parent; margins: Theme.space16 }
                                 showPicked: false
                                 onPickedChanged: root.week = root.monday(picked)
+                                onDayClicked: d => root.chosen = root.chosen !== null && Calendar.key(root.chosen) === Calendar.key(d) ? null : d
                             }
                         }
 
-                        SectionTitle { text: Tr.t("Coming up") }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            SectionTitle {
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                text: root.chosen === null ? Tr.t("Coming up") : root.chosenToday ? Tr.t("Today")
+                                    : Tr.dates.toString(root.chosen, "dddd, d MMMM")
+                            }
+                            // Back to what's coming up.
+                            IconButton {
+                                Layout.topMargin: Theme.space24 - Theme.space6
+                                visible: root.chosen !== null
+                                size: 24
+                                icon: "close"
+                                label: Tr.t("Coming up")
+                                onClicked: root.chosen = null
+                            }
+                        }
                         Rectangle {
                             Layout.fillWidth: true
                             implicitHeight: comingList.implicitHeight + 2 * Theme.space4
@@ -200,7 +222,7 @@ Scope {
                                 // The row under the mouse: its lines go, so they don't cut through the highlight.
                                 property int hovered: -1
                                 Repeater {
-                                    model: root.coming
+                                    model: root.listed
                                     Rectangle {
                                         id: next
                                         required property var modelData
@@ -255,12 +277,12 @@ Scope {
                                     }
                                 }
                                 Caption {
-                                    visible: root.coming.length === 0
+                                    visible: root.listed.length === 0
                                     width: parent.width
                                     topPadding: Theme.space12
                                     bottomPadding: Theme.space12
                                     horizontalAlignment: Text.AlignHCenter
-                                    text: Tr.t("Nothing coming up")
+                                    text: root.chosen !== null ? Tr.t("Nothing that day") : Tr.t("Nothing coming up")
                                 }
                             }
                         }
@@ -272,7 +294,8 @@ Scope {
                             primary: true
                             icon: "plus"
                             text: Tr.t("New event")
-                            onClicked: root.newAt(root.days.some(d => Calendar.key(d) === Calendar.key(root.today)) ? root.today : root.week, clock.now.getHours() + 1)
+                            onClicked: root.chosen !== null && !root.chosenToday ? root.newAt(root.chosen, 9)
+                                : root.newAt(root.days.some(d => Calendar.key(d) === Calendar.key(root.today)) ? root.today : root.week, clock.now.getHours() + 1)
                         }
                     }
                 }
