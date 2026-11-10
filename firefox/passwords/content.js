@@ -41,14 +41,16 @@
     }, true);
 
     // A login form's username field: the island offers this site's logins (password fields it finds itself).
-    document.addEventListener("focusin", e => {
-        const el = e.target;
+    function atField(el) {
         if (!isUser(el) || el.value) return;
         const form = el.form ? [...el.form.elements] : [...document.querySelectorAll("input")];
         const pw = form.slice(form.indexOf(el) + 1).find(isPassword);
         const login = /user|login|email|account/i.test(el.name + " " + el.id + " " + el.autocomplete + " " + el.type);
         if (pw || login && el.autocomplete !== "off") browser.runtime.sendMessage({ type: "focus", site: location.hostname });
-    }, true);
+    }
+    document.addEventListener("focusin", e => atField(e.target), true);
+    // Focused by the page before this script came in (autofocus).
+    if (document.hasFocus()) atField(document.activeElement);
 
     // Typed as if by hand, so the page's own scripts see it.
     function put(el, value) {
@@ -60,7 +62,10 @@
     browser.runtime.onMessage.addListener(msg => {
         if (msg.type !== "fill" || !document.hasFocus()) return;
         const active = document.activeElement;
-        const pw = isPassword(active) ? active : [...document.querySelectorAll("input")].find(isPassword);
+        // The focused field's own form first, not a sign-up form elsewhere on the page.
+        const pw = isPassword(active) ? active
+            : (active && active.form && [...active.form.elements].find(isPassword))
+            || [...document.querySelectorAll("input")].find(isPassword);
         if (!pw) {
             // Only the username on this page.
             if (msg.user && isUser(active)) { put(active, msg.user); return Promise.resolve(true); }

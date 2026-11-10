@@ -263,7 +263,7 @@ PanelWindow {
         readonly property real islandLean: Theme.slanted ? Slant.lean(bar.islandHang) : 0
         MouseArea {
             id: islandArea
-            x: (bar.width - bar.islandWidth) / 2 - parent.islandLean
+            x: Math.round((bar.width - bar.islandWidth) / 2 - parent.islandLean)
             width: bar.islandWidth + 2 * parent.islandLean
             height: Theme.barHeight + bar.islandHang
         }
@@ -272,7 +272,7 @@ PanelWindow {
             id: islandClip
             z: 2
             Keys.onEscapePressed: bar.closePopups()
-            x: (bar.width - bar.islandWidth) / 2 - parent.islandLean
+            x: Math.round((bar.width - bar.islandWidth) / 2 - parent.islandLean)
             width: bar.islandWidth + 2 * parent.islandLean
             height: Theme.barHeight + bar.islandHang
             clip: true
@@ -285,7 +285,7 @@ PanelWindow {
                 default property Component content
                 readonly property bool current: bar.mode === name
                 readonly property Item item: loader.item
-                x: (islandClip.width - width) / 2
+                x: Math.round((islandClip.width - width) / 2)
                 width: item?.width ?? 0
                 height: item?.height ?? 0
                 opacity: current ? 1 : 0

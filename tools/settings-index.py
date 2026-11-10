@@ -32,6 +32,15 @@ def page_rows():
     for page, view in PANELS.items():
         text = (ISLAND / view).read_text()
         titles = []
+        # A switch in the panel's header: the panel's own name is a setting too.
+        head = re.search(r"\bPanelHeader\s*\{(.*?)\n    \}", text, re.S)
+        if head and re.search(r"\bSwitch\s*\{", head.group(1)):
+            t = re.search(r'\btitle:\s*(?:Tr\.t\()?("(?:[^"\\]|\\.)*")', head.group(1))
+            if t:
+                titles.append(json.loads(t.group(1)))
+        # Options written as a list: { key: "…", label: Tr.t("…") }.
+        for m in re.finditer(r'\{\s*key:\s*"[^"]*",\s*label:\s*Tr\.t\(("(?:[^"\\]|\\.)*")\)', text):
+            titles.append(json.loads(m.group(1)))
         for m in re.finditer(r"\bRow_\s*\{", text):
             head = text[m.end():].split("{", 1)[0]
             t = re.search(r'\btext:\s*(?:Tr\.t\()?("(?:[^"\\]|\\.)*")', head)
