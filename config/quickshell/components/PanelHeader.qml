@@ -20,9 +20,9 @@ RowLayout {
 
     Item {
         visible: root.icon !== ""
-        Layout.preferredWidth: 14
+        Layout.preferredWidth: 16
         Layout.fillHeight: true
-        Icon { y: Math.round((parent.height - size) / 2); name: root.icon; size: 14; color: Theme.ink(root.tint) }
+        Icon { y: Math.round((parent.height - size) / 2); name: root.icon; size: 16; color: Theme.ink(root.tint) }
     }
     Label { overline: true; color: Theme.ink(root.tint); text: root.title }
     Item { Layout.fillWidth: true }

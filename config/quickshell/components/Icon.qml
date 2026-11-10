@@ -25,6 +25,8 @@ Image {
     readonly property int px: Math.ceil(size * Screen.devicePixelRatio)
     sourceSize: Qt.size(px, px)
     source: name ? Icons.svg(name, color.toString(), dimColor.toString(), stroke, level, px, filled) : ""
-    smooth: true
+    // Drawn pixel for pixel, so not smoothed: smoothing blurred an icon that landed between two pixels (a slant,
+    // centring an odd size). Only a scale that isn't whole needs it.
+    smooth: px !== size * Screen.devicePixelRatio
     cache: true
 }

@@ -458,7 +458,7 @@ PanelWindow {
                 visible: KeepAwake.active
                 active: Panels.awakeOpen
                 onClicked: Panels.awakeOpen = !Panels.awakeOpen
-                Icon { name: KeepAwake.icon; size: 15; color: Theme.accentInk }
+                Icon { name: KeepAwake.icon; size: 16; color: Theme.accentInk }
                 Label {
                     visible: KeepAwake.minutes > 0
                     mono: true

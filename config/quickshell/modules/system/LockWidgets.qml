@@ -29,7 +29,7 @@ RowLayout {
             id: notesRow
             anchors.centerIn: parent
             spacing: Theme.space8
-            Icon { name: Notifications.dnd ? "bell-off" : "bell"; size: 15; color: Theme.accentInk }
+            Icon { name: Notifications.dnd ? "bell-off" : "bell"; size: 16; color: Theme.accentInk }
             Label {
                 font.weight: Font.DemiBold
                 text: Notifications.unread + " " + (Notifications.unread === 1 ? "notification" : "notifications")

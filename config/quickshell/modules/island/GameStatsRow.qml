@@ -10,7 +10,7 @@ RowLayout {
 
     function hot(t) { return t >= 90 ? Theme.error : t >= 80 ? Theme.warning : Theme.text; }
 
-    Icon { name: "gamepad"; size: 15; color: Theme.accentInk }
+    Icon { name: "gamepad"; size: 16; color: Theme.accentInk }
     RowLayout {
         visible: Games.fps >= 0
         spacing: Theme.space4
