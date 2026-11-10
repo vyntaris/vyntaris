@@ -21,7 +21,7 @@ Item {
         HeaderButton {
             visible: root.device !== null
             icon: "hotspot"
-            label: Hotspot.active ? Tr.t("Hotspot · on") : Tr.t("Hotspot")
+            label: Hotspot.active ? Tr.t("Hotspot: on") : Tr.t("Hotspot")
             onClicked: Panels.hotspotOpen = true
         }
         Switch {
