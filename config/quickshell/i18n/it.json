@@ -1053,5 +1053,16 @@
  "No username": "Nessun nome utente",
  "Not now": "Non ora",
  "Save password?": "Salvare la password?",
- "Update password?": "Aggiornare la password?"
+ "Update password?": "Aggiornare la password?",
+ "Hotspot": "Hotspot",
+ "Network name": "Nome della rete",
+ "On · 1 device joined": "Attivo · 1 dispositivo connesso",
+ "On · {0} devices joined": "Attivo · {0} dispositivi connessi",
+ "Password (8 or more)": "Password (8 o più)",
+ "The hotspot couldn't start. The Wi-Fi card may not allow it on this network's channel.": "Impossibile avviare l’hotspot. La scheda Wi-Fi potrebbe non consentirlo sul canale di questa rete.",
+ "This computer has no Wi-Fi card to share from.": "Questo computer non ha una scheda Wi-Fi per condividere.",
+ "Turn on anyway": "Attiva comunque",
+ "Turning off…": "Disattivazione…",
+ "Turning on…": "Attivazione…",
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet arriva via Wi-Fi e la scheda non può condividerlo nello stesso momento: attivarlo lo disconnette. Collega un cavo, o il telefono via USB, per condividere quello."
 }
