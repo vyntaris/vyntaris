@@ -8,10 +8,14 @@ import qs.services
 
 Item {
     id: root
-    readonly property real fullWidth: 640
-    readonly property real hang: 268
+    // Live from pacman, yay or a terminal: its last lines as the updates show theirs; afterwards the log, in a card.
+    readonly property bool live: (pk?.source ?? "log") !== "log"
+    readonly property var screen: live ? Terminal.screen((pk?.lines ?? []).join("\n"), 8) : []
+    readonly property real fullWidth: live ? Math.max(460, Math.ceil(lines.averageCharacterWidth * 72) + 64) : 640
+    readonly property real hang: live ? console_.height + Theme.space4 + 20 : 268
     function out(y) { return Theme.slanted ? Slant.out(height, Theme.barHeight, y) : 0; }
     readonly property var pk: Activities.packages
+    FontMetrics { id: lines; font.family: Theme.monoFamily; font.pixelSize: Theme.fontSizeSmall }
 
     width: fullWidth
     height: Theme.barHeight + hang
@@ -35,54 +39,65 @@ Item {
         }
     }
 
+    // As the updates' console: rows made once, only their text changes, so nothing blinks as lines come.
+    Item {
+        id: console_
+        readonly property var colours: ({ red: Theme.error, green: Theme.success, yellow: Theme.yellow, blue: Theme.accentInk,
+            magenta: Theme.mauve, cyan: Theme.sky, white: Theme.overlay1, dim: Theme.overlay0 })
+        y: Theme.panelTop + Theme.space4
+        width: parent.width
+        height: root.live ? lines.lineSpacing * Math.max(1, root.screen.length) : 0
+        visible: root.live
+        Label {
+            visible: root.screen.length === 0
+            x: 20 + Theme.space4 - root.out(console_.y + lines.lineSpacing)
+            font.family: Theme.monoFamily
+            font.pixelSize: Theme.fontSizeSmall
+            color: Theme.overlay1
+            text: Tr.t("Starting…")
+        }
+        Repeater {
+            model: root.screen.length
+            Item {
+                id: termRow
+                required property int index
+                readonly property var parts: Terminal.split(root.screen[index] ?? "")
+                readonly property real lean: root.out(console_.y + y + lines.lineSpacing)
+                readonly property real pad: 20 + Theme.space4
+                width: console_.width
+                height: lines.lineSpacing
+                y: index * lines.lineSpacing
+                Text {
+                    id: leftText
+                    x: termRow.pad - termRow.lean
+                    font: lines.font
+                    color: Theme.text
+                    textFormat: Text.StyledText
+                    text: Terminal.html(termRow.parts.left, console_.colours)
+                }
+                Text {
+                    readonly property real end: termRow.width - termRow.pad + termRow.lean
+                    readonly property int cells: Math.floor((end - leftText.x - leftText.implicitWidth) / lines.averageCharacterWidth) - 1
+                    x: end - implicitWidth
+                    font: lines.font
+                    color: Theme.text
+                    textFormat: Text.StyledText
+                    text: Terminal.html(Terminal.candy(termRow.parts.right, cells), console_.colours)
+                }
+            }
+        }
+    }
+
     PanelSurface {
+        visible: !root.live
         x: Theme.panelInset - root.out(y + height)
         y: Theme.panelTop
         width: parent.width - 2 * Theme.panelInset + 2 * root.out(y + height)
         height: root.hang - 18
         radius: Theme.r(Theme.radius)
 
-        // What pacman, yay or a terminal is printing, drawn as a terminal draws it, like the updates' console:
-        // a line that redraws itself stays one line, in its colours, with the progress bar.
-        ListView {
-            id: term
-            readonly property bool live: (root.pk?.source ?? "log") !== "log"
-            readonly property var colours: ({ red: Theme.error, green: Theme.success, yellow: Theme.yellow, blue: Theme.accentInk,
-                magenta: Theme.mauve, cyan: Theme.sky, white: Theme.overlay1, dim: Theme.overlay0 })
-            visible: live
-            anchors { fill: parent; margins: Theme.space10 }
-            clip: true
-            model: live ? Terminal.screen((root.pk?.lines ?? []).join("\n"), 200) : []
-            onCountChanged: if (following) Qt.callLater(positionViewAtEnd)
-            property bool following: true
-            onMovementEnded: following = atYEnd
-            FontMetrics { id: cell; font.family: Theme.monoFamily; font.pixelSize: Theme.fontSizeSmall }
-            delegate: Item {
-                id: termRow
-                required property var modelData
-                readonly property var parts: Terminal.split(modelData)
-                width: ListView.view.width
-                height: cell.lineSpacing
-                Text {
-                    id: leftText
-                    font: cell.font
-                    color: Theme.text
-                    textFormat: Text.StyledText
-                    text: Terminal.html(termRow.parts.left, term.colours)
-                }
-                Text {
-                    readonly property int cells: Math.floor((termRow.width - leftText.implicitWidth) / cell.averageCharacterWidth) - 1
-                    anchors.right: parent.right
-                    font: cell.font
-                    color: Theme.text
-                    textFormat: Text.StyledText
-                    text: Terminal.html(Terminal.candy(termRow.parts.right, cells), term.colours)
-                }
-            }
-        }
         ListView {
             id: log
-            visible: !term.live
             anchors { fill: parent; margins: Theme.space10 }
             clip: true
             model: ListModel { id: shown }
@@ -117,7 +132,7 @@ Item {
         }
         Label {
             anchors.centerIn: parent
-            visible: term.live ? term.count === 0 : log.count === 0
+            visible: log.count === 0
             color: Theme.overlay1
             text: Activities.installing ? Tr.t("Starting…") : Tr.t("No install since the shell started")
         }
