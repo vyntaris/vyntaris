@@ -30,10 +30,10 @@ ColumnLayout {
                 anchors { fill: parent; leftMargin: Theme.space6; rightMargin: Theme.space8 }
                 spacing: Theme.space10
                 Rectangle {
-                    Layout.preferredWidth: 3
-                    Layout.preferredHeight: 18
-                    radius: 2
-                    color: row.modelData.google ? Theme.accent : Theme.overlay1
+                    Layout.preferredWidth: 6
+                    Layout.preferredHeight: 6
+                    radius: 3
+                    color: Theme.accent
                 }
                 Label {
                     Layout.preferredWidth: Theme.fontSize * 3.6

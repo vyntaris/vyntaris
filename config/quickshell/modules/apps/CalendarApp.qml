@@ -24,6 +24,10 @@ Scope {
     readonly property int hourHeight: 52
     readonly property int gutter: 58
     readonly property color card: Theme.isDark ? Theme.surface0 : Theme.mantle
+    // Lines and events, mixed over the card so they sit in it.
+    readonly property color line: Theme.blend(card, Theme.text, 0.07)
+    readonly property color eventFill: Theme.blend(card, Theme.accent, 0.22)
+    readonly property color eventHover: Theme.blend(card, Theme.accent, 0.32)
     function pad(n) { return String(n).padStart(2, "0"); }
 
     Connections {
@@ -39,9 +43,7 @@ Scope {
         return Calendar.events.filter(e => e.end > now).sort((a, b) => a.start.localeCompare(b.start)).slice(0, 6);
     }
     function when(e) {
-        const d = new Date(e.start.slice(0, 10) + "T00:00");
-        const day = Calendar.key(d) === Calendar.key(today) ? Tr.t("Today") : Tr.dates.toString(d, "ddd d MMM");
-        return e.allDay ? day : day + " · " + e.start.slice(11, 16);
+        return e.allDay ? Tr.t("All day") : e.start.slice(11, 16) + " – " + e.end.slice(11, 16);
     }
 
     // The event being added or changed: null, or {id?, title, day, start "HH:MM", end, allDay, remind}.
@@ -143,15 +145,40 @@ Scope {
                         Rectangle {
                             id: next
                             required property var modelData
+                            readonly property date day: new Date(modelData.start.slice(0, 10) + "T00:00")
+                            readonly property bool isToday: Calendar.key(day) === Calendar.key(root.today)
                             Layout.fillWidth: true
-                            implicitHeight: Theme.navItemHeight + 8
+                            implicitHeight: Theme.navItemHeight + 12
                             radius: Theme.navRadius
                             color: nextArea.containsMouse ? Theme.hoverOn(parent) : "transparent"
                             Behavior on color { ColorAnim {} }
                             RowLayout {
-                                anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space12 }
+                                anchors { fill: parent; leftMargin: Theme.space6; rightMargin: Theme.space12 }
                                 spacing: Theme.space10
-                                Rectangle { Layout.preferredWidth: 3; Layout.preferredHeight: 22; radius: 2; color: Theme.accent }
+                                // The day, as a small leaf of a calendar.
+                                Rectangle {
+                                    Layout.preferredWidth: 40
+                                    Layout.preferredHeight: 40
+                                    radius: Theme.r(10)
+                                    color: next.isToday ? Theme.accent : root.card
+                                    Column {
+                                        anchors.centerIn: parent
+                                        spacing: -2
+                                        Label {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            font.pixelSize: Theme.fontSizeSmall
+                                            font.weight: Font.DemiBold
+                                            color: next.isToday ? Theme.textOnAccent : Theme.overlay1
+                                            text: Tr.dates.toString(next.day, "ddd").toUpperCase()
+                                        }
+                                        Label {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            font.weight: Font.Bold
+                                            color: next.isToday ? Theme.textOnAccent : Theme.text
+                                            text: next.day.getDate()
+                                        }
+                                    }
+                                }
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     spacing: 0
@@ -301,24 +328,25 @@ Scope {
                                             Layout.preferredWidth: 0
                                             Layout.leftMargin: 3; Layout.rightMargin: 3
                                             implicitHeight: 24
-                                            radius: Theme.r(8)
-                                            color: Theme.accent
+                                            radius: Theme.r(6)
+                                            color: chipArea.containsMouse ? root.eventHover : root.eventFill
+                                            Behavior on color { ColorAnim {} }
                                             Label {
                                                 anchors { fill: parent; leftMargin: Theme.space8; rightMargin: Theme.space6 }
                                                 verticalAlignment: Text.AlignVCenter
                                                 elide: Text.ElideRight
                                                 font.pixelSize: Theme.fontSizeSmall
                                                 font.weight: Font.DemiBold
-                                                color: Theme.textOnAccent
+                                                color: Theme.accentInk
                                                 text: chip.modelData.title
                                             }
-                                            PressArea { anchors.fill: parent; label: chip.modelData.title; onClicked: root.edit(chip.modelData) }
+                                            PressArea { id: chipArea; anchors.fill: parent; label: chip.modelData.title; onClicked: root.edit(chip.modelData) }
                                         }
                                     }
                                 }
                             }
                         }
-                        Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.base }
+                        Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: root.line }
 
                         // Hours.
                         Flickable {
@@ -348,7 +376,7 @@ Scope {
                                             font.family: Theme.monoFamily
                                             text: root.pad(parent.index) + ":00"
                                         }
-                                        Rectangle { x: root.gutter; width: parent.width - root.gutter; height: 1; color: Theme.base; visible: parent.index > 0 }
+                                        Rectangle { x: root.gutter; width: parent.width - root.gutter; height: 1; color: root.line; visible: parent.index > 0 }
                                     }
                                 }
 
@@ -363,7 +391,7 @@ Scope {
                                             required property var modelData
                                             width: parent.width / 7
                                             height: parent.height
-                                            Rectangle { width: 1; height: parent.height; color: Theme.base }
+                                            Rectangle { width: 1; height: parent.height; color: root.line }
 
                                             // An empty hour: a new event there.
                                             MouseArea {
@@ -373,13 +401,23 @@ Scope {
                                                 cursorShape: Qt.PointingHandCursor
                                                 onClicked: mouse => root.newAt(column.modelData, Math.floor(mouse.y / root.hourHeight))
                                             }
+                                            // Where a new one would go, and when.
                                             Rectangle {
+                                                id: hoverSlot
+                                                readonly property int hour: Math.floor(slot.mouseY / root.hourHeight)
                                                 visible: slot.containsMouse && root.editing === null
                                                 x: 3; width: parent.width - 6
-                                                y: Math.floor(slot.mouseY / root.hourHeight) * root.hourHeight + 1
-                                                height: root.hourHeight - 2
-                                                radius: Theme.r(8)
-                                                color: Theme.tint(root.card, Theme.text, 0.05)
+                                                y: hour * root.hourHeight + 2
+                                                height: root.hourHeight - 4
+                                                radius: Theme.r(6)
+                                                color: Theme.blend(root.card, Theme.accent, 0.08)
+                                                border { width: 1; color: Theme.blend(root.card, Theme.accent, 0.4) }
+                                                Row {
+                                                    anchors { left: parent.left; top: parent.top; margins: Theme.space6; leftMargin: Theme.space8 }
+                                                    spacing: Theme.space4
+                                                    Icon { anchors.verticalCenter: parent.verticalCenter; name: "plus"; size: 12; color: Theme.accentInk }
+                                                    Caption { color: Theme.accentInk; font.family: Theme.monoFamily; text: root.pad(hoverSlot.hour) + ":00" }
+                                                }
                                             }
 
                                             Repeater {
@@ -393,8 +431,8 @@ Scope {
                                                     y: from * root.hourHeight + 1
                                                     width: column.width - 6
                                                     height: Math.max(24, (to - from) * root.hourHeight - 2)
-                                                    radius: Theme.r(8)
-                                                    color: blockArea.containsMouse ? Theme.accentBright : Theme.accent
+                                                    radius: Theme.r(6)
+                                                    color: blockArea.containsMouse ? root.eventHover : root.eventFill
                                                     Behavior on color { ColorAnim {} }
                                                     Column {
                                                         anchors { fill: parent; margins: Theme.space6; leftMargin: Theme.space8 }
@@ -404,13 +442,13 @@ Scope {
                                                             elide: Text.ElideRight
                                                             font.pixelSize: Theme.fontSizeSmall
                                                             font.weight: Font.DemiBold
-                                                            color: Theme.textOnAccent
+                                                            color: Theme.accentInk
                                                             text: block.modelData.title
                                                         }
                                                         Label {
                                                             visible: block.height > 40
                                                             font.pixelSize: Theme.fontSizeSmall
-                                                            color: Theme.textOnAccent
+                                                            color: Theme.subtext0
                                                             text: block.modelData.start.slice(11, 16) + " – " + block.modelData.end.slice(11, 16)
                                                         }
                                                     }
