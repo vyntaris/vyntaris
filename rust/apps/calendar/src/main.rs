@@ -10,12 +10,23 @@ use vyntaris_core::i18n::tr;
 const HOUR: f64 = 52.0;
 const GUTTER: f64 = 56.0;
 const STYLE: &str = "
-.vyntaris-event { background: @accent_bg_color; color: @accent_fg_color; border-radius: 8px; padding: 4px 6px; box-shadow: none; }
+.vyntaris-week { background: @card_bg_color; border-radius: 12px; }
+.vyntaris-event { background: @accent_bg_color; color: @accent_fg_color; border-radius: 8px; padding: 4px 7px; box-shadow: none; }
 .vyntaris-event:hover { background: shade(@accent_bg_color, 1.06); }
-.vyntaris-event label { color: @accent_fg_color; }
-.vyntaris-allday { background: @accent_bg_color; color: @accent_fg_color; border-radius: 6px; padding: 1px 6px; min-height: 20px; }
-.vyntaris-hour { font-size: 0.8em; font-family: monospace; color: alpha(@window_fg_color, 0.55); }
-.vyntaris-today { background: @accent_bg_color; color: @accent_fg_color; border-radius: 99px; min-width: 34px; min-height: 34px; }
+.vyntaris-event label, .vyntaris-allday label { color: @accent_fg_color; }
+.vyntaris-allday { background: @accent_bg_color; border-radius: 6px; padding: 1px 7px; min-height: 20px; }
+.vyntaris-hour { font-size: 0.78em; font-family: monospace; color: alpha(@window_fg_color, 0.5); }
+.vyntaris-dayname { font-size: 0.78em; font-weight: 600; color: alpha(@window_fg_color, 0.6); }
+.vyntaris-daynum { font-size: 1.25em; font-weight: 600; min-width: 36px; min-height: 36px; border-radius: 99px; }
+.vyntaris-daynum.today { background: @accent_bg_color; color: @accent_fg_color; }
+.vyntaris-dayname.today { color: @accent_color; }
+.vyntaris-mhead { font-size: 0.78em; font-weight: 600; color: alpha(@window_fg_color, 0.5); }
+.vyntaris-mday { min-width: 30px; min-height: 34px; padding: 0; border-radius: 99px; font-size: 0.9em; font-feature-settings: 'tnum'; }
+.vyntaris-mday.other { color: alpha(@window_fg_color, 0.35); }
+.vyntaris-mday.week { background: mix(@window_bg_color, @accent_bg_color, 0.22); }
+.vyntaris-mday.today { background: @accent_bg_color; color: @accent_fg_color; font-weight: 700; }
+.vyntaris-mdot { font-size: 0.4em; color: @accent_color; margin-top: -2px; min-height: 4px; }
+.vyntaris-mday.today .vyntaris-mdot { color: @accent_fg_color; }
 ";
 
 thread_local! {
@@ -80,12 +91,17 @@ struct Cal {
     week: RefCell<glib::DateTime>,
     width: Cell<f64>,
     title: gtk::Label,
-    heads: Vec<gtk::Label>,
+    range: gtk::Label,
+    side_title: adw::WindowTitle,
+    heads: Vec<(gtk::Label, gtk::Label)>,
     alldays: Vec<gtk::Box>,
     area: gtk::DrawingArea,
     fixed: gtk::Fixed,
     scroll: gtk::ScrolledWindow,
-    month: gtk::Calendar,
+    mgrid: gtk::Grid,
+    mlabel: gtk::Label,
+    mshown: RefCell<glib::DateTime>,
+    coming: gtk::ListBox,
     account: gtk::Label,
     connect: gtk::Button,
     sync: gtk::Button,
@@ -111,7 +127,72 @@ impl Cal {
 
     fn show(self: &Rc<Self>, d: &glib::DateTime) {
         *self.week.borrow_mut() = monday(d);
+        if let Ok(m) = glib::DateTime::from_local(d.year(), d.month(), 1, 0, 0, 0.0) {
+            *self.mshown.borrow_mut() = m;
+        }
         self.draw();
+    }
+
+    // The month on the side: Monday first, today round in the accent, the week shown under it, a dot where there's something.
+    fn month(self: &Rc<Self>) {
+        let g = &self.mgrid;
+        while let Some(c) = g.first_child() {
+            g.remove(&c);
+        }
+        let first = self.mshown.borrow().clone();
+        self.mlabel.set_label(&fmt(&first, "%B %Y"));
+        let start = monday(&first);
+        for i in 0..7 {
+            let d = start.add_days(i).unwrap_or_else(|_| start.clone());
+            g.attach(&gtk::Label::builder().label(fmt(&d, "%a").chars().take(2).collect::<String>()).css_classes(["vyntaris-mhead"]).build(), i, 0, 1, 1);
+        }
+        let (now, week) = (key(&today()), self.days().iter().map(key).collect::<Vec<_>>());
+        for n in 0..42 {
+            let d = start.add_days(n).unwrap_or_else(|_| start.clone());
+            let k = key(&d);
+            let inner = gtk::Box::builder().orientation(gtk::Orientation::Vertical).valign(gtk::Align::Center).build();
+            inner.append(&gtk::Label::new(Some(&d.day_of_month().to_string())));
+            inner.append(&gtk::Label::builder().label(if self.on(&d).is_empty() { "" } else { "●" }).css_classes(["vyntaris-mdot"]).build());
+            let b = gtk::Button::builder().child(&inner).css_classes(["flat", "vyntaris-mday"]).build();
+            if d.month() != first.month() { b.add_css_class("other") }
+            if k == now { b.add_css_class("today") } else if week.contains(&k) { b.add_css_class("week") }
+            let me = self.clone();
+            b.connect_clicked(move |_| me.show(&d));
+            g.attach(&b, (n % 7) as i32, (n / 7 + 1) as i32, 1, 1);
+        }
+    }
+
+    // Coming up: the next events from now, a click shows their week and opens them.
+    fn coming(self: &Rc<Self>) {
+        while let Some(c) = self.coming.first_child() {
+            self.coming.remove(&c);
+        }
+        let now = glib::DateTime::now_local().map(|n| format!("{}T{:02}:{:02}", key(&n), n.hour(), n.minute())).unwrap_or_default();
+        let mut next: Vec<Value> = self.events.borrow().iter().filter(|e| e["end"].as_str().unwrap_or("") > now.as_str()).cloned().collect();
+        next.sort_by(|a, b| a["start"].as_str().cmp(&b["start"].as_str()));
+        for e in next.into_iter().take(6) {
+            let s = e["start"].as_str().unwrap_or("");
+            let when = day_of(s).map(|d| {
+                let day = if key(&d) == key(&today()) { tr("Today") } else { fmt(&d, "%a %e %b") };
+                if e["allDay"].as_bool().unwrap_or(false) { day } else { format!("{day} · {}", s.get(11..16).unwrap_or("")) }
+            }).unwrap_or_default();
+            let row = gtk::Box::builder().orientation(gtk::Orientation::Vertical).margin_top(4).margin_bottom(4).build();
+            row.append(&gtk::Label::builder().label(e["title"].as_str().unwrap_or("")).xalign(0.0).ellipsize(gtk::pango::EllipsizeMode::End).build());
+            row.append(&gtk::Label::builder().label(when).xalign(0.0).css_classes(["caption", "dim-label"]).build());
+            let r = gtk::ListBoxRow::builder().child(&row).build();
+            let me = self.clone();
+            let gesture = gtk::GestureClick::new();
+            gesture.connect_released(move |_, _, _, _| {
+                if let Some(d) = day_of(e["start"].as_str().unwrap_or("")) { me.show(&d) }
+                me.edit(Some(e.clone()), None, None, false);
+            });
+            r.add_controller(gesture);
+            self.coming.append(&r);
+        }
+        if self.coming.first_child().is_none() {
+            self.coming.append(&gtk::ListBoxRow::builder().activatable(false)
+                .child(&gtk::Label::builder().label(tr("Nothing coming up")).xalign(0.0).css_classes(["dim-label"]).margin_top(4).margin_bottom(4).build()).build());
+        }
     }
 
     fn reload(self: &Rc<Self>) {
@@ -141,8 +222,9 @@ impl Cal {
 
     fn account_shown(&self, client: bool) {
         let g = self.google.borrow();
+        self.side_title.set_subtitle(&if g.is_empty() { tr("On this computer") } else { g.clone() });
         if !g.is_empty() {
-            self.account.set_label(&g);
+            self.account.set_label(&tr("Synced with Google Calendar."));
             self.connect.set_label(&tr("Sign out"));
         } else {
             self.account.set_label(&if client { tr("Not connected: events stay on this computer.") } else { tr("Google isn't set up on this computer yet.") });
@@ -156,10 +238,15 @@ impl Cal {
         let days = self.days();
         let now = today();
         self.title.set_label(&fmt(&days[3], "%B %Y"));
+        self.range.set_label(&format!("{} – {}", fmt(&days[0], "%e %b"), fmt(&days[6], "%e %b")));
         for (i, d) in days.iter().enumerate() {
             let is_today = key(d) == key(&now);
-            self.heads[i].set_label(&format!("{}\n{}", fmt(d, "%a").to_uppercase(), d.day_of_month()));
-            if is_today { self.heads[i].add_css_class("accent") } else { self.heads[i].remove_css_class("accent") }
+            let (name, num) = &self.heads[i];
+            name.set_label(&fmt(d, "%a").to_uppercase());
+            num.set_label(&d.day_of_month().to_string());
+            for w in [name, num] {
+                if is_today { w.add_css_class("today") } else { w.remove_css_class("today") }
+            }
             let all = &self.alldays[i];
             while let Some(c) = all.first_child() {
                 all.remove(&c);
@@ -175,6 +262,8 @@ impl Cal {
         }
         self.place();
         self.area.queue_draw();
+        self.month();
+        self.coming();
     }
 
     // The hours' labels and the timed events, on the grid as wide as it is now.
@@ -325,50 +414,62 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
         css.load_from_string(STYLE);
         gtk::style_context_add_provider_for_display(&display, &css, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION + 1);
     }
-    let win = adw::ApplicationWindow::builder().application(app).title(tr("Calendar")).default_width(1100).default_height(760).build();
-    vyntaris_ui::escape_closes(&win);
-
-    // The header: new event, today, the weeks before and after.
-    let header = adw::HeaderBar::new();
-    let title = gtk::Label::builder().css_classes(["title-3"]).build();
-    header.set_title_widget(Some(&title));
-    let new = gtk::Button::builder().icon_name("list-add-symbolic").label(tr("New event")).css_classes(["suggested-action"]).build();
-    new.set_child(Some(&adw::ButtonContent::builder().icon_name("list-add-symbolic").label(tr("New event")).build()));
-    let today_b = gtk::Button::with_label(&tr("Today"));
-    let prev = gtk::Button::builder().icon_name("go-previous-symbolic").tooltip_text(tr("Previous week")).build();
-    let next = gtk::Button::builder().icon_name("go-next-symbolic").tooltip_text(tr("Next week")).build();
-    header.pack_start(&new);
-    header.pack_end(&next);
-    header.pack_end(&prev);
-    header.pack_end(&today_b);
-
-    // The side: the month, and the Google account.
-    let side = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(12).width_request(280)
-        .margin_top(12).margin_bottom(18).margin_start(18).margin_end(12).build();
-    let month = gtk::Calendar::new();
-    side.append(&month);
-    side.append(&gtk::Box::builder().vexpand(true).build());
-    side.append(&gtk::Label::builder().label("Google").xalign(0.0).css_classes(["heading"]).build());
-    let account = gtk::Label::builder().xalign(0.0).wrap(true).css_classes(["dim-label"]).build();
-    side.append(&account);
-    let row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-    let connect = gtk::Button::builder().css_classes(["pill"]).build();
+    // The side: the app's name and account, a new event, the month, what's coming up, Google.
+    let side_title = adw::WindowTitle::new(&tr("Calendar"), &tr("On this computer"));
+    let new = gtk::Button::builder().css_classes(["suggested-action", "pill"]).build();
+    new.set_child(Some(&adw::ButtonContent::builder().icon_name("list-add-symbolic").label(tr("New event")).halign(gtk::Align::Center).build()));
+    let mprev = gtk::Button::builder().icon_name("go-previous-symbolic").css_classes(["flat", "circular"]).tooltip_text(tr("Previous month")).build();
+    let mnext = gtk::Button::builder().icon_name("go-next-symbolic").css_classes(["flat", "circular"]).tooltip_text(tr("Next month")).build();
+    let mlabel = gtk::Label::builder().xalign(0.0).hexpand(true).css_classes(["heading"]).build();
+    let mtop = gtk::Box::new(gtk::Orientation::Horizontal, 2);
+    mtop.append(&mlabel);
+    mtop.append(&mprev);
+    mtop.append(&mnext);
+    let mgrid = gtk::Grid::builder().column_homogeneous(true).row_spacing(2).column_spacing(2).build();
+    let coming = gtk::ListBox::builder().selection_mode(gtk::SelectionMode::None).css_classes(["navigation-sidebar"]).build();
+    let account = gtk::Label::builder().xalign(0.0).wrap(true).css_classes(["caption", "dim-label"]).build();
+    let connect = gtk::Button::builder().css_classes(["pill"]).hexpand(true).build();
     let sync = gtk::Button::builder().icon_name("view-refresh-symbolic").tooltip_text(tr("Sync now")).css_classes(["circular"]).build();
-    row.append(&connect);
-    row.append(&sync);
-    side.append(&row);
+    let google_row = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+    google_row.append(&connect);
+    google_row.append(&sync);
+    let side = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(12)
+        .margin_top(12).margin_bottom(12).margin_start(12).margin_end(12).build();
+    side.append(&new);
+    side.append(&mtop);
+    side.append(&mgrid);
+    side.append(&gtk::Label::builder().label(tr("Coming up")).xalign(0.0).css_classes(["heading"]).margin_top(6).build());
+    side.append(&gtk::ScrolledWindow::builder().vexpand(true).hscrollbar_policy(gtk::PolicyType::Never).child(&coming).build());
+    side.append(&gtk::Label::builder().label("Google").xalign(0.0).css_classes(["heading"]).build());
+    side.append(&account);
+    side.append(&google_row);
+    let side_bar = adw::ToolbarView::new();
+    side_bar.add_top_bar(&adw::HeaderBar::builder().title_widget(&side_title).build());
+    side_bar.set_content(Some(&side));
 
-    // The week: day names and all-day events, then the hours.
-    let heads_grid = gtk::Grid::builder().column_homogeneous(false).margin_end(12).margin_top(6).margin_bottom(6).build();
-    heads_grid.attach(&gtk::Box::builder().width_request(GUTTER as i32).build(), 0, 0, 1, 2);
+    // The content: the month and week's name, today and the weeks around it, then the week in a card.
+    let title = gtk::Label::builder().xalign(0.0).css_classes(["title-2"]).build();
+    let range = gtk::Label::builder().xalign(0.0).hexpand(true).css_classes(["dim-label"]).valign(gtk::Align::Baseline).build();
+    let today_b = gtk::Button::builder().label(tr("Today")).css_classes(["pill"]).valign(gtk::Align::Center).build();
+    let prev = gtk::Button::builder().icon_name("go-previous-symbolic").css_classes(["circular"]).valign(gtk::Align::Center).tooltip_text(tr("Previous week")).build();
+    let next = gtk::Button::builder().icon_name("go-next-symbolic").css_classes(["circular"]).valign(gtk::Align::Center).tooltip_text(tr("Next week")).build();
+    let top = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    for w in [title.upcast_ref::<gtk::Widget>(), range.upcast_ref(), today_b.upcast_ref(), prev.upcast_ref(), next.upcast_ref()] {
+        top.append(w);
+    }
+
+    let heads_grid = gtk::Grid::builder().margin_end(12).margin_top(10).margin_bottom(8).build();
+    heads_grid.attach(&gtk::Box::builder().width_request(GUTTER as i32).build(), 0, 0, 1, 3);
     let mut heads = vec![];
     let mut alldays = vec![];
     for i in 0..7 {
-        let l = gtk::Label::builder().justify(gtk::Justification::Center).hexpand(true).css_classes(["heading"]).build();
-        let a = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).margin_start(3).margin_end(3).margin_top(4).build();
-        heads_grid.attach(&l, i + 1, 0, 1, 1);
-        heads_grid.attach(&a, i + 1, 1, 1, 1);
-        heads.push(l);
+        let name = gtk::Label::builder().hexpand(true).css_classes(["vyntaris-dayname"]).build();
+        let num = gtk::Label::builder().halign(gtk::Align::Center).css_classes(["vyntaris-daynum"]).build();
+        let a = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).margin_start(3).margin_end(3).margin_top(6).build();
+        heads_grid.attach(&name, i + 1, 0, 1, 1);
+        heads_grid.attach(&num, i + 1, 1, 1, 1);
+        heads_grid.attach(&a, i + 1, 2, 1, 1);
+        heads.push((name, num));
         alldays.push(a);
     }
     let area = gtk::DrawingArea::builder().content_height((24.0 * HOUR) as i32).hexpand(true).css_classes(["accent"]).build();
@@ -376,25 +477,32 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
     let overlay = gtk::Overlay::builder().child(&area).margin_end(12).build();
     overlay.add_overlay(&fixed);
     let scroll = gtk::ScrolledWindow::builder().child(&overlay).vexpand(true).hscrollbar_policy(gtk::PolicyType::Never).build();
-    let week_box = gtk::Box::new(gtk::Orientation::Vertical, 0);
-    week_box.append(&heads_grid);
-    week_box.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
-    week_box.append(&scroll);
+    let week_card = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["vyntaris-week"]).vexpand(true).build();
+    week_card.set_overflow(gtk::Overflow::Hidden);
+    week_card.append(&heads_grid);
+    week_card.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
+    week_card.append(&scroll);
+    let page = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(14)
+        .margin_top(6).margin_bottom(18).margin_start(18).margin_end(18).build();
+    page.append(&top);
+    page.append(&week_card);
+    let content = adw::ToolbarView::new();
+    content.add_top_bar(&adw::HeaderBar::builder().show_title(false).build());
+    content.set_content(Some(&page));
 
-    let body = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-    body.append(&side);
-    body.append(&gtk::Separator::new(gtk::Orientation::Vertical));
-    week_box.set_hexpand(true);
-    body.append(&week_box);
-    let view = adw::ToolbarView::new();
-    view.add_top_bar(&header);
-    view.set_content(Some(&body));
-    win.set_content(Some(&view));
+    let split = adw::NavigationSplitView::builder()
+        .sidebar(&adw::NavigationPage::builder().title(tr("Calendar")).child(&side_bar).build())
+        .content(&adw::NavigationPage::builder().title(tr("Week")).child(&content).build())
+        .min_sidebar_width(272.0).max_sidebar_width(272.0).build();
+    let win = adw::ApplicationWindow::builder().application(app).title(tr("Calendar")).default_width(1180).default_height(780)
+        .width_request(860).height_request(560).content(&split).build();
+    vyntaris_ui::escape_closes(&win);
 
+    let first = glib::DateTime::now_local().ok().and_then(|n| glib::DateTime::from_local(n.year(), n.month(), 1, 0, 0, 0.0).ok()).unwrap_or_else(today);
     let cal = Rc::new(Cal {
         win: win.clone(), events: RefCell::default(), week: RefCell::new(monday(&today())), width: Cell::new(0.0),
-        title, heads, alldays, area: area.clone(), fixed, scroll: scroll.clone(), month: month.clone(), account, connect: connect.clone(),
-        sync: sync.clone(), google: RefCell::default(),
+        title, range, side_title, heads, alldays, area: area.clone(), fixed, scroll: scroll.clone(), mgrid, mlabel, mshown: RefCell::new(first),
+        coming, account, connect: connect.clone(), sync: sync.clone(), google: RefCell::default(),
     });
     APP.set(Some(cal.clone()));
 
@@ -457,13 +565,21 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
         c.edit(None, Some(d), Some(n.map_or(9, |n| (n.hour() + 1) as u32)), false);
     });
     let c = cal.clone();
-    today_b.connect_clicked(move |_| { c.show(&today()); c.month.select_day(&today()); c.scroll_now(); });
+    today_b.connect_clicked(move |_| { c.show(&today()); c.scroll_now(); });
     let c = cal.clone();
     prev.connect_clicked(move |_| { let w = c.week.borrow().add_days(-7).ok(); if let Some(w) = w { c.show(&w); } });
     let c = cal.clone();
     next.connect_clicked(move |_| { let w = c.week.borrow().add_days(7).ok(); if let Some(w) = w { c.show(&w); } });
-    let c = cal.clone();
-    month.connect_day_selected(move |m| c.show(&m.date()));
+    for (b, by) in [(mprev, -1), (mnext, 1)] {
+        let c = cal.clone();
+        b.connect_clicked(move |_| {
+            let m = c.mshown.borrow().add_months(by).ok();
+            if let Some(m) = m {
+                *c.mshown.borrow_mut() = m;
+                c.month();
+            }
+        });
+    }
     let c = cal.clone();
     sync.connect_clicked(move |_| c.sync());
     let c = cal.clone();

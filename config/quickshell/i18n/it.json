@@ -1083,5 +1083,10 @@
  "Day": "Giorno",
  "Ends": "Fine",
  "Starts": "Inizio",
- "Google isn't set up on this computer yet.": "Google non è ancora configurato su questo computer."
+ "Google isn't set up on this computer yet.": "Google non è ancora configurato su questo computer.",
+ "Coming up": "In arrivo",
+ "Nothing coming up": "Niente in arrivo",
+ "On this computer": "Su questo computer",
+ "Synced with Google Calendar.": "Sincronizzato con Google Calendar.",
+ "Week": "Settimana"
 }
