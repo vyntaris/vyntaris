@@ -9,8 +9,10 @@
 #   fill NAME [user|here]  into the field with the focus: through Firefox's extension, else typed (the
 #                          password; the username, Tab, the password from the password field (user) or
 #                          from the username field (here))
+#   fill-fields NAME       personal info or a card ("key: value" lines) into the form with the focus, through Firefox's extension
 #   check SITE             a login (username and password lines on stdin): same | changed NAME | new NAME | locked
-#   copy NAME [login]      to the clipboard, cleared after 45 s
+#   copy NAME [login|field:KEY|note]   to the clipboard (the password, the username, a "KEY:" line, a note's text),
+#                          cleared after 45 s
 #   save NAME              the entry on stdin
 #   delete NAME
 #   generate               a new password
@@ -93,12 +95,27 @@ fill)
         fi
     fi
     password <<<"$entry" | tr -d '\n' | wtype - ;;
+fill-fields)
+    entry=$(decrypt "$2") || exit $?
+    sleep 0.35
+    python3 -c '
+import json, sys
+d = {}
+for line in sys.stdin.read().splitlines()[1:]:
+    k, sep, v = line.partition(":")
+    if sep and v.strip():
+        d[k.strip().lower()] = v.strip()
+print(json.dumps({"fields": d}))' <<<"$entry" | "$(dirname "$0")/pass-host.py" fill ;;
 copy)
     entry=$(decrypt "$2") || exit $?
     if [ "$3" = login ]; then
         login "$2" <<<"$entry" | wl-copy
     else
-        secret=$(password <<<"$entry")
+        case "$3" in
+            field:*) secret=$(grep -m 1 -i "^${3#field:}:" <<<"$entry" | sed -E 's/^[^:]+: *//') ;;
+            note) secret=$(tail -n +2 <<<"$entry") ;;
+            *) secret=$(password <<<"$entry") ;;
+        esac
         printf '%s' "$secret" | wl-copy --sensitive
         (
             sleep 45

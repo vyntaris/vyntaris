@@ -25,6 +25,17 @@
         }
       }
     },
-    "OfferToSaveLogins": false
+    "OfferToSaveLogins": false,
+    "AutofillAddressEnabled": true,
+    "Preferences": {
+      "extensions.formautofill.addresses.supported": {
+        "Value": "on",
+        "Status": "default"
+      },
+      "extensions.formautofill.addresses.supportedCountries": {
+        "Value": "US,CA,DE,FR,GB,IT,ES,AT,BE,PL,RS,HR,BA,ME,SI,MK",
+        "Status": "default"
+      }
+    }
   }
 }

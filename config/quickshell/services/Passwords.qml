@@ -39,12 +39,54 @@ Singleton {
     function search(query) {
         const q = query.trim().toLowerCase();
         const hits = entries.filter(e => !q || e.toLowerCase().includes(q) || matches(e, q));
-        const near = hits.filter(e => matches(e, site));
-        return near.concat(hits.filter(e => !near.includes(e)));
+        // Lists never mixed: the passwords, the personal info, the cards, the notes.
+        if (tab !== "logins") return hits.filter(e => kindOf(e) === tab);
+        const logins = hits.filter(e => kindOf(e) === "logins");
+        const near = logins.filter(e => matches(e, site));
+        return near.concat(logins.filter(e => !near.includes(e)));
+    }
+    // "logins", "people", "cards" or "notes": a sign-up opens on who you are, a card field on the cards.
+    property string tab: "logins"
+
+    // Besides the logins: personal info ("identity/Me", what a sign-up asks for), cards ("card/Visa", what a
+    // checkout asks for) and notes ("note/Wi-Fi", only to read and copy). "key: value" lines after the first.
+    readonly property var prefixes: ({ people: "identity/", cards: "card/", notes: "note/" })
+    readonly property var identityKeys: ["first", "last", "username", "email", "phone", "address", "city", "postal", "country", "company"]
+    readonly property var cardKeys: ["holder", "number", "expiry", "cvv"]
+    function kindOf(name) {
+        for (const k in prefixes) if (name.startsWith(prefixes[k])) return k;
+        return "logins";
+    }
+    function labelOf(name) { const k = kindOf(name); return k === "logins" ? name : name.slice(prefixes[k].length); }
+    function isIdentity(name) { return kindOf(name) === "people"; }
+    property bool signup: false
+    function store(kind, label, lines, replacing) {
+        label = label.trim().replace(/\//g, "-");
+        if (!label) return;
+        const name = prefixes[kind] + label;
+        saveProc.input = lines.join("\n");
+        saveProc.replacing = replacing && replacing !== name ? replacing : "";
+        saveProc.command = [tool, "save", name];
+        saveProc.running = true;
+    }
+    function saveFields(kind, label, values, replacing) {
+        const keys = kind === "cards" ? cardKeys : identityKeys;
+        store(kind, label, [kind === "cards" ? "card" : "identity"]
+            .concat(keys.filter(k => (values[k] ?? "").trim()).map(k => k + ": " + values[k].trim())), replacing);
+    }
+    function saveNote(label, text, replacing) { store("notes", label, ["note", text], replacing); }
+    function noteOf(text) { return text.split("\n").slice(1).join("\n").replace(/\n+$/, ""); }
+    function fieldsOf(text) {
+        const values = {};
+        for (const line of text.split("\n").slice(1)) {
+            const at = line.indexOf(":");
+            if (at > 0) values[line.slice(0, at).trim().toLowerCase()] = line.slice(at + 1).trim();
+        }
+        return values;
     }
 
     function open(fromField) {
-        if (!fromField) { site = ""; app = ""; userField = false; userEmpty = false; atUser = false; }
+        if (!fromField) { site = ""; app = ""; userField = false; userEmpty = false; atUser = false; signup = false; tab = "logins"; }
         refresh();
         Panels.passwordsOpen = true;
     }
@@ -55,7 +97,7 @@ Singleton {
         if (busy) return;
         pending = { kind, name, extra: extra ?? "" };
         failure = "";
-        const args = kind === "fill" ? ["fill", name, atUser ? "here" : extra ? "user" : ""]
+        const args = kind === "fill" ? (kindOf(name) !== "logins" ? ["fill-fields", name] : ["fill", name, atUser ? "here" : extra ? "user" : ""])
             : kind === "copy" ? ["copy", name, extra]
             : ["show", name];
         if (kind === "fill") Panels.passwordsOpen = false;
@@ -91,7 +133,10 @@ Singleton {
         pending = null;
         if (actProc.code !== 0) { failure = Tr.t("That entry couldn't be read."); return; }
         if (p.kind === "show") opened(p.name, actProc.text);
-        if (p.kind === "copy") { Panels.passwordsOpen = false; Osd.show(p.extra === "login" ? "username-copied" : "password-copied"); }
+        if (p.kind === "copy") {
+            Panels.passwordsOpen = false;
+            Osd.show(p.extra === "login" ? "username-copied" : p.extra === "" ? "password-copied" : "copied");
+        }
     }
 
     function unlock(phrase) {
@@ -175,7 +220,7 @@ Singleton {
     }
     Process { id: removeProc; onExited: root.refresh() }
 
-    // A login Firefox just sent that isn't saved, or is saved with another password: offered in the island.
+    // A login Firefox just sent: saved if it's new, offered in the island if it's saved with another password.
     property var offer: null
     function takeOffer() { offerRead.running = false; offerRead.running = true; }
     Process {
@@ -204,8 +249,11 @@ Singleton {
                 const [answer, name] = [text.trim().split(" ")[0], text.trim().split(" ").slice(1).join(" ")];
                 const l = offerCheck.login;
                 offerCheck.stdinEnabled = true;
-                if (!l || (answer !== "new" && answer !== "changed")) return;
-                root.offer = { site: l.site, user: l.user, password: l.password, name, update: answer === "changed" };
+                if (!l || !name) return;
+                // A new login is kept straight away; a changed one is asked about.
+                if (answer === "new") { root.save(name, l.password, l.user, l.site, ""); Osd.show("password-saved"); return; }
+                if (answer !== "changed") return;
+                root.offer = { site: l.site, user: l.user, password: l.password, name, update: true };
                 offerTimer.restart();
             }
         }
@@ -254,27 +302,30 @@ Singleton {
         function onLockedChanged() { if (LockState.locked) root.lock(); }
     }
 
-    // A username field in Firefox (from the extension): the island, only where there's something to fill.
-    function atUserField(site) {
-        site = site.replace(/^www\./, "");
-        if (!Config.passwords.autoOpen || !ready || LockState.locked || Panels.anyIslandPanel) return;
-        if (quiet.running && site === lastPlace) return;
-        if (!entries.some(e => matches(e, site))) return;
-        lastPlace = site;
-        quiet.restart();
-        root.site = site;
-        root.app = "firefox";
-        userField = true;
-        userEmpty = true;
-        atUser = true;
-        open(true);
-    }
     property bool atUser: false
 
-    // A password field anywhere: the island, searched for it. Not again for the same place for a while
-    // (filling it, or Esc, gives the field the focus again).
-    property string lastPlace: ""
-    Timer { id: quiet; interval: 120000 }
+    // The icon in a Firefox field: the island, every time (again: closed).
+    function pickFor(site, field, user, userEmpty, signup) {
+        if (LockState.locked) return;
+        if (Panels.passwordsOpen) { Panels.passwordsOpen = false; return; }
+        site = site.replace(/^www\./, "");
+        root.site = site;
+        root.app = "firefox";
+        atUser = field === "user";
+        root.signup = signup;
+        tab = field === "card" ? "cards" : signup ? "people" : "logins";
+        userField = atUser || user;
+        userEmpty = atUser || userEmpty;
+        open(true);
+    }
+
+    // A password field in another app: the island, searched for it. Not right after it closed: filling the
+    // field, or Esc, gives it the focus again.
+    Timer { id: justClosed; interval: 1500 }
+    Connections {
+        target: Panels
+        function onPasswordsOpenChanged() { if (!Panels.passwordsOpen) justClosed.restart(); }
+    }
     Process {
         id: watch
         running: Config.passwords.autoOpen && root.installed && !LockState.locked
@@ -284,11 +335,7 @@ Singleton {
                 let e;
                 try { e = JSON.parse(line); } catch (err) { return; }
                 if (e.error !== undefined || !e.empty) return;
-                const place = e.site || e.app;
-                if (quiet.running && place === root.lastPlace) return;
-                if (Panels.anyIslandPanel || LockState.locked) return;
-                root.lastPlace = place;
-                quiet.restart();
+                if (justClosed.running || Panels.anyIslandPanel || LockState.locked) return;
                 root.site = e.site || "";
                 root.app = e.app || "";
                 root.userField = !!e.user;

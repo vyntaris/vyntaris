@@ -11,7 +11,8 @@ gi.require_version("Atspi", "2.0")
 from gi.repository import Atspi, Gio, GLib  # noqa: E402
 
 warnings.simplefilter("ignore", DeprecationWarning)
-SKIP = {"quickshell", "qs", "kitty", "pinentry", "gcr-prompter"}
+# Firefox has the icon in its fields (the extension).
+SKIP = {"quickshell", "qs", "kitty", "pinentry", "gcr-prompter", "firefox"}
 
 
 def turn_on():
