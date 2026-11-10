@@ -25,6 +25,7 @@ var material = {
     "logout": "logout",
     "lock": "lock",
     "vpn": "vpn_key",
+    "hotspot": "wifi_tethering",
     "search": "search",
     "eye": "visibility",
     "eye-off": "visibility_off",

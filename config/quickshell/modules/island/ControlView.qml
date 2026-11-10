@@ -226,6 +226,20 @@ Item {
                 onClicked: { if (Vpn.list.length > 0 || Vpn.places.length > 0) Vpn.quick(); else Panels.vpnOpen = true; }
                 onMoreClicked: Panels.vpnOpen = true
             }
+            QuickTile {
+                Layout.fillWidth: true
+                Layout.columnSpan: 2
+                icon: "hotspot"
+                title: Tr.t("Hotspot")
+                subtitle: Hotspot.busy ? Tr.t("Turning on…") : !Hotspot.active ? Tr.t("Off")
+                    : Hotspot.clients > 0 ? Tr.f("{0} devices", Hotspot.clients) : Hotspot.ssid
+                on: Hotspot.active
+                enabled: Hotspot.hasCard
+                more: true
+                // Over Wi-Fi internet it would cut it off: the panel says so first.
+                onClicked: { if (Hotspot.viaWifi && !Hotspot.active) Panels.hotspotOpen = true; else Hotspot.toggle(); }
+                onMoreClicked: Panels.hotspotOpen = true
+            }
         }
 
         component Card: Item {

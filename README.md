@@ -366,6 +366,10 @@ choice of notification sounds.
   the bar and its notifications on the desktop, one clipboard for both, find my phone, files both ways,
   and the phone as a touchpad, keyboard and remote. It's off until turned on, as it makes the computer
   visible on the network.
+- **Hotspot** (its tile in the control center, `hotspot` in the launcher): this computer's internet shared over
+  its Wi-Fi card, a NetworkManager connection (`scripts/hotspot.sh`) named after the computer with a password
+  made for it; the panel changes both and shows a QR code phones scan to join. A Wi-Fi card uses one channel at
+  a time, so internet that itself comes over Wi-Fi can't be shared: the panel says so before turning it on.
 - **Printers** with CUPS (Settings → Printers), found on the network through Avahi; their drivers install
   by themselves. **Scanners** work with Simple Scan.
 

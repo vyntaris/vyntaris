@@ -307,6 +307,12 @@ Scope {
     }
 
     IpcHandler {
+        target: "hotspot"
+        function toggle(): void { Hotspot.toggle() }
+        function panel(): void { Panels.hotspotOpen = !Panels.hotspotOpen }
+    }
+
+    IpcHandler {
         target: "passwords"
         function open(): void { Passwords.open(false) }
         function toggle(): void { if (Panels.passwordsOpen) Panels.passwordsOpen = false; else Passwords.open(false) }

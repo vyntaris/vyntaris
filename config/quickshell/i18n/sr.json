@@ -1053,5 +1053,16 @@
  "No username": "Bez korisničkog imena",
  "Not now": "Ne sada",
  "Save password?": "Sačuvati lozinku?",
- "Update password?": "Ažurirati lozinku?"
+ "Update password?": "Ažurirati lozinku?",
+ "Hotspot": "Hotspot",
+ "Network name": "Naziv mreže",
+ "On · 1 device joined": "Uključen · 1 uređaj povezan",
+ "On · {0} devices joined": "Uključen · povezanih uređaja: {0}",
+ "Password (8 or more)": "Lozinka (8 ili više)",
+ "The hotspot couldn't start. The Wi-Fi card may not allow it on this network's channel.": "Hotspot nije mogao da se pokrene. Wi-Fi kartica to možda ne dozvoljava na kanalu ove mreže.",
+ "This computer has no Wi-Fi card to share from.": "Ovaj računar nema Wi-Fi karticu za deljenje.",
+ "Turn on anyway": "Ipak uključi",
+ "Turning off…": "Isključivanje…",
+ "Turning on…": "Uključivanje…",
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet ti dolazi preko Wi-Fi-ja, a kartica ne može istovremeno i da ga deli: uključivanje ga prekida. Priključi kabl ili telefon preko USB-a da bi delio taj internet."
 }
