@@ -78,18 +78,25 @@ Item {
             color: Theme.accent
         }
 
+        // As tall as the row, and what's in it placed on whole pixels: centred, a 13 px icon in 16 sat
+        // on half a pixel and came out blurred.
         Item {
+            id: activityMark
             visible: root.activity !== null
             Layout.leftMargin: Theme.space4
-            implicitWidth: 16; implicitHeight: 16
+            Layout.fillHeight: true
+            implicitWidth: 16
+            readonly property int markTop: Math.round((height - 16) / 2)
             Ring {
-                anchors.fill: parent
+                y: activityMark.markTop
+                width: 16; height: 16
                 visible: (root.activity?.progress ?? -1) >= 0
                 value: Math.max(0, root.activity?.progress ?? 0)
                 thickness: 2
             }
             Icon {
-                anchors.centerIn: parent
+                x: Math.round((16 - size) / 2)
+                y: activityMark.markTop + Math.round((16 - size) / 2)
                 name: root.activity?.icon ?? ""
                 size: (root.activity?.progress ?? -1) >= 0 ? 9 : 13
                 color: Theme.ink(root.activity?.color ?? Theme.accent)
