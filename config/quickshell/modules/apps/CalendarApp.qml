@@ -26,8 +26,9 @@ Scope {
     readonly property color card: Theme.isDark ? Theme.surface0 : Theme.mantle
     // Lines and events, mixed over the card so they sit in it.
     readonly property color line: Theme.blend(card, Theme.text, 0.07)
-    readonly property color eventFill: Theme.blend(card, Theme.accent, 0.22)
-    readonly property color eventHover: Theme.blend(card, Theme.accent, 0.32)
+    // Events in full colour, as everything is.
+    readonly property color eventFill: Theme.accent
+    readonly property color eventHover: Theme.accentBright
     function pad(n) { return String(n).padStart(2, "0"); }
 
     Connections {
@@ -369,7 +370,7 @@ Scope {
                                                 elide: Text.ElideRight
                                                 font.pixelSize: Theme.fontSizeSmall
                                                 font.weight: Font.DemiBold
-                                                color: Theme.accentInk
+                                                color: Theme.textOnAccent
                                                 text: chip.modelData.title
                                             }
                                             PressArea { id: chipArea; anchors.fill: parent; label: chip.modelData.title; onClicked: root.edit(chip.modelData) }
@@ -442,8 +443,7 @@ Scope {
                                                 y: hour * root.hourHeight + 2
                                                 height: root.hourHeight - 4
                                                 radius: Theme.r(6)
-                                                color: Theme.blend(root.card, Theme.accent, 0.08)
-                                                border { width: 1; color: Theme.blend(root.card, Theme.accent, 0.4) }
+                                                color: Theme.surface1
                                                 Row {
                                                     anchors { left: parent.left; top: parent.top; margins: Theme.space6; leftMargin: Theme.space8 }
                                                     spacing: Theme.space4
@@ -474,14 +474,17 @@ Scope {
                                                             elide: Text.ElideRight
                                                             font.pixelSize: Theme.fontSizeSmall
                                                             font.weight: Font.DemiBold
-                                                            color: Theme.accentInk
+                                                            color: Theme.textOnAccent
                                                             text: block.modelData.title
                                                         }
                                                         Label {
                                                             visible: block.height > 40
                                                             font.pixelSize: Theme.fontSizeSmall
-                                                            color: Theme.subtext0
-                                                            text: block.modelData.start.slice(11, 16) + " – " + block.modelData.end.slice(11, 16)
+                                                            color: Theme.textOnAccent
+                                                            width: parent.width
+                                                            elide: Text.ElideRight
+                                                            // Narrow columns: when it starts is enough.
+                                                            text: block.modelData.start.slice(11, 16) + (block.width > 112 ? " – " + block.modelData.end.slice(11, 16) : "")
                                                         }
                                                     }
                                                     PressArea { id: blockArea; anchors.fill: parent; label: block.modelData.title; onClicked: root.edit(block.modelData) }
