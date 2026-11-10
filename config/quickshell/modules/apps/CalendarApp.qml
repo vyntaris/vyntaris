@@ -163,6 +163,17 @@ Scope {
                                 Timer { id: askTimer; interval: 5000; onTriggered: signOut.asking = false }
                             }
                         }
+                        // Google: Connect, at the top until signed in (then Sign out is beside the account).
+                        Button {
+                            Layout.fillWidth: true
+                            Layout.bottomMargin: Theme.space12
+                            visible: Calendar.client && !Calendar.google
+                            icon: "users"
+                            busy: Calendar.connecting
+                            active: !Calendar.connecting
+                            text: Calendar.connecting ? Tr.t("Waiting for the browser…") : Tr.t("Connect Google")
+                            onClicked: Calendar.connect()
+                        }
                         // The month, in a card like the week's.
                         Rectangle {
                             Layout.fillWidth: true
@@ -258,16 +269,6 @@ Scope {
 
                         Item { Layout.fillHeight: true }
 
-                        // Google: Connect until signed in (then who and Sign out are at the top).
-                        Button {
-                            Layout.fillWidth: true
-                            visible: Calendar.client && !Calendar.google
-                            icon: "users"
-                            busy: Calendar.connecting
-                            active: !Calendar.connecting
-                            text: Calendar.connecting ? Tr.t("Waiting for the browser…") : Tr.t("Connect Google")
-                            onClicked: Calendar.connect()
-                        }
                         Button {
                             Layout.fillWidth: true
                             primary: true
