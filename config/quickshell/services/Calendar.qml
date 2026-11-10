@@ -4,7 +4,7 @@ import Quickshell.Io
 import QtQuick
 import qs.config
 
-// The calendar's events (scripts/calendar.py): kept here, and in Google Calendar with an account in Online Accounts.
+// The calendar's events (scripts/calendar.py): kept here, and in Google Calendar once signed in from Calendar.
 // Reminders come as notifications: before a timed event, at 9:00 on an all-day one's day.
 Singleton {
     id: root
@@ -77,7 +77,6 @@ Singleton {
         onStarted: { write(input + "\n"); stdinEnabled = false; }
         onExited: { updProc.stdinEnabled = true; root.refresh(); }
     }
-    function connectGoogle() { Quickshell.execDetached(["gnome-online-accounts-gtk"]); }
 
     function remove(id) {
         events = events.filter(e => e.id !== id);
@@ -85,6 +84,13 @@ Singleton {
         delProc.running = true;
     }
 
+    // Changed by the Calendar app, or a sync: read again.
+    FileView {
+        path: (Quickshell.env("XDG_DATA_HOME") || Quickshell.env("HOME") + "/.local/share") + "/vyntaris/calendar/events.json"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: root.refresh()
+    }
     Process {
         id: listProc
         command: [root.tool, "list"]

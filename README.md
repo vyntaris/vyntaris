@@ -206,11 +206,7 @@ Beside it, `TodayWeather.qml` shows today large, the week of the year, then:
   one read.
 
 - **Events**: a dot under the days that have some, and the picked day's under the month; a click opens
-  Calendar on that day. Calendar (`calendar.qml`, an app of its own like Settings) shows a week by the hour:
-  a click on an empty hour adds an event there, a click on one changes or deletes it, with its reminder (a
-  notification, 15 minutes before by default). Events are kept in `~/.local/share/vyntaris/calendar`
-  (`scripts/calendar.py`); with a Google account added in Online Accounts (`gnome-online-accounts-gtk`, which
-  signs in for us), they're Google Calendar's too, both ways, synced every 5 minutes.
+  Calendar on that day (see below).
 
 Their sizes come from the theme's font size, none fixed, and the two sides line up with each other to the
 pixel: today's name with the month's, the city's baseline with the last week's numbers.
@@ -511,6 +507,14 @@ flagged out of date. Its AUR page, with the recipe, is one click away; Cancel is
 built and installed without a terminal (`scripts/aur-install.sh`). The build tools (`base-devel`, some 400 MB)
 come only when the first AUR app needs them; builds make no `-debug` packages
 (`/etc/makepkg.conf.d/vyntaris.conf`), and yay takes out what it installed only to build.
+
+### Calendar
+
+Calendar (`rust/apps/calendar`) shows a week by the hour: a click on an empty hour adds an event there, a click
+on one changes or deletes it, with its reminder, which comes as a notification (15 minutes before by default).
+The events are kept by `scripts/calendar.py` in `~/.local/share/vyntaris/calendar`, which the shell reads too.
+Connect Google signs in to Google Calendar in the browser (Vyntaris's own sign-in, the token kept in the
+keyring); from then on events go both ways, synced every 5 minutes.
 
 ### Vyntaris Office
 

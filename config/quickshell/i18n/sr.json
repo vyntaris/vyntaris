@@ -1070,8 +1070,6 @@
  "In {0} min · {1}": "Za {0} min · {1}",
  "Now": "Sada",
  "1 day": "1 dan",
- "Accounts": "Nalozi",
- "At 9:00": "U 9:00",
  "At start": "Na početku",
  "Change event": "Izmeni događaj",
  "Connect Google": "Poveži Google",
@@ -1082,5 +1080,8 @@
  "Reminder": "Podsetnik",
  "Sync now": "Sinhronizuj sada",
  "Title": "Naslov",
- "{0} · couldn't sync": "{0} · sinhronizacija nije uspela"
+ "Day": "Dan",
+ "Ends": "Kraj",
+ "Starts": "Početak",
+ "Google isn't set up on this computer yet.": "Google još nije podešen na ovom računaru."
 }

@@ -1423,6 +1423,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "vyntaris-calendar"
+version = "0.2.0"
+dependencies = [
+ "gtk4",
+ "libadwaita",
+ "serde_json",
+ "vyntaris-core",
+ "vyntaris-ui",
+]
+
+[[package]]
 name = "vyntaris-core"
 version = "0.2.0"
 dependencies = [

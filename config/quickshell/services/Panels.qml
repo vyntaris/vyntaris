@@ -41,7 +41,6 @@ Singleton {
     property bool backupOpen: false
     property bool healthOpen: false
     property bool storeOpen: false
-    property bool calendarOpen: false
     property bool passwordsOpen: false
     property bool hotspotOpen: false
 
@@ -87,7 +86,7 @@ Singleton {
     onHotspotOpenChanged: if (hotspotOpen) only("hotspot")
 
     property string app: ""
-    readonly property var appFlags: ({ settings: "settings", store: "store", help: "help", doctor: "health", backup: "backup", calendar: "calendar" })
+    readonly property var appFlags: ({ settings: "settings", store: "store", help: "help", doctor: "health", backup: "backup" })
     function openApp(name, call, arg) {
         if (app === name) { root[appFlags[name] + "Open"] = true; return; }
         Quickshell.execDetached([Quickshell.shellPath("scripts/app.sh"), name, call || "open", arg ?? ""]);

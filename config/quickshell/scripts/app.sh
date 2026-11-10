@@ -10,7 +10,7 @@ case "$name" in
 esac
 
 case "$name" in
-    doctor|store|backup|vwa)
+    doctor|store|backup|vwa|calendar)
         program="vyntaris-$name"
         [ "$name" = doctor ] && program=vyntaris-health
         grep -q '/app\.slice/run-[^/]*\.scope$' /proc/self/cgroup && exec "$program" "$call" ${arg:+"$arg"}

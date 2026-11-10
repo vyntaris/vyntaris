@@ -1070,8 +1070,6 @@
  "In {0} min · {1}": "Za {0} min · {1}",
  "Now": "Teraz",
  "1 day": "1 dzień",
- "Accounts": "Konta",
- "At 9:00": "O 9:00",
  "At start": "Na początku",
  "Change event": "Zmień wydarzenie",
  "Connect Google": "Połącz z Google",
@@ -1082,5 +1080,8 @@
  "Reminder": "Przypomnienie",
  "Sync now": "Synchronizuj teraz",
  "Title": "Tytuł",
- "{0} · couldn't sync": "{0} · nie udało się zsynchronizować"
+ "Day": "Dzień",
+ "Ends": "Koniec",
+ "Starts": "Początek",
+ "Google isn't set up on this computer yet.": "Google nie jest jeszcze skonfigurowany na tym komputerze."
 }
