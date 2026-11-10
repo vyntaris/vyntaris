@@ -8,8 +8,8 @@ import qs.services
 
 Item {
     id: root
-    readonly property real fullWidth: Updates.upgrading ? Math.max(460, Math.ceil(lines.averageCharacterWidth * 72) + 64) : 460
-    readonly property real hang: Updates.upgrading ? console_.height + Theme.space4 + 20 : Math.min(list.contentHeight, 260)
+    readonly property real fullWidth: Updates.busy ? Math.max(460, Math.ceil(lines.averageCharacterWidth * 72) + 64) : 460
+    readonly property real hang: Updates.busy ? console_.height + Theme.space4 + 20 : Math.min(list.contentHeight, 260)
         + (deskColumn.visible ? deskColumn.implicitHeight + 14 : 0)
         + (fwColumn.visible ? fwColumn.implicitHeight + 14 : 0)
         + (heldColumn.visible ? heldColumn.implicitHeight + 14 : 0)
@@ -25,11 +25,11 @@ Item {
 
     PanelHeader {
         icon: "package-update"
-        title: Updates.upgrading ? Tr.t("Updating…") : Updates.count === 1 ? Tr.t("1 update") : Updates.count > 1 ? Tr.f("{0} updates", Updates.count) : Updates.firmware.length > 0 ? Tr.t("Firmware")
+        title: Updates.busy ? Tr.t("Updating…") : Updates.count === 1 ? Tr.t("1 update") : Updates.count > 1 ? Tr.f("{0} updates", Updates.count) : Updates.firmware.length > 0 ? Tr.t("Firmware")
             : Updates.failed ? Tr.t("Couldn't check") : Tr.t("Up to date")
-        Spinner { visible: Updates.upgrading || Updates.checking; size: 14 }
+        Spinner { visible: Updates.busy || Updates.checking; size: 14 }
         HeaderButton {
-            visible: !Updates.upgrading && !Updates.checking
+            visible: !Updates.busy && !Updates.checking
             icon: "refresh"
             label: Tr.t("Check again")
             onClicked: { Updates.check(); Updates.checkFirmware(); }
@@ -43,8 +43,8 @@ Item {
         x: Theme.panelInset - widest
         y: Theme.panelTop
         width: parent.width - 2 * Theme.panelInset + 2 * widest
-        height: Updates.upgrading ? 0 : Math.min(contentHeight, 260)
-        visible: !Updates.upgrading
+        height: Updates.busy ? 0 : Math.min(contentHeight, 260)
+        visible: !Updates.busy
         clip: true
         model: Updates.desktop ? Updates.packages.filter(p => p.name !== "vyntaris") : Updates.packages
         boundsBehavior: Flickable.StopAtBounds
@@ -72,14 +72,14 @@ Item {
         x: 20 - root.out(y + implicitHeight)
         y: list.y + list.height + 10
         width: parent.width - 40 + 2 * root.out(y + implicitHeight)
-        visible: Updates.desktop !== null && !Updates.upgrading
+        visible: Updates.desktop !== null && !Updates.busy
         spacing: Theme.space6
 
         RowLayout {
             Layout.fillWidth: true
             Icon { name: "vyntaris"; size: 16; color: Theme.accentInk }
             Label { Layout.fillWidth: true; overline: true; color: Theme.accentInk; text: Tr.f("Vyntaris {0}", Updates.desktop?.to ?? "") }
-            ChipButton { visible: Updates.held.length === 0 && Updates.packages.length === 0; text: Updates.upgrading ? Tr.t("Updating…") : Tr.t("Update"); onClicked: Updates.upgrade() }
+            ChipButton { visible: Updates.held.length === 0 && Updates.packages.length === 0; text: Updates.busy ? Tr.t("Updating…") : Tr.t("Update"); onClicked: Updates.upgrade() }
         }
         Label {
             Layout.fillWidth: true
@@ -97,7 +97,7 @@ Item {
         x: 20 - root.out(y + implicitHeight)
         y: list.y + list.height + (deskColumn.visible ? deskColumn.implicitHeight + 20 : 10)
         width: parent.width - 40 + 2 * root.out(y + implicitHeight)
-        visible: Updates.firmware.length > 0 && !Updates.upgrading
+        visible: Updates.firmware.length > 0 && !Updates.busy
         spacing: Theme.space6
         RowLayout {
             Layout.fillWidth: true
@@ -125,7 +125,7 @@ Item {
         y: list.y + list.height + (deskColumn.visible ? deskColumn.implicitHeight + 10 : 0)
             + (fwColumn.visible ? fwColumn.implicitHeight + 10 : 0) + 10
         width: parent.width - 40 + 2 * root.out(y + implicitHeight)
-        visible: Updates.held.length > 0 && !Updates.upgrading
+        visible: Updates.held.length > 0 && !Updates.busy
         spacing: Theme.space6
         RowLayout {
             Layout.fillWidth: true
@@ -150,11 +150,11 @@ Item {
             magenta: Theme.mauve, cyan: Theme.sky, white: Theme.overlay1, dim: Theme.overlay0 })
         y: Theme.panelTop + Theme.space4
         width: parent.width
-        height: Updates.upgrading ? lines.lineSpacing * Math.max(1, Updates.output.length) : 0
-        visible: Updates.upgrading
+        height: Updates.busy ? lines.lineSpacing * Math.max(1, Updates.lastLines.length) : 0
+        visible: Updates.busy
         FontMetrics { id: lines; font.family: Theme.monoFamily; font.pixelSize: Theme.fontSizeSmall }
         Repeater {
-            model: Updates.output
+            model: Updates.lastLines
             Item {
                 id: termRow
                 required property var modelData
@@ -189,7 +189,7 @@ Item {
     Row {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.barHeight + 30
-        visible: Updates.count === 0 && Updates.checking && !Updates.upgrading
+        visible: Updates.count === 0 && Updates.checking && !Updates.busy
         spacing: Theme.space8
         Spinner { anchors.verticalCenter: parent.verticalCenter; size: 14 }
         Label {
@@ -201,7 +201,7 @@ Item {
     Label {
         anchors.horizontalCenter: parent.horizontalCenter
         y: Theme.barHeight + 30
-        visible: Updates.count === 0 && Updates.failed && !Updates.checking && !Updates.upgrading
+        visible: Updates.count === 0 && Updates.failed && !Updates.checking && !Updates.busy
         color: Theme.overlay1
         text: Tr.t("No connection to the update servers. It's checked again later.")
     }
@@ -211,15 +211,15 @@ Item {
         spacing: Theme.space12
 
         Button {
-            visible: Updates.packages.length > 0 && !Updates.upgrading
+            visible: Updates.packages.length > 0 && !Updates.busy
             primary: Updates.held.length === 0
             icon: "arrow-down"
-            text: Updates.upgrading ? Tr.t("Updating…") : Updates.held.length > 0 ? Tr.t("Update anyway") : Tr.t("Update now")
-            busy: Updates.upgrading
+            text: Updates.busy ? Tr.t("Updating…") : Updates.held.length > 0 ? Tr.t("Update anyway") : Tr.t("Update now")
+            busy: Updates.busy
             onClicked: Updates.upgrade()
         }
         Button {
-            visible: Updates.lastResult === "failed" && !Updates.upgrading && Updates.packages.length > 0
+            visible: Updates.lastResult === "failed" && !Updates.busy && Updates.packages.length > 0
             icon: "terminal"
             text: Tr.t("Finish in a terminal")
             onClicked: { Panels.updatesOpen = false; Updates.upgradeInTerminal(); }

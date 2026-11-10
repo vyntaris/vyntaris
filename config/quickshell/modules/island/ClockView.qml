@@ -23,7 +23,7 @@ Item {
         if (kind === "timer" || kind === "stopwatch") { Panels.timerTab = kind; Panels.timerOpen = true; }
         else if (kind === "download") Activities.openDownloads();
         // During an update, open Updates like the bar icon does.
-        else if (kind === "packages") { if (Updates.upgrading) Panels.updatesOpen = true; else Panels.packagesOpen = true; }
+        else if (kind === "packages") { if (Updates.busy) Panels.updatesOpen = true; else Panels.packagesOpen = true; }
         else if (kind === "backup") Panels.cloudOpen = true;
         else Panels.controlOpen = true;
     }

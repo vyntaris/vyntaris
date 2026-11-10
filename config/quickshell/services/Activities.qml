@@ -145,7 +145,7 @@ Singleton {
                 if (f.length < 4) return;
                 const was = root.packages;
                 const now = { since: Number(f[0]), state: f[1], count: parseInt(f[2]) || 0, busy: f[3] === "1",
-                              name: f[4] === "-" ? "" : f[4] ?? "", source: f[5] ?? "log", removed: parseInt(f[6]) || 0,
+                              name: f[4] === "-" ? "" : f[4] ?? "", source: f[5] ?? "log", removed: parseInt(f[6]) || 0, upgrade: f[7] === "1",
                               lines: lines.filter(l => l.length > 0) };
                 if (now.source === "log" && was && was.since === now.since && was.source !== "log") {
                     now.source = was.source;
