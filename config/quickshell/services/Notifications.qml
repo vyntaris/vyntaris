@@ -50,6 +50,11 @@ Singleton {
         const def = (n?.actions ?? []).find(a => a.identifier === "default");
         if (def) def.invoke();
         focusApp(entry.desktopEntry, entry.appName);
+        opened(entry.id, entry.appName);
+    }
+    // Opened, from the pop-up or the list: done with, so out of the list.
+    function opened(id, appName) {
+        history = history.filter(e => !(e.id === id && e.appName === appName));
     }
     // Gone from the list: closed in its app too.
     function forget(entries) {
