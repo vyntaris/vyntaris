@@ -25,6 +25,8 @@ Item {
     property date picked: today
     // A dot under the days it says yes to (the control center's: days with events).
     property var marked: null
+    // The picked day's name under the month; off where something else shows it.
+    property bool showPicked: true
     function reset() { year = today.getFullYear(); month = today.getMonth(); picked = today; }
     function step(d) {
         const m = month + d;
@@ -145,7 +147,7 @@ Item {
             Layout.fillWidth: true
             Layout.topMargin: Theme.space2
             // Nothing picked yet (an invalid date, as for a birthday not set) says nothing.
-            visible: !isNaN(root.picked.getTime()) && !root.same(root.picked, root.today)
+            visible: root.showPicked && !isNaN(root.picked.getTime()) && !root.same(root.picked, root.today)
             horizontalAlignment: Text.AlignHCenter
             text: {
                 const d = Math.round((root.picked - root.today) / 86400000);

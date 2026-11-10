@@ -1072,19 +1072,16 @@
  "1 day": "1 día",
  "At start": "Al empezar",
  "Change event": "Cambiar evento",
- "Connect Google": "Conectar Google",
  "New event": "Nuevo evento",
  "Next week": "Semana siguiente",
- "Not connected: events stay on this computer.": "Sin conectar: los eventos se quedan en este equipo.",
  "Previous week": "Semana anterior",
  "Reminder": "Recordatorio",
  "Sync now": "Sincronizar ahora",
  "Title": "Título",
- "Google isn't set up on this computer yet.": "Google aún no está configurado en este equipo.",
  "Coming up": "Próximamente",
  "Nothing coming up": "Nada próximamente",
  "On this computer": "En este equipo",
- "Synced with Google Calendar.": "Sincronizado con Google Calendar.",
  "In the morning": "Por la mañana",
- "Waiting for the browser…": "Esperando al navegador…"
+ "Waiting for the browser…": "Esperando al navegador…",
+ "Not set up": "Sin configurar"
 }

@@ -1072,19 +1072,16 @@
  "1 day": "1 dan",
  "At start": "Na početku",
  "Change event": "Izmeni događaj",
- "Connect Google": "Poveži Google",
  "New event": "Novi događaj",
  "Next week": "Sledeća nedelja",
- "Not connected: events stay on this computer.": "Nije povezano: događaji ostaju na ovom računaru.",
  "Previous week": "Prethodna nedelja",
  "Reminder": "Podsetnik",
  "Sync now": "Sinhronizuj sada",
  "Title": "Naslov",
- "Google isn't set up on this computer yet.": "Google još nije podešen na ovom računaru.",
  "Coming up": "Uskoro",
  "Nothing coming up": "Ništa uskoro",
  "On this computer": "Na ovom računaru",
- "Synced with Google Calendar.": "Sinhronizovano sa Google kalendarom.",
  "In the morning": "Ujutru",
- "Waiting for the browser…": "Čeka se pregledač…"
+ "Waiting for the browser…": "Čeka se pregledač…",
+ "Not set up": "Nije podešeno"
 }

@@ -40,7 +40,7 @@ Scope {
     // What's next, from now.
     readonly property var coming: {
         const now = Calendar.key(clock.now) + "T" + pad(clock.now.getHours()) + ":" + pad(clock.now.getMinutes());
-        return Calendar.events.filter(e => e.end > now).sort((a, b) => a.start.localeCompare(b.start)).slice(0, 6);
+        return Calendar.events.filter(e => e.end > now).sort((a, b) => a.start.localeCompare(b.start)).slice(0, 4);
     }
     function when(e) {
         return e.allDay ? Tr.t("All day") : e.start.slice(11, 16) + " – " + e.end.slice(11, 16);
@@ -130,104 +130,136 @@ Scope {
                         text: Tr.t("New event")
                         onClicked: root.newAt(root.days.some(d => Calendar.key(d) === Calendar.key(root.today)) ? root.today : root.week, clock.now.getHours() + 1)
                     }
-                    MonthCalendar {
-                        id: month
+                    // The month, in a card like the week's.
+                    Rectangle {
                         Layout.fillWidth: true
-                        Layout.leftMargin: Theme.space4
-                        Layout.rightMargin: Theme.space4
-                        marked: d => Calendar.on(d).length > 0
-                        onPickedChanged: root.week = root.monday(picked)
+                        implicitHeight: month.implicitHeight + 2 * Theme.space10
+                        radius: Theme.r(12)
+                        color: root.card
+                        MonthCalendar {
+                            id: month
+                            anchors { fill: parent; margins: Theme.space10 }
+                            showPicked: false
+                            marked: d => Calendar.on(d).length > 0
+                            onPickedChanged: root.week = root.monday(picked)
+                        }
                     }
 
                     SectionTitle { text: Tr.t("Coming up") }
-                    Repeater {
-                        model: root.coming
-                        Rectangle {
-                            id: next
-                            required property var modelData
-                            readonly property date day: new Date(modelData.start.slice(0, 10) + "T00:00")
-                            readonly property bool isToday: Calendar.key(day) === Calendar.key(root.today)
-                            Layout.fillWidth: true
-                            implicitHeight: Theme.navItemHeight + 12
-                            radius: Theme.navRadius
-                            color: nextArea.containsMouse ? Theme.hoverOn(parent) : "transparent"
-                            Behavior on color { ColorAnim {} }
-                            RowLayout {
-                                anchors { fill: parent; leftMargin: Theme.space6; rightMargin: Theme.space12 }
-                                spacing: Theme.space10
-                                // The day, as a small leaf of a calendar.
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: comingList.implicitHeight + 2 * Theme.space4
+                        radius: Theme.r(12)
+                        color: root.card
+                        Column {
+                            id: comingList
+                            anchors { left: parent.left; right: parent.right; top: parent.top; margins: Theme.space4 }
+                            Repeater {
+                                model: root.coming
                                 Rectangle {
-                                    Layout.preferredWidth: 40
-                                    Layout.preferredHeight: 40
-                                    radius: Theme.r(10)
-                                    color: next.isToday ? Theme.accent : root.card
-                                    Column {
-                                        anchors.centerIn: parent
-                                        spacing: -2
-                                        Label {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            font.pixelSize: Theme.fontSizeSmall
-                                            font.weight: Font.DemiBold
-                                            color: next.isToday ? Theme.textOnAccent : Theme.overlay1
-                                            text: Tr.dates.toString(next.day, "ddd").toUpperCase()
+                                    id: next
+                                    required property var modelData
+                                    required property int index
+                                    readonly property date day: new Date(modelData.start.slice(0, 10) + "T00:00")
+                                    readonly property bool isToday: Calendar.key(day) === Calendar.key(root.today)
+                                    width: parent.width
+                                    implicitHeight: 48
+                                    radius: Theme.r(9)
+                                    color: nextArea.containsMouse ? Theme.blend(root.card, Theme.text, 0.06) : "transparent"
+                                    Behavior on color { ColorAnim {} }
+                                    Rectangle {
+                                        visible: next.index > 0
+                                        anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 52; rightMargin: Theme.space8 }
+                                        height: 1
+                                        color: root.line
+                                    }
+                                    RowLayout {
+                                        anchors { fill: parent; leftMargin: Theme.space4; rightMargin: Theme.space10 }
+                                        spacing: Theme.space6
+                                        // The day, as the week's header shows it.
+                                        Column {
+                                            Layout.preferredWidth: 42
+                                            spacing: -2
+                                            Caption {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                font.weight: Font.DemiBold
+                                                color: next.isToday ? Theme.accentInk : Theme.overlay1
+                                                text: Tr.dates.toString(next.day, "ddd").toUpperCase()
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                font.weight: Font.Bold
+                                                color: next.isToday ? Theme.accentInk : Theme.text
+                                                text: next.day.getDate()
+                                            }
                                         }
-                                        Label {
-                                            anchors.horizontalCenter: parent.horizontalCenter
-                                            font.weight: Font.Bold
-                                            color: next.isToday ? Theme.textOnAccent : Theme.text
-                                            text: next.day.getDate()
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 0
+                                            Label { Layout.fillWidth: true; elide: Text.ElideRight; text: next.modelData.title }
+                                            Caption { Layout.fillWidth: true; elide: Text.ElideRight; text: root.when(next.modelData) }
                                         }
                                     }
-                                }
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-                                    Label { Layout.fillWidth: true; elide: Text.ElideRight; text: next.modelData.title }
-                                    Caption { Layout.fillWidth: true; elide: Text.ElideRight; text: root.when(next.modelData) }
+                                    PressArea {
+                                        id: nextArea
+                                        anchors.fill: parent
+                                        label: next.modelData.title
+                                        onClicked: { root.go(new Date(next.modelData.start.slice(0, 10) + "T00:00")); root.edit(next.modelData); }
+                                    }
                                 }
                             }
-                            PressArea {
-                                id: nextArea
-                                anchors.fill: parent
-                                label: next.modelData.title
-                                onClicked: { root.go(new Date(next.modelData.start.slice(0, 10) + "T00:00")); root.edit(next.modelData); }
+                            Caption {
+                                visible: root.coming.length === 0
+                                width: parent.width
+                                topPadding: Theme.space12
+                                bottomPadding: Theme.space12
+                                horizontalAlignment: Text.AlignHCenter
+                                text: Tr.t("Nothing coming up")
                             }
                         }
-                    }
-                    Caption {
-                        visible: root.coming.length === 0
-                        Layout.leftMargin: Theme.space12
-                        text: Tr.t("Nothing coming up")
                     }
 
                     Item { Layout.fillHeight: true }
 
-                    SectionTitle { text: "Google" }
-                    Caption {
+                    // Google, one row: who, and what can be done.
+                    Rectangle {
                         Layout.fillWidth: true
-                        Layout.leftMargin: Theme.space6
-                        Layout.bottomMargin: Theme.space6
-                        wrapMode: Text.Wrap
-                        text: Calendar.google ? Tr.t("Synced with Google Calendar.")
-                            : Calendar.client ? Tr.t("Not connected: events stay on this computer.")
-                            : Tr.t("Google isn't set up on this computer yet.")
-                    }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Theme.space6
-                        Button {
-                            Layout.fillWidth: true
-                            icon: Calendar.google ? "logout" : "users"
-                            active: !Calendar.connecting && (Calendar.client || Calendar.google !== "")
-                            text: Calendar.connecting ? Tr.t("Waiting for the browser…") : Calendar.google ? Tr.t("Sign out") : Tr.t("Connect Google")
-                            onClicked: Calendar.google ? Calendar.disconnect() : Calendar.connect()
-                        }
-                        IconButton {
-                            visible: Calendar.google !== ""
-                            icon: "refresh"
-                            label: Tr.t("Sync now")
-                            active: !Calendar.syncing
-                            onClicked: Calendar.sync()
+                        implicitHeight: 56
+                        radius: Theme.r(12)
+                        color: root.card
+                        RowLayout {
+                            anchors { fill: parent; leftMargin: Theme.space12; rightMargin: Theme.space8 }
+                            spacing: Theme.space10
+                            Icon { name: "users"; size: 18; color: Calendar.google ? Theme.accentInk : Theme.overlay1 }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                Label { Layout.fillWidth: true; elide: Text.ElideRight; text: "Google" }
+                                Caption {
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                    text: Calendar.connecting ? Tr.t("Waiting for the browser…")
+                                        : Calendar.google || (Calendar.client ? Tr.t("Not connected") : Tr.t("Not set up"))
+                                }
+                            }
+                            IconButton {
+                                visible: Calendar.google !== ""
+                                icon: "refresh"
+                                label: Tr.t("Sync now")
+                                active: !Calendar.syncing
+                                onClicked: Calendar.sync()
+                            }
+                            IconButton {
+                                visible: Calendar.google !== ""
+                                icon: "logout"
+                                label: Tr.t("Sign out")
+                                onClicked: Calendar.disconnect()
+                            }
+                            Button {
+                                visible: Calendar.google === "" && Calendar.client && !Calendar.connecting
+                                text: Tr.t("Connect")
+                                onClicked: Calendar.connect()
+                            }
                         }
                     }
                 }
