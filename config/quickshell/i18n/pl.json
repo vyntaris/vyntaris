@@ -275,7 +275,6 @@
  "Exchange rate of {0}": "Kurs wymiany {0}",
  "Extras": "Dodatki",
  "FPS": "FPS",
- "FPS and temperatures in the island": "FPS i temperatury na wyspie",
  "Fastest": "Najszybszy",
  "Few people use it.": "Mało kto go używa.",
  "File manager": "Menedżer plików",
@@ -555,7 +554,6 @@
  "Paused": "Wstrzymano",
  "Peach": "Brzoskwiniowy",
  "Performance": "Wydajność",
- "Performance mode": "Tryb wydajności",
  "Performance when plugged in": "Wydajność na zasilaczu",
  "Phone": "Telefon",
  "Phone connected": "Podłączono telefon",
@@ -731,7 +729,6 @@
  "Signed in to Google Drive": "Zalogowano do Dysku Google",
  "Signing in didn't finish.": "Logowanie się nie zakończyło.",
  "Signing in…": "Logowanie…",
- "Silence notifications": "Wycisz powiadomienia",
  "Silent": "Cicho",
  "Since the last start, from {0}. Most are harmless; one that repeats points at what's wrong.": "Od ostatniego uruchomienia, z {0}. Większość jest niegroźna; powtarzający się wskazuje, co jest nie tak.",
  "Skip": "Pomiń",
@@ -759,7 +756,6 @@
  "Springs past and settles": "Przestrzeli i się uspokaja",
  "Start": "Uruchom",
  "Start a timer": "Uruchom minutnik",
- "Start by itself": "Uruchamiaj samoczynnie",
  "Start here": "Zacznij tutaj",
  "Start it again": "Uruchom ponownie",
  "Start its driver with the system": "Uruchamiaj sterownik razem z systemem",
@@ -767,7 +763,6 @@
  "Start · type to search": "Start · pisz, aby szukać",
  "Start ↵": "Uruchom ↵",
  "Starting…": "Uruchamianie…",
- "Starts with games": "Włącza się z grami",
  "Startup apps": "Aplikacje autostartu",
  "Stay on screen": "Zostaje na ekranie",
  "Stop": "Zatrzymaj",
@@ -1064,5 +1059,7 @@
  "Turn on anyway": "Włącz mimo to",
  "Turning off…": "Wyłączanie…",
  "Turning on…": "Włączanie…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet przychodzi przez Wi-Fi, a karta nie może go jednocześnie udostępniać: włączenie go rozłączy. Podłącz kabel lub telefon przez USB, aby udostępnić tamto połączenie."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet przychodzi przez Wi-Fi, a karta nie może go jednocześnie udostępniać: włączenie go rozłączy. Podłącz kabel lub telefon przez USB, aby udostępnić tamto połączenie.",
+ "Quiet": "Cisza",
+ "With games": "Z grami"
 }
