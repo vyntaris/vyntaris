@@ -65,7 +65,7 @@ Item {
                     mono: true
                     color: Theme.subtext0
                     font.pixelSize: Theme.fontSizeLabel
-                    text: root.b.power.toFixed(1) + Tr.t(" W · ") + root.b.energyNow.toFixed(1) + " / " + root.b.energyFull.toFixed(1) + Tr.t(" Wh")
+                    text: root.b.power.toFixed(1) + Tr.t(" W, ") + root.b.energyNow.toFixed(1) + " / " + root.b.energyFull.toFixed(1) + Tr.t(" Wh")
                 }
             }
         }

@@ -263,7 +263,7 @@ PanelWindow {
         readonly property real islandLean: Theme.slanted ? Slant.lean(bar.islandHang) : 0
         MouseArea {
             id: islandArea
-            x: (bar.width - bar.islandWidth) / 2 - parent.islandLean
+            x: Math.round((bar.width - bar.islandWidth) / 2 - parent.islandLean)
             width: bar.islandWidth + 2 * parent.islandLean
             height: Theme.barHeight + bar.islandHang
         }
@@ -272,7 +272,7 @@ PanelWindow {
             id: islandClip
             z: 2
             Keys.onEscapePressed: bar.closePopups()
-            x: (bar.width - bar.islandWidth) / 2 - parent.islandLean
+            x: Math.round((bar.width - bar.islandWidth) / 2 - parent.islandLean)
             width: bar.islandWidth + 2 * parent.islandLean
             height: Theme.barHeight + bar.islandHang
             clip: true
@@ -285,7 +285,7 @@ PanelWindow {
                 default property Component content
                 readonly property bool current: bar.mode === name
                 readonly property Item item: loader.item
-                x: (islandClip.width - width) / 2
+                x: Math.round((islandClip.width - width) / 2)
                 width: item?.width ?? 0
                 height: item?.height ?? 0
                 opacity: current ? 1 : 0
@@ -538,7 +538,7 @@ PanelWindow {
                 onLevelChanged: {
                     if (level >= 0 && level <= 15 && !lowWarned) {
                         lowWarned = true;
-                        Activities.banner("smartphone", phone.name + " · " + level + "%", Tr.t("The phone's battery is low"), level / 100, Theme.warning, 5000);
+                        Activities.banner("smartphone", phone.name + ", " + level + "%", Tr.t("The phone's battery is low"), level / 100, Theme.warning, 5000);
                     } else if (level > 20 || level < 0) lowWarned = false;
                 }
                 property bool lowWarned: false
@@ -565,7 +565,7 @@ PanelWindow {
                 onLevelChanged: {
                     if (level >= 0 && level <= 15 && !lowWarned) {
                         lowWarned = true;
-                        Activities.banner("headphones", (withBattery?.name || withBattery?.deviceName || Tr.t("Bluetooth")) + " · " + level + "%",
+                        Activities.banner("headphones", (withBattery?.name || withBattery?.deviceName || Tr.t("Bluetooth")) + ", " + level + "%",
                             Tr.t("Bluetooth battery is low"), level / 100, Theme.warning, 5000);
                     } else if (level > 20) lowWarned = false;
                 }

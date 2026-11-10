@@ -12,7 +12,7 @@ RowLayout {
     property string details
     property bool showDetails: true
 
-    readonly property string caption: [level >= 0 ? Math.round(level * 100) + "%" : "", showDetails ? details : ""].filter(s => s).join("  ·  ")
+    readonly property string caption: [level >= 0 ? Math.round(level * 100) + "%" : "", showDetails ? details : ""].filter(s => s).join(", ")
     spacing: Theme.space12
 
     Rectangle {

@@ -23,14 +23,14 @@ case "${1:-}" in
         "$json" riseup-ovpn "$dir/eip.json" "$dir/cert.pem" "$dir/ca.crt" "$place" > "$dir/riseup.ovpn" \
             || { rm -f "$dir/riseup.ovpn"; T "Riseup has no server in {0} now." "$place" >&2; exit 1; }
         nmcli -t -f UUID,NAME connection show | while IFS=: read -r uuid name; do
-            case "$name" in "Riseup · "*) nmcli connection delete "$uuid" >/dev/null ;; esac
+            case "$name" in "Riseup ("*|"Riseup · "*) nmcli connection delete "$uuid" >/dev/null ;; esac
         done
         out="$(nmcli connection import type openvpn file "$dir/riseup.ovpn" 2>&1)"
         code=$?
         rm -f "$dir/riseup.ovpn"
         [ "$code" -eq 0 ] || { printf '%s\n' "$out" >&2; exit 1; }
         uuid="$(printf '%s' "$out" | sed -n 's/.*(\([0-9a-f-]\{36\}\)).*/\1/p')"
-        nmcli connection modify "$uuid" connection.id "Riseup · $place" connection.autoconnect no
+        nmcli connection modify "$uuid" connection.id "Riseup ($place)" connection.autoconnect no
         nmcli connection up "$uuid" >/dev/null
         ;;
     *)

@@ -30,7 +30,7 @@ ask() {
 clear 2>/dev/null || true
 cat <<EOF
 ${c_acc}
-   Vyntaris  ·  installer${c_off}
+   Vyntaris installer${c_off}
    ${c_dim}Hyprland + Quickshell, Catppuccin. Ctrl+C at any question to get a shell instead.${c_off}
 EOF
 
@@ -128,7 +128,7 @@ XBOOTLDR_TYPE=bc13c2ff-59e6-4262-a352-b275fd6f7172
 BOOT_LABEL="Vyntaris boot"
 if [ -z "${INSTALL_MODE:-}" ]; then
     lsblk -pno NAME,SIZE,FSTYPE,LABEL "$INSTALL_DISK" | sed 's/^/   /'
-    note "erase: the whole disk · free: only its free space · partition: only one partition (the rest stays)"
+    note "erase: the whole disk; free: only its free space; partition: only one partition (the rest stays)"
 fi
 ask INSTALL_MODE "How (erase, free, partition)" "erase"
 case "$INSTALL_MODE" in erase|free|partition) ;; *) die "how: erase, free or partition" ;; esac

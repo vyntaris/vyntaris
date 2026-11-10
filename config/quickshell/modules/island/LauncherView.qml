@@ -664,7 +664,7 @@ Item {
                             color: entry.selected ? Theme.textOnAccent : Theme.subtext1
                             text: entry.kind === "calc" ? (entry.modelData.label ?? "") + String(entry.modelData.value)
                                 : entry.kind === "window" ? entry.modelData.toplevel.title
-                                : entry.kind === "timer" ? Tr.t("Timer") + " · " + Chrono.format(entry.modelData.seconds * 1000)
+                                : entry.kind === "timer" ? Tr.t("Timer") + ": " + Chrono.format(entry.modelData.seconds * 1000)
                                 : entry.kind === "stopwatch" ? Tr.t("Stopwatch")
                                 : entry.kind === "command" ? entry.modelData.title
                                 : entry.kind === "wiki" ? entry.modelData.page.title + (entry.modelData.page.section ? "  \u203a  " + entry.modelData.page.section : "")
@@ -686,7 +686,7 @@ Item {
                             font.pixelSize: Theme.fontSizeSmall
                             text: entry.kind === "calc" ? (entry.modelData.date ? Tr.f("Exchange rate of {0}", entry.modelData.date) : entry.modelData.label ? Tr.t("Conversion") : Tr.t("Result"))
                                 : entry.kind === "command" ? Tr.t("Command")
-                                : entry.kind === "window" ? Tr.t("Open window") + " · " + (entry.modelData.toplevel.workspace ? Tr.t("Workspace") + " " + entry.modelData.toplevel.workspace.id : entry.modelData.appId)
+                                : entry.kind === "window" ? Tr.t("Open window") + ", " + (entry.modelData.toplevel.workspace ? Tr.t("Workspace") + " " + entry.modelData.toplevel.workspace.id : entry.modelData.appId)
                                 : entry.kind === "timer" ? Tr.t("Start a timer")
                                 : entry.kind === "stopwatch" ? Tr.t("Start the stopwatch")
                                 : entry.kind === "wiki" ? (ArchWiki.plain(entry.modelData.page.snippet) || Tr.t("Arch Wiki, also without internet"))
@@ -694,11 +694,11 @@ Item {
                                 : entry.kind === "store" ? Tr.t("Apps from Arch and the AUR, installed with a click")
                                 : entry.kind === "run" ? Tr.t("Shell command")
                                 : entry.kind === "emoji" ? ""
-                                : entry.kind === "file" ? (entry.modelData.inside ? Tr.f("Has \u201c{0}\u201d in it · ", entry.modelData.query) : "")
+                                : entry.kind === "file" ? (entry.modelData.inside ? Tr.f("Has \u201c{0}\u201d in it, ", entry.modelData.query) : "")
                                     + entry.modelData.path.replace(Quickshell.env("HOME"), "~")
                                 : entry.kind === "action" ? entry.modelData.app.name
                                 : entry.kind === "clip" ? (entry.modelData.entry.isImage ? Tr.t("Image") : Tr.t("Text"))
-                                : entry.kind === "setting" ? (entry.modelData.row ? Tr.t("Settings · ") + entry.modelData.page.label : Tr.t("Settings page"))
+                                : entry.kind === "setting" ? (entry.modelData.row ? Tr.t("Settings: ") + entry.modelData.page.label : Tr.t("Settings page"))
                                 : entry.modelData.app.comment || entry.modelData.app.genericName || ""
                         }
                     }

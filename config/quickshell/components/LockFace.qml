@@ -22,7 +22,7 @@ Item {
     property var others: []
     property bool active: true
     property var tr: s => s
-    property var dateOf: d => Tr.dates.toString(d, "dddd · d MMMM")
+    property var dateOf: d => Tr.dates.toString(d, "dddd, d MMMM")
     readonly property string timeFormat: (Config.bar.clockFormat || "HH:mm").replace(":ss", "")
 
     signal submit(string password)

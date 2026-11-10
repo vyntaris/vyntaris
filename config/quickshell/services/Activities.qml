@@ -212,11 +212,11 @@ Singleton {
             out.push({ kind: "backup", icon: "cloud", text: Tr.t("Sign-in"), title: "Google", progress: -1, color: Theme.accent, paused: false });
         else if (cloud.startsWith("backing-up")) {
             const f = cloud.split(" "), pct = Math.max(0, Math.min(100, parseInt(f[1]) || 0));
-            out.push({ kind: "backup", icon: "cloud", text: f.slice(2).join(" ") + " · " + pct + "%", title: Tr.t("Backing up"),
+            out.push({ kind: "backup", icon: "cloud", text: f.slice(2).join(" ") + ", " + pct + "%", title: Tr.t("Backing up"),
                        progress: pct / 100, color: Theme.accent, paused: false });
         }
         if (installing)
-            out.push({ kind: "packages", icon: "package-update", text: packages.count > 0 ? packages.count + " · " + packages.name : root.removing ? Tr.t("Removing") : Tr.t("Installing"),
+            out.push({ kind: "packages", icon: "package-update", text: packages.count > 0 ? packages.count + ", " + packages.name : root.removing ? Tr.t("Removing") : Tr.t("Installing"),
                        progress: -1, color: Theme.accent, paused: false });
         return out;
     }

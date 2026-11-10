@@ -23,6 +23,12 @@ Item {
     property int year: today.getFullYear()
     property int month: today.getMonth()
     property date picked: today
+    // A dot under the days it says yes to (the control center's: days with events).
+    property var marked: null
+    // The picked day's name under the month; off where something else shows it.
+    property bool showPicked: true
+    // A day clicked (not the arrows or the month's name): the control center opens the Calendar there.
+    signal dayClicked(date day)
     function reset() { year = today.getFullYear(); month = today.getMonth(); picked = today; }
     function step(d) {
         const m = month + d;
@@ -111,6 +117,13 @@ Item {
                         color: day.isPicked ? Theme.accent : dayArea.containsMouse ? Theme.hoverOn(parent) : "transparent"
                         border { width: day.isToday && !day.isPicked ? 1.5 : 0; color: Theme.accent }
                     }
+                    Rectangle {
+                        // Not in the picked day's circle, where it crowded the number.
+                        visible: !day.isPicked && root.marked !== null && root.marked(day.modelData)
+                        anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Math.max(1, (root.rowHeight - root.mark) / 2 + 2) }
+                        width: 4; height: 4; radius: 2
+                        color: day.isPicked ? Theme.textOnAccent : Theme.accent
+                    }
                     Label {
                         anchors.centerIn: parent
                         mono: true
@@ -127,23 +140,23 @@ Item {
                         onClicked: {
                             root.picked = day.modelData;
                             if (!day.inMonth) { root.year = day.modelData.getFullYear(); root.month = day.modelData.getMonth(); }
+                            root.dayClicked(day.modelData);
                         }
                     }
                 }
             }
         }
 
-        Caption {
-            Layout.fillWidth: true
+        Dotted {
+            Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: Theme.space2
             // Nothing picked yet (an invalid date, as for a birthday not set) says nothing.
-            visible: !isNaN(root.picked.getTime()) && !root.same(root.picked, root.today)
-            horizontalAlignment: Text.AlignHCenter
-            text: {
+            visible: root.showPicked && !isNaN(root.picked.getTime()) && !root.same(root.picked, root.today)
+            parts: {
                 const d = Math.round((root.picked - root.today) / 86400000);
                 const rel = d === 0 ? Tr.t("Today") : d === 1 ? Tr.t("Tomorrow") : d === -1 ? Tr.t("Yesterday")
                     : d > 0 ? Tr.f("In {0} days", d) : Tr.f("{0} days ago", -d);
-                return root.en.toString(root.picked, "dddd, d MMMM yyyy") + " · " + rel;
+                return [root.en.toString(root.picked, "dddd, d MMMM yyyy"), rel];
             }
         }
     }

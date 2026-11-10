@@ -108,6 +108,10 @@ Singleton {
     function tint(item, c, a) {
         return Palettes.mix(hex6(groundOf(item)), hex6(c), Math.max(0, Math.min(1, a)));
     }
+    // The same over a known colour, not a window.
+    function blend(ground, c, a) {
+        return Palettes.mix(hex6(ground), hex6(c), Math.max(0, Math.min(1, a)));
+    }
     function rimOn(item) { return tint(item, text, rimAmount); }
     function hairlineOn(item) { return tint(item, text, hairlineAmount); }
     function hoverOn(item) { return tint(item, text, hoverAmount); }

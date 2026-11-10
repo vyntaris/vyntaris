@@ -205,6 +205,9 @@ Beside it, `TodayWeather.qml` shows today large, the week of the year, then:
   keeps where the city is, so another place of the same name isn't taken. Without the internet, the last
   one read.
 
+- **Events**: a dot under the days that have some, and the picked day's under the month; a click opens
+  Calendar on that day (see below).
+
 Their sizes come from the theme's font size, none fixed, and the two sides line up with each other to the
 pixel: today's name with the month's, the city's baseline with the last week's numbers.
 
@@ -428,12 +431,12 @@ What it checks (in `checks.rs`, in this order):
 
 | Check | When it speaks up | Level | Fix |
 |---|---|---|---|
-| Disk space, `/` and your home (one Btrfs file system is said once, by its UUID) | under 5 % or 2 GB free · under 12 % · otherwise | error · warn · ok | none: delete files |
+| Disk space, `/` and your home (one Btrfs file system is said once, by its UUID) | under 5 % or 2 GB free, under 12 %, otherwise | error, warn, ok | none: delete files |
 | System logs (`/var/log/journal`) | over 250 MB (info over 1 GB) | tool | **root** `journalctl --vacuum-size=200M` |
 | Picture previews (`~/.cache/thumbnails`) | over 20 MB (info over 1 GB) | tool | deletes the folder |
 | Failed services: `systemctl --failed` for the system and for your session | each failed unit | error | `reset-failed` + `restart` (root for system units) |
 | Crashes: `coredumpctl list --since=-7d`, only root's and yours, only after "seen" | any (warn at 5 or more), with the four worst by count | info / warn | **Mark as seen**; **Update** when a waiting update is for the package that owns the crashed program |
-| Updates (`checkupdates`, the last upgrade read from `pacman.log`) | 30+ days since the last upgrade · updates waiting · nothing waits | warn · info · ok | opens Updates |
+| Updates (`checkupdates`, the last upgrade read from `pacman.log`) | 30+ days since the last upgrade, updates waiting, nothing waits | warn, info, ok | opens Updates |
 | Restart needed: `/usr/lib/modules/$(uname -r)` is gone after a kernel update | kernel replaced | warn | restart |
 | Programs on old code: your processes mapping a `.so` marked `(deleted)` | any (not shown while a kernel restart already is) | info | restart |
 | pacman's lock: `db.lck` present and no pacman, yay, paru, pamac or makepkg running | left behind | error | **root** removes it, after checking again |
@@ -447,12 +450,12 @@ What it checks (in `checks.rs`, in this order):
 | Testing repositories: `[*-testing]` on in `pacman.conf` | any | warn | none |
 | Broken links in `~/.config` and `~/.local/share` (four levels deep) | any | tool | removes them |
 | App caches: `~/.cache` without what's in use or slow to make again (vyntaris, quickshell, thumbnails, mesa_shader_cache, nvidia, fontconfig, mozilla) | over 300 MB | tool | deletes the rest |
-| Disk health: kernel log of this boot for I/O errors, Btrfs errors and checksum failures, EXT4 errors, NVMe timeouts, ATA exceptions | any · none | error · ok | none: copy your files elsewhere |
+| Disk health: kernel log of this boot for I/O errors, Btrfs errors and checksum failures, EXT4 errors, NVMe timeouts, ATA exceptions | any, none | error, ok | none: copy your files elsewhere |
 | Clock: `timedatectl` NTP=no | off | warn | **root** `timedatectl set-ntp true` |
 | Networking: NetworkManager not active | off | error | **root** `systemctl enable --now NetworkManager` |
-| Battery: `energy_full` / `energy_full_design` per battery | under 60 % · under 80 % | warn · info | none (Settings → Power can stop charging at 80 %) |
+| Battery: `energy_full` / `energy_full_design` per battery | under 60 %, under 80 % | warn, info | none (Settings → Power can stop charging at 80 %) |
 | Temperature: the hottest CPU sensor (k10temp, coretemp, zenpower, cpu_thermal or a "package" label) | 90 °C or more | warn | none |
-| Safe updates: `/var/lib/vyntaris/update-guard.json` | on · off, with the reason | ok · info | none |
+| Safe updates: `/var/lib/vyntaris/update-guard.json` | on, off, with the reason | ok, info | none |
 | Package cache `/var/cache/pacman/pkg` | over 1 GB (info over 5 GB) | tool | **root** `paccache -rk1` and `paccache -ruk0`: one version of what's installed, nothing of what isn't |
 | SSD trimming: a non-rotating disk and `fstrim.timer` not enabled | off | warn | **root** `systemctl enable --now fstrim.timer` |
 | Btrfs scrubbing: `/` on Btrfs and `btrfs-scrub@-.timer` not enabled | off | info | **root** `systemctl enable --now btrfs-scrub@-.timer` |
@@ -504,6 +507,14 @@ flagged out of date. Its AUR page, with the recipe, is one click away; Cancel is
 built and installed without a terminal (`scripts/aur-install.sh`). The build tools (`base-devel`, some 400 MB)
 come only when the first AUR app needs them; builds make no `-debug` packages
 (`/etc/makepkg.conf.d/vyntaris.conf`), and yay takes out what it installed only to build.
+
+### Calendar
+
+Calendar (`calendar.qml`, made by the shell like Settings) shows a week by the hour: a click on an empty hour adds an event there, a click
+on one changes or deletes it, with its reminder, which comes as a notification (15 minutes before by default).
+The events are kept by `scripts/calendar.py` in `~/.local/share/vyntaris/calendar`, which the shell reads too.
+Connect Google signs in to Google Calendar in the browser (Vyntaris's own sign-in, the token kept in the
+keyring); from then on events go both ways, synced every 5 minutes.
 
 ### Vyntaris Office
 

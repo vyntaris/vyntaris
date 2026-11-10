@@ -32,7 +32,7 @@ Singleton {
             const m = Hyprland.monitors.values.find(m => m.name === name);
             const o = m?.lastIpcObject ?? {};
             const size = o.width ? `${o.width}×${o.height}` : "";
-            Activities.banner("monitor", Tr.t("Display connected"), [name, size].filter(s => s).join(" · "), -1, Theme.accent, 3000);
+            Activities.banner("monitor", Tr.t("Display connected"), [name, size].filter(s => s).join(", "), -1, Theme.accent, 3000);
         }
     }
 

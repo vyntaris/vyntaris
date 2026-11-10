@@ -88,7 +88,7 @@ SettingsPage {
                 spacing: Theme.space2
                 Label { Layout.fillWidth: true; wrapMode: Text.Wrap; font.weight: Font.DemiBold; text: row.modelData.name }
                 Caption {
-                    text: row.modelData.kind + " · "
+                    text: row.modelData.kind + ", "
                         + (row.ready ? "ready"
                            : row.modelData.missing.length ? Tr.t("needs ") + row.modelData.missing.join(", ")
                            : Tr.t("not in the repositories: ") + row.modelData.unavailable.join(", "))

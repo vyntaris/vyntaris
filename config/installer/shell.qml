@@ -265,7 +265,7 @@ ShellRoot {
         }
     }
     function partName(p) {
-        return (p.label || p.fstype || p.path.replace("/dev/", "")) + "  ·  " + sizeOf(p.size);
+        return (p.label || p.fstype || p.path.replace("/dev/", "")) + ", " + sizeOf(p.size);
     }
     readonly property string diskEffect: mode === "erase" ? "Everything on this disk will be erased."
         : foreignBoot ? Tr.t("Another system's boot partition is on this disk, and only one can start from a disk: use another disk, or the whole disk.")
@@ -323,7 +323,7 @@ ShellRoot {
     readonly property var repairActions: [
         { id: "restore", icon: "refresh", label: Tr.t("Go back to a snapshot"), sub: "Timeshift's, taken before every update" },
         { id: "boot", icon: "power", label: Tr.t("Make the boot images again"), sub: "When it doesn't start after a kernel update" },
-        { id: "packages", icon: "download", label: Tr.t("Finish an update, reinstall the desktop"), sub: "When an update was cut off · needs the internet" },
+        { id: "packages", icon: "download", label: Tr.t("Finish an update, reinstall the desktop"), sub: "When an update was cut off, needs the internet" },
         { id: "shell", icon: "terminal", label: Tr.t("A terminal inside it"), sub: "For doing it by hand" }
     ]
     readonly property bool repairReady: repairSystem !== "" && repairAction !== "" && repairAction !== "shell"
@@ -529,7 +529,7 @@ ShellRoot {
                         Icon { name: "vyntaris"; size: 22; color: Theme.accentInk }
                         ColumnLayout {
                             spacing: Theme.space2
-                            Caption { text: (root.preview ? Tr.t("Preview: nothing will be erased") + " · " : "") + "Vyntaris" + (root.isoVersion ? " " + root.isoVersion : "") }
+                            Caption { text: (root.preview ? Tr.t("Preview: nothing will be erased") + ", " : "") + "Vyntaris" + (root.isoVersion ? " " + root.isoVersion : "") }
                             Label { text: root.page === 8 ? Tr.t("Repair") : Tr.t(root.pages[root.page]); font.pixelSize: Theme.fontSizeHeading; font.weight: Font.Bold }
                         }
                         Item { Layout.fillWidth: true }
@@ -774,7 +774,7 @@ ShellRoot {
                                         required property var modelData
                                         width: ListView.view.width
                                         text: modelData.label
-                                        sub: modelData.layout + (modelData.variant ? " · " + modelData.variant : "")
+                                        sub: modelData.layout + (modelData.variant ? ", " + modelData.variant : "")
                                         selected: root.keymap === modelData.layout && root.variant === modelData.variant
                                         onClicked: root.setKeymap(modelData)
                                     }
@@ -808,7 +808,7 @@ ShellRoot {
                                         required property var modelData
                                         width: ListView.view.width
                                         text: modelData.split("/").pop().replace(/_/g, " ")
-                                        sub: modelData.split("/").slice(0, -1).join(" · ").replace(/_/g, " ")
+                                        sub: modelData.split("/").slice(0, -1).join(", ").replace(/_/g, " ")
                                         selected: root.timezone === modelData
                                         onClicked: { root.timezone = modelData; root.zoneGuessed = false; }
                                     }
@@ -881,7 +881,7 @@ ShellRoot {
                                             width: ListView.view.width
                                             icon: "disk"
                                             text: modelData.model
-                                            sub: modelData.path + "  ·  " + root.sizeOf(modelData.size) + (modelData.tran ? "  ·  " + modelData.tran : "") + (modelData.size < root.minBytes ? "  ·  " + "too small" : "")
+                                            sub: modelData.path + ", " + root.sizeOf(modelData.size) + (modelData.tran ? ", " + modelData.tran : "") + (modelData.size < root.minBytes ? ", " + "too small" : "")
                                             dim: modelData.size < root.minBytes
                                             selected: root.disk === modelData.path
                                             onClicked: root.disk = modelData.path
@@ -917,7 +917,7 @@ ShellRoot {
                                         width: ListView.view.width
                                         icon: "folder"
                                         text: root.partName(modelData)
-                                        sub: modelData.path + (modelData.fstype ? "  ·  " + modelData.fstype : "") + (modelData.size < root.minRoom ? "  ·  " + "too small" : "")
+                                        sub: modelData.path + (modelData.fstype ? ", " + modelData.fstype : "") + (modelData.size < root.minRoom ? ", " + "too small" : "")
                                         dim: modelData.size < root.minRoom
                                         selected: root.part === modelData.path
                                         onClicked: root.part = modelData.path
@@ -958,16 +958,16 @@ ShellRoot {
                                 Label {
                                     Layout.fillWidth: true
                                     wrapMode: Text.WordWrap
-                                    text: (root.diskInfo ? root.diskInfo.model + "  ·  " + root.sizeOf(root.diskInfo.size) + "  ·  " + root.disk : "")
+                                    text: (root.diskInfo ? root.diskInfo.model + ", " + root.sizeOf(root.diskInfo.size) + ", " + root.disk : "")
                                         + "\n" + (root.mode === "erase" ? "The whole disk" : root.mode === "free" ? "Its free space, next to the other system" : "In place of " + (root.partInfo ? root.partName(root.partInfo) : root.part))
-                                        + "  ·  " + (root.fs === "btrfs" ? "Btrfs" : "ext4")
+                                        + ", " + (root.fs === "btrfs" ? "Btrfs" : "ext4")
                                 }
                                 Caption { text: Tr.t("User") }
-                                Label { text: (root.fullName ? root.fullName + "  ·  " : "") + root.user + "@" + root.host }
+                                Label { text: (root.fullName ? root.fullName + ", " : "") + root.user + "@" + root.host }
                                 Caption { text: Tr.t("Language") }
                                 Label { text: (root.locales.find(l => l.value === root.locale) ?? { label: root.locale }).label }
                                 Caption { text: Tr.t("Keyboard") }
-                                Label { text: root.keymap + (root.variant ? " · " + root.variant : "") }
+                                Label { text: root.keymap + (root.variant ? ", " + root.variant : "") }
                                 Caption { text: Tr.t("Time zone") }
                                 Label { text: root.timezone.replace(/_/g, " ") }
                                 Item { implicitHeight: 4; Layout.columnSpan: 2 }
@@ -1013,8 +1013,8 @@ ShellRoot {
                                             required property var modelData
                                             width: ListView.view.width
                                             icon: "vyntaris"
-                                            text: modelData.name + (modelData.host ? "  ·  " + modelData.host : "")
-                                            sub: modelData.dev + "  ·  " + modelData.fs + "  ·  " + modelData.snaps + (modelData.snaps === 1 ? " snapshot" : " snapshots")
+                                            text: modelData.name + (modelData.host ? ", " + modelData.host : "")
+                                            sub: modelData.dev + ", " + modelData.fs + ", " + modelData.snaps + (modelData.snaps === 1 ? " snapshot" : " snapshots")
                                             selected: root.repairSystem === modelData.dev
                                             onClicked: root.repairSystem = modelData.dev
                                         }

@@ -201,7 +201,7 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
                     let g = m.geometry();
                     let scale = m.scale();
                     let size = format!(
-                        "{name}  ·  {} × {}",
+                        "{name}, {} × {}",
                         (g.width() as f64 * scale).round(),
                         (g.height() as f64 * scale).round()
                     );

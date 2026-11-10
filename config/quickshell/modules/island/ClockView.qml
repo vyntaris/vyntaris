@@ -36,8 +36,8 @@ Item {
 
     RowLayout {
         id: row
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: (Theme.barHeight + Theme.notchDepth - height) / 2
+        x: Math.round((parent.width - width) / 2)
+        y: Math.round((Theme.barHeight + Theme.notchDepth - height) / 2)
         spacing: Theme.space8
 
         Label {

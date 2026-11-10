@@ -573,7 +573,7 @@ Scope {
                                             }
                                         }
                                     }
-                                    Caption { Layout.topMargin: Theme.space6; text: Tr.f("Time zone · {0}", TimeZone.city(TimeZone.current) + ", " + TimeZone.country(TimeZone.current)) }
+                                    Caption { Layout.topMargin: Theme.space6; text: Tr.f("Time zone: {0}", TimeZone.city(TimeZone.current) + ", " + TimeZone.country(TimeZone.current)) }
                                     SearchField { id: tzField; Layout.fillWidth: true; placeholder: Tr.t("A city or a country…") }
                                     PickList {
                                         maxRows: 4
@@ -608,7 +608,7 @@ Scope {
                                     }
                                     Caption {
                                         Layout.topMargin: Theme.space6
-                                        text: Tr.f("Weather for · {0}", Config.weather.city || (TimeZone.current ? TimeZone.city(TimeZone.current) + Tr.t(" (time zone)") : Tr.t("the time zone's city")))
+                                        text: Tr.f("Weather for {0}", Config.weather.city || (TimeZone.current ? TimeZone.city(TimeZone.current) + Tr.t(" (time zone)") : Tr.t("the time zone's city")))
                                     }
                                     CityPicker { Layout.fillWidth: true; maxRows: 4; onChosen: root.changed() }
                                     Item { Layout.fillHeight: true }
@@ -678,7 +678,7 @@ Scope {
                                         rowSpacing: 10
                                         Repeater {
                                             model: [
-                                                [Tr.t("SUPER"), Tr.t("Start · type to search")], [Tr.t("SUPER + W"), Tr.t("Wallpapers")],
+                                                [Tr.t("SUPER"), Tr.t("Start, type to search")], [Tr.t("SUPER + W"), Tr.t("Wallpapers")],
                                                 [Tr.t("SUPER + SPACE"), Tr.t("Language")], [Tr.t("SUPER + I"), Tr.t("Settings")],
                                                 [Tr.t("SUPER + ESC"), Tr.t("Power")], [Tr.t("SUPER + F1"), Tr.t("Every shortcut")],
                                             ]

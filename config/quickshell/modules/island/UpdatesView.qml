@@ -27,7 +27,6 @@ Item {
         icon: "package-update"
         title: Updates.busy ? Tr.t("Updating…") : Updates.count === 1 ? Tr.t("1 update") : Updates.count > 1 ? Tr.f("{0} updates", Updates.count) : Updates.firmware.length > 0 ? Tr.t("Firmware")
             : Updates.failed ? Tr.t("Couldn't check") : Tr.t("Up to date")
-        Spinner { visible: Updates.busy || Updates.checking; size: 14 }
         HeaderButton {
             visible: !Updates.busy && !Updates.checking
             icon: "refresh"
@@ -191,7 +190,6 @@ Item {
         y: Theme.barHeight + 30
         visible: Updates.count === 0 && Updates.checking && !Updates.busy
         spacing: Theme.space8
-        Spinner { anchors.verticalCenter: parent.verticalCenter; size: 14 }
         Label {
             anchors.verticalCenter: parent.verticalCenter
             color: Theme.overlay1

@@ -57,7 +57,7 @@ SettingsPage {
         title: Tr.t("Time zone")
         Button { id: zoneButton;
             icon: "earth"
-            text: TimeZone.current ? TimeZone.city(TimeZone.current) + " · " + TimeZone.country(TimeZone.current) : "…"
+            text: TimeZone.current ? TimeZone.city(TimeZone.current) + ", " + TimeZone.country(TimeZone.current) : "…"
             onClicked: page.toggle("zone")
         }
     }

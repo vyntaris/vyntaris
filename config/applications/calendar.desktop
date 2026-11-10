@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Calendar
+GenericName=Calendar
+Comment=Events by the hour, reminders, and Google Calendar
+Icon=x-office-calendar
+Exec=vyntaris-app calendar toggle
+Categories=Office;Calendar;
+Keywords=calendar;events;reminders;agenda;schedule;google;

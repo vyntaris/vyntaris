@@ -41,9 +41,9 @@ Item {
             font.weight: none ? Font.Normal : Font.DemiBold
             color: none ? Theme.overlay1 : Theme.text
             text: CloudBackup.signingIn ? Tr.t("Signing in…")
-                : CloudBackup.backingUp ? Tr.f("Backing up · {0}", CloudBackup.folder)
+                : CloudBackup.backingUp ? Tr.f("Backing up: {0}", CloudBackup.folder)
                 : root.busy ? Tr.t("Backing up now…")
-                : CloudBackup.last > 0 ? (CloudBackup.result === "failed" ? Tr.t("Last backup didn't finish · ") : Tr.t("Last backup · "))
+                : CloudBackup.last > 0 ? (CloudBackup.result === "failed" ? Tr.t("Last backup didn't finish: ") : Tr.t("Last backup: "))
                     + new Date(CloudBackup.last * 1000).toLocaleString(Tr.dates, Locale.ShortFormat)
                 : Tr.t("No backup yet")
         }

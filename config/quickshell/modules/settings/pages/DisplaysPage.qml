@@ -116,7 +116,7 @@ SettingsPage {
             spacing: Theme.space10
 
             SettingsSection {
-                text: mon.modelData.name + (mon.ipc.model ? "  ·  " + mon.ipc.model : "")
+                text: mon.modelData.name + (mon.ipc.model ? ", " + mon.ipc.model : "")
             }
             SettingsRow {
                 title: Tr.t("Mode")
