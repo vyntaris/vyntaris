@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Firefox's side of the passwords (native messaging host "vyntaris_passwords"), and the island's way in.
 #   pass-host.py <manifest> <extension id>    started by Firefox: logins go to the island, fills come back
-#   pass-host.py fill                          {"user", "password"} on stdin, to the page with the focus;
+#   pass-host.py fill                          {"user", "password"} or {"fields"} on stdin, to the page with the focus;
 #                                              exit 0 if a page took it, 1 if not (type it instead)
 import json
 import os
@@ -55,7 +55,10 @@ def host():
                 n += 1
                 done = threading.Event()
                 waiting[n] = [done, False]
-                send({"type": "fill", "id": n, "user": req.get("user", ""), "password": req.get("password", "")})
+                fill = {"type": "fill", "id": n, "user": req.get("user", ""), "password": req.get("password", "")}
+                if isinstance(req.get("fields"), dict):
+                    fill["fields"] = {str(k): str(v) for k, v in req["fields"].items()}
+                send(fill)
                 done.wait(1.5)
                 ok = waiting.pop(n, [None, False])[1]
                 try:
@@ -73,8 +76,12 @@ def host():
             msg = json.loads(sys.stdin.buffer.read(struct.unpack("@I", head)[0]))
             if msg.get("type") == "login" and msg.get("password"):
                 offer(msg)
-            elif msg.get("type") == "focus" and msg.get("site"):
-                subprocess.run(["qs", "-c", "vyntaris", "ipc", "call", "passwords", "userField", str(msg["site"])[:253]],
+            elif msg.get("type") == "open" and msg.get("site"):
+                # The icon in a field: the island, always.
+                field = msg.get("field") if msg.get("field") in ("user", "card") else "password"
+                subprocess.run(["qs", "-c", "vyntaris", "ipc", "call", "passwords", "pick", str(msg["site"])[:253], field,
+                                str(bool(msg.get("user"))).lower(), str(bool(msg.get("userEmpty"))).lower(),
+                                str(bool(msg.get("signup"))).lower()],
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             elif msg.get("type") == "filled" and msg.get("id") in waiting:
                 waiting[msg["id"]][1] = bool(msg.get("ok"))

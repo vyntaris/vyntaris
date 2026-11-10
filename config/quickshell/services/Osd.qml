@@ -152,6 +152,8 @@ Singleton {
         };
         case "password-copied": return { icon: "copy", level: -1, label: Tr.t("Password copied"), value: -1,
                                          text: Tr.t("Cleared in 45 seconds"), sub: "", dimmed: false };
+        case "copied": return { icon: "copy", level: -1, label: Tr.t("Copied"), value: -1, text: Tr.t("Cleared in 45 seconds"), sub: "", dimmed: false };
+        case "password-saved": return { icon: "lock", level: -1, label: Tr.t("Password saved"), value: -1, text: "", sub: "", dimmed: false };
         case "username-copied": return { icon: "users", level: -1, label: Tr.t("Username copied"), value: -1, text: "", sub: "", dimmed: false };
         case "text": {
             const lines = Screenshot.copiedText.split("\n").filter(l => l.trim());

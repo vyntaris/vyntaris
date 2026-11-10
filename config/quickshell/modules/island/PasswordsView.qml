@@ -17,9 +17,13 @@ Item {
     readonly property string page: !Passwords.installed ? "missing"
         : !Passwords.ready ? "setup"
         : Passwords.locked && Passwords.pending ? "unlock"
+        : editingIdentity ? "identity"
+        : editingNote ? "note"
         : editing ? "edit"
         : "list"
     property bool editing: false
+    property bool editingIdentity: false
+    property bool editingNote: false
     property string editingName: ""
     property int current: 0
     readonly property var rows: Passwords.search(search.text).slice(0, 7)
@@ -27,9 +31,11 @@ Item {
 
     onActiveChanged: if (active) {
         editing = false;
+        editingIdentity = false;
+        editingNote = false;
         Passwords.wrong = false;
         search.text = Passwords.site || "";
-        if (search.text && !Passwords.entries.some(e => Passwords.matches(e, Passwords.site))) search.text = "";
+        if (search.text && (Passwords.tab !== "logins" || !Passwords.entries.some(e => Passwords.matches(e, Passwords.site)))) search.text = "";
         current = 0;
         focusLater.restart();
     } else {
@@ -42,13 +48,17 @@ Item {
         id: focusLater
         interval: 40
         onTriggered: (root.page === "setup" ? phrase.input : root.page === "unlock" ? unlockField.input
-            : root.page === "edit" ? (!nameField.text ? nameField.input : !userField.text ? userField.input : passField.input) : search.input).forceActiveFocus()
+            : root.page === "edit" ? (!nameField.text ? nameField.input : !userField.text ? userField.input : passField.input)
+            : root.page === "identity" ? identityLabel.input : root.page === "note" ? noteLabel.input : search.input).forceActiveFocus()
     }
 
     // Opened from an entry: its fields; "New": the site that asked.
     Connections {
         target: Passwords
         function onOpened(name, text) {
+            const kind = Passwords.kindOf(name);
+            if (kind === "notes") { root.editNote(name, Passwords.noteOf(text)); return; }
+            if (kind !== "logins") { root.editIdentity(name, Passwords.fieldsOf(text), kind); return; }
             const lines = text.split("\n");
             const pick = re => (lines.find(l => re.test(l)) ?? "").replace(/^[^:]+:\s*/, "");
             root.editingName = name;
@@ -63,6 +73,8 @@ Item {
         function onGenerated(password) { passField.text = password; passField.revealed = true; }
     }
     function newEntry() {
+        if (Passwords.tab === "people" || Passwords.tab === "cards") { editIdentity("", {}, Passwords.tab); return; }
+        if (Passwords.tab === "notes") { editNote("", ""); return; }
         editingName = "";
         nameField.text = Passwords.site || search.text.trim();
         userField.text = "";
@@ -72,9 +84,60 @@ Item {
         editing = true;
         Passwords.generate();
     }
+    // Personal info or a card: a new one, or one opened to change.
+    property string identityName: ""
+    property string identityKind: "people"
+    readonly property var identityLabels: ({
+        first: Tr.t("First name"), last: Tr.t("Last name"), username: Tr.t("Username"), email: Tr.t("Email"),
+        phone: Tr.t("Phone"), address: Tr.t("Address"), city: Tr.t("City"), postal: Tr.t("Postal code"),
+        country: Tr.t("Country"), company: Tr.t("Company"),
+        holder: Tr.t("Name on card"), number: Tr.t("Card number"), expiry: Tr.t("Expires (MM/YY)"), cvv: Tr.t("Security code (CVV)"),
+    })
+    function editIdentity(name, values, kind) {
+        identityKind = kind ?? "people";
+        identityName = name;
+        identityLabel.text = name ? Passwords.labelOf(name) : identityKind === "cards" ? "" : Tr.t("Me");
+        for (let i = 0; i < identityFields.count; i++) {
+            const f = identityFields.itemAt(i);
+            f.text = values[f.key] ?? "";
+        }
+        editingIdentity = true;
+    }
+    function saveIdentity() {
+        const values = {};
+        for (let i = 0; i < identityFields.count; i++) {
+            const f = identityFields.itemAt(i);
+            values[f.key] = f.text;
+        }
+        Passwords.saveFields(identityKind, identityLabel.text, values, identityName);
+        editingIdentity = false;
+    }
+
+    // A note: a new one, or one opened to read or change.
+    property string noteName: ""
+    function editNote(name, text) {
+        noteName = name;
+        noteLabel.text = name ? Passwords.labelOf(name) : "";
+        noteText.text = text;
+        editingNote = true;
+    }
+    function saveNote() {
+        Passwords.saveNote(noteLabel.text, noteText.text, noteName);
+        editingNote = false;
+    }
+    // Ctrl+C on an entry: a login's password, a card's number, a note's text.
+    function copyOf(name) {
+        const kind = Passwords.kindOf(name);
+        if (kind === "people") return;
+        Passwords.copy(name, kind === "cards" ? "field:number" : kind === "notes" ? "note" : "");
+        Panels.passwordsOpen = false;
+    }
+
     function pick(name) {
         if (!name) return;
-        if (Passwords.site || Passwords.app) Passwords.fill(name);
+        // A note is only read; personal info and cards fill a form, or open when nothing asked.
+        if (Passwords.kindOf(name) === "notes" || Passwords.kindOf(name) !== "logins" && !Passwords.site && !Passwords.app) Passwords.show(name);
+        else if (Passwords.site || Passwords.app) Passwords.fill(name);
         else { Passwords.copy(name); Panels.passwordsOpen = false; }
     }
 
@@ -99,7 +162,7 @@ Item {
         spacing: Theme.space10
 
         Keys.onEscapePressed: {
-            if (root.page === "edit") { root.editing = false; focusLater.restart(); }
+            if (root.page !== "list") { root.editing = false; root.editingIdentity = false; root.editingNote = false; focusLater.restart(); }
             else Panels.passwordsOpen = false;
         }
 
@@ -179,12 +242,22 @@ Item {
             }
         }
 
-        // The list.
+        // The list: the passwords, or the personal info.
+        Choice {
+            Layout.fillWidth: true
+            visible: root.page === "list"
+            stretch: true
+            options: [{ value: "logins", label: Tr.t("Passwords") }, { value: "people", label: Tr.t("Personal info") },
+                { value: "cards", label: Tr.t("Cards") }, { value: "notes", label: Tr.t("Notes") }]
+            current: Passwords.tab
+            onPicked: v => { Passwords.tab = v; root.current = 0; focusLater.restart(); }
+        }
         SearchField {
             id: search
             Layout.fillWidth: true
             visible: root.page === "list"
-            placeholder: Tr.t("Search passwords…")
+            placeholder: Passwords.tab === "people" ? Tr.t("Search personal info…") : Passwords.tab === "cards" ? Tr.t("Search cards…")
+                : Passwords.tab === "notes" ? Tr.t("Search notes…") : Tr.t("Search passwords…")
             count: text.trim() ? Passwords.search(text).length : -1
             input.onTextChanged: root.current = 0
             input.Keys.onDownPressed: root.current = Math.min(root.current + 1, root.rows.length - 1)
@@ -197,8 +270,9 @@ Item {
             input.Keys.onPressed: event => {
                 const name = root.rows[root.current];
                 if (!(event.modifiers & Qt.ControlModifier) || !name) return;
-                if (event.key === Qt.Key_C) { Passwords.copy(name); Panels.passwordsOpen = false; }
-                else if (event.key === Qt.Key_B) { Passwords.copy(name, "login"); Panels.passwordsOpen = false; }
+                const login = Passwords.kindOf(name) === "logins";
+                if (event.key === Qt.Key_C && Passwords.kindOf(name) !== "people") root.copyOf(name);
+                else if (event.key === Qt.Key_B && login) { Passwords.copy(name, "login"); Panels.passwordsOpen = false; }
                 else if (event.key === Qt.Key_E) Passwords.show(name);
                 else return;
                 event.accepted = true;
@@ -217,7 +291,8 @@ Item {
                     required property var modelData
                     required property int index
                     readonly property bool chosen: index === root.current
-                    readonly property var parts: modelData.split("/")
+                    readonly property string kind: Passwords.kindOf(modelData)
+                    readonly property var parts: kind !== "logins" ? [Passwords.labelOf(modelData)] : modelData.split("/")
                     Layout.fillWidth: true
                     implicitHeight: 46
                     radius: Theme.r(12)
@@ -259,12 +334,13 @@ Item {
                             }
                         }
                         IconButton {
-                            size: 30; visible: row.chosen; ink: Theme.textOnAccent; icon: "users"; label: Tr.t("Copy username")
+                            size: 30; visible: row.chosen && row.kind === "logins"; ink: Theme.textOnAccent; icon: "users"; label: Tr.t("Copy username")
                             onClicked: { Passwords.copy(row.modelData, "login"); Panels.passwordsOpen = false; }
                         }
                         IconButton {
-                            size: 30; visible: row.chosen; ink: Theme.textOnAccent; icon: "copy"; label: Tr.t("Copy password")
-                            onClicked: { Passwords.copy(row.modelData); Panels.passwordsOpen = false; }
+                            size: 30; visible: row.chosen && row.kind !== "people"; ink: Theme.textOnAccent; icon: "copy"
+                            label: row.kind === "cards" ? Tr.t("Copy card number") : row.kind === "notes" ? Tr.t("Copy note") : Tr.t("Copy password")
+                            onClicked: root.copyOf(row.modelData)
                         }
                         IconButton {
                             size: 30; visible: row.chosen; ink: Theme.textOnAccent; icon: "edit"; label: Tr.t("Edit")
@@ -281,14 +357,156 @@ Item {
                 visible: root.rows.length === 0
                 horizontalAlignment: Text.AlignHCenter
                 color: Theme.overlay1
-                text: Passwords.entries.length === 0 ? Tr.t("No passwords yet. Enter adds one.")
+                wrapMode: Text.Wrap
+                text: Passwords.tab !== "logins" && search.text.trim() ? Tr.t("Nothing found. Enter adds it.")
+                    : Passwords.tab === "people" ? Tr.t("Add your personal info (Enter) and sign-ups fill themselves.")
+                    : Passwords.tab === "cards" ? Tr.t("No cards yet. Enter adds one, and checkouts fill themselves.")
+                    : Passwords.tab === "notes" ? Tr.t("No notes yet. Enter adds one: PINs, recovery codes, anything.")
+                    : Passwords.entries.length === 0 ? Tr.t("No passwords yet. Enter adds one.")
                     : Tr.t("Nothing found. Enter adds it.")
             }
             KeyHints {
                 Layout.topMargin: Theme.space4
                 visible: root.rows.length > 0
-                keys: [["↵", Passwords.site || Passwords.app ? Tr.t("fill") : Tr.t("copy")],
+                keys: Passwords.tab === "people" ? [["↵", Tr.t("fill")], ["Ctrl+E", Tr.t("edit")]]
+                    : Passwords.tab === "cards" ? [["↵", Tr.t("fill")], ["Ctrl+C", Tr.t("number")], ["Ctrl+E", Tr.t("edit")]]
+                    : Passwords.tab === "notes" ? [["↵", Tr.t("open")], ["Ctrl+C", Tr.t("copy")]]
+                    : [["↵", Passwords.site || Passwords.app ? Tr.t("fill") : Tr.t("copy")],
                     ["Ctrl+C", Tr.t("password")], ["Ctrl+B", Tr.t("username")], ["Ctrl+E", Tr.t("edit")]]
+            }
+        }
+
+        // Personal info: what sign-ups ask for.
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.page === "identity"
+            spacing: Theme.space8
+            Field {
+                id: identityLabel
+                Layout.fillWidth: true
+                placeholder: root.identityKind === "cards" ? Tr.t("Name for it, like Visa") : Tr.t("Name for it, like Me or Work")
+            }
+            GridLayout {
+                Layout.fillWidth: true
+                columns: 2
+                columnSpacing: Theme.space8
+                rowSpacing: Theme.space8
+                Repeater {
+                    id: identityFields
+                    model: root.identityKind === "cards" ? Passwords.cardKeys : Passwords.identityKeys
+                    Field {
+                        required property string modelData
+                        readonly property string key: modelData
+                        Layout.fillWidth: true
+                        mono: key === "number" || key === "cvv" || key === "expiry"
+                        secret: key === "cvv"; canReveal: secret
+                        placeholder: root.identityLabels[modelData]
+                        input.Keys.onReturnPressed: identitySave.clicked()
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.space6
+                Button {
+                    visible: root.identityName !== ""
+                    danger: true
+                    icon: "trash"
+                    text: Tr.t("Delete")
+                    onClicked: { Passwords.remove(root.identityName); root.editingIdentity = false; }
+                }
+                Item { Layout.fillWidth: true }
+                Button {
+                    text: Tr.t("Cancel")
+                    onClicked: root.editingIdentity = false
+                }
+                Button {
+                    id: identitySave
+                    primary: true
+                    icon: "check"
+                    active: identityLabel.text.trim() !== ""
+                    text: Tr.t("Save")
+                    onClicked: if (active) root.saveIdentity()
+                }
+            }
+        }
+
+        // A note: PINs, recovery codes, anything kept as text.
+        ColumnLayout {
+            Layout.fillWidth: true
+            visible: root.page === "note"
+            spacing: Theme.space8
+            Field {
+                id: noteLabel
+                Layout.fillWidth: true
+                placeholder: Tr.t("Name for it, like Bank PIN")
+                input.Keys.onReturnPressed: noteText.forceActiveFocus()
+            }
+            PanelSurface {
+                Layout.fillWidth: true
+                implicitHeight: 160
+                radius: Theme.r(16)
+                fill: Theme.tint(parent, Theme.text, noteText.activeFocus ? 0.09 : 0.05)
+                edgeWidth: noteText.activeFocus ? 2 : 1
+                edge: noteText.activeFocus ? Theme.accentInk : Theme.controlEdge
+                Flickable {
+                    id: noteFlick
+                    anchors { fill: parent; margins: Theme.space12 }
+                    clip: true
+                    contentHeight: noteText.contentHeight
+                    TextEdit {
+                        id: noteText
+                        width: noteFlick.width
+                        wrapMode: TextEdit.Wrap
+                        color: Theme.text
+                        selectionColor: Theme.accent
+                        selectedTextColor: Theme.textOnAccent
+                        font.family: Theme.monoFamily
+                        font.pixelSize: Theme.fontSize
+                        Accessible.role: Accessible.EditableText
+                        Accessible.name: Tr.t("Note")
+                        onCursorRectangleChanged: if (cursorRectangle.y + cursorRectangle.height > noteFlick.contentY + noteFlick.height)
+                            noteFlick.contentY = cursorRectangle.y + cursorRectangle.height - noteFlick.height
+                        Keys.onPressed: event => {
+                            if (event.key === Qt.Key_S && (event.modifiers & Qt.ControlModifier)) { noteSave.clicked(); event.accepted = true; }
+                        }
+                        Label {
+                            visible: !noteText.text
+                            color: Theme.overlay1
+                            text: Tr.t("Anything to keep safe")
+                        }
+                    }
+                }
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.space6
+                Button {
+                    visible: root.noteName !== ""
+                    danger: true
+                    icon: "trash"
+                    text: Tr.t("Delete")
+                    onClicked: { Passwords.remove(root.noteName); root.editingNote = false; }
+                }
+                Button {
+                    visible: root.noteName !== ""
+                    icon: "copy"
+                    text: Tr.t("Copy")
+                    onClicked: root.copyOf(root.noteName)
+                }
+                Item { Layout.fillWidth: true }
+                Button {
+                    text: Tr.t("Cancel")
+                    onClicked: root.editingNote = false
+                }
+                Button {
+                    id: noteSave
+                    primary: true
+                    icon: "check"
+                    active: noteLabel.text.trim() !== ""
+                    text: Tr.t("Save")
+                    onClicked: if (active) root.saveNote()
+                }
             }
         }
 

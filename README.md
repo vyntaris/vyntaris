@@ -232,11 +232,14 @@ takes the keys again whenever the screen's window comes back, after a suspend or
   change in Settings add.
 - **Passwords** (SUPER+SHIFT+P, `passwords` in the launcher): kept by `pass`, GPG-encrypted on this computer
   under a master password, which is asked again after 30 minutes unused and whenever the screen locks.
-  The island opens by itself on a password field in any app (`scripts/pass-watch.py` listens on the
+  The island opens by itself on a password field in other apps (`scripts/pass-watch.py` listens on the
   accessibility bus), searched for that site, and Enter fills it. In Firefox the Vyntaris Passwords
-  extension (`firefox/passwords`, installed by the policy) does more: a username field opens it too, the
-  fields are filled directly rather than typed, and after a login the island offers to save the password,
-  or to update a saved one that changed. The extension talks to the island through `scripts/pass-host.py`.
+  extension (`firefox/passwords`, installed by the policy) puts an icon in login fields that opens it, the
+  fields are filled directly rather than typed, a new login is saved by itself, and the island asks before
+  updating a saved one that changed. A sign-up gets a recommended password under its field (a click fills
+  it), and personal info kept in the island (`identity/…` entries: name, email, phone, address) fills the
+  rest of the form; cards (`card/…`) fill a checkout the same way. Notes (`note/…`) keep PINs, recovery codes
+  and the like. Each kind has its own tab in the island, never mixed with the passwords. Address autofill of Firefox's own is on too (`system/firefox-policies.json`). The extension talks to the island through `scripts/pass-host.py`.
   Copied passwords stay out of the clipboard history and are cleared after 45 seconds.
 - **Password prompts** for administrator rights are the shell's own (a polkit agent), in the lock screen's
   style.

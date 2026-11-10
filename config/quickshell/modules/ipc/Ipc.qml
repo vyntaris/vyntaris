@@ -319,7 +319,7 @@ Scope {
         function lock(): void { Passwords.lock() }
         function offer(): void { Passwords.takeOffer() }
         function saveOffer(): void { Passwords.saveOffer() }
-        function userField(site: string): void { Passwords.atUserField(site) }
+        function pick(site: string, field: string, user: bool, userEmpty: bool, signup: bool): void { Passwords.pickFor(site, field, user, userEmpty, signup) }
     }
 
     IpcHandler {
