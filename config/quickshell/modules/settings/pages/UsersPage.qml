@@ -27,7 +27,7 @@ SettingsPage {
             Layout.fillWidth: true
             spacing: Theme.space2
             Label { font.pixelSize: Theme.fontSizeLarge; font.weight: Font.DemiBold; text: Accounts.self.full }
-            Caption { text: Accounts.self.name + (Accounts.self.admin ? Tr.t(" · administrator") : "") }
+            Dotted { parts: [Accounts.self.name, Accounts.self.admin ? Tr.t("administrator") : ""] }
         }
     }
 
@@ -96,7 +96,7 @@ SettingsPage {
         text: newPw.text.length < 4 ? Tr.t("4 characters at least") : Tr.t("The two aren't the same")
     }
 
-    SettingsSection { text: Accounts.others.length ? Tr.t("Other people") : Tr.t("Other people · none") }
+    SettingsSection { text: Accounts.others.length ? Tr.t("Other people") : Tr.t("Other people: none") }
     Repeater {
         model: Accounts.others
         RowLayout {

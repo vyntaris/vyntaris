@@ -538,7 +538,7 @@ PanelWindow {
                 onLevelChanged: {
                     if (level >= 0 && level <= 15 && !lowWarned) {
                         lowWarned = true;
-                        Activities.banner("smartphone", phone.name + " · " + level + "%", Tr.t("The phone's battery is low"), level / 100, Theme.warning, 5000);
+                        Activities.banner("smartphone", phone.name + ", " + level + "%", Tr.t("The phone's battery is low"), level / 100, Theme.warning, 5000);
                     } else if (level > 20 || level < 0) lowWarned = false;
                 }
                 property bool lowWarned: false
@@ -565,7 +565,7 @@ PanelWindow {
                 onLevelChanged: {
                     if (level >= 0 && level <= 15 && !lowWarned) {
                         lowWarned = true;
-                        Activities.banner("headphones", (withBattery?.name || withBattery?.deviceName || Tr.t("Bluetooth")) + " · " + level + "%",
+                        Activities.banner("headphones", (withBattery?.name || withBattery?.deviceName || Tr.t("Bluetooth")) + ", " + level + "%",
                             Tr.t("Bluetooth battery is low"), level / 100, Theme.warning, 5000);
                     } else if (level > 20) lowWarned = false;
                 }

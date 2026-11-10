@@ -74,7 +74,7 @@ Singleton {
                     if (!f || !/^(vpn|wireguard)$/.test(f[2])) continue;
                     const name = f[4].replace(/\\(.)/g, "$1");
                     out.push({ uuid: f[1], type: f[2] === "vpn" ? "OpenVPN" : "WireGuard", active: f[3] === "yes", name: name,
-                               place: name.startsWith("Riseup · ") ? name.slice(9) : "" });
+                               place: (/^Riseup \((.*)\)$/.exec(name) || /^Riseup \u00b7 (.*)$/.exec(name) || [])[1] ?? "" });
                 }
                 root.list = out.sort((a, b) => (b.active - a.active) || a.name.localeCompare(b.name));
             }

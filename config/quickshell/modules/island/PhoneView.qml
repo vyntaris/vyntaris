@@ -123,7 +123,7 @@ Item {
                                 overline: true
                                 font.pixelSize: Theme.fontSizeSmall
                                 color: Theme.accentInk
-                                text: Tr.f("Wants to pair · code {0}", ask.modelData.code)
+                                text: Tr.f("Wants to pair, code {0}", ask.modelData.code)
                             }
                         }
                         ChipButton { text: Tr.t("Reject"); onClicked: Phone.reject(ask.modelData.id) }
@@ -139,9 +139,9 @@ Item {
                 icon: Phone.iconFor(root.mine)
                 level: root.phone && root.phone.battery >= 0 ? root.phone.battery / 100 : -1
                 details: !root.mine ? Tr.t("KDE Connect on the phone, on the same Wi-Fi")
-                    : !root.phone ? Tr.t("Not in reach · on the same Wi-Fi?")
+                    : !root.phone ? Tr.t("Not in reach, on the same Wi-Fi?")
                     : [root.phone.charging ? Tr.t("Charging") : "", root.phone.network,
-                       root.phone.signal >= 0 ? Tr.f("Signal {0}/4", root.phone.signal) : ""].filter(s => s).join("  ·  ")
+                       root.phone.signal >= 0 ? Tr.f("Signal {0}/4", root.phone.signal) : ""].filter(s => s).join(", ")
             }
 
             ColumnLayout {
@@ -225,7 +225,7 @@ Item {
                     required property var modelData
                     readonly property bool waiting: modelData.pairState === 1
                     icon: Phone.iconFor(modelData); title: modelData.name
-                    note: waiting ? "Accept on the phone · code " + modelData.code : ""
+                    note: waiting ? "Accept on the phone, code " + modelData.code : ""
                     action: waiting ? Tr.t("Cancel") : Tr.t("Pair")
                     onChosen: waiting ? Phone.reject(modelData.id) : Phone.pair(modelData.id)
                 }

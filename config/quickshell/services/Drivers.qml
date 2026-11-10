@@ -98,7 +98,7 @@ Singleton {
             for (const e of fresh) {
                 Quickshell.execDetached(["notify-send", "-a", Tr.t("Drivers"), "-i", "preferences-system",
                     e.name + Tr.t(": driver installed"),
-                    e.kind + (e.restart ? Tr.t(" · Restart to start using it.") : Tr.t(" · Ready to use."))]);
+                    e.kind + (e.restart ? Tr.t(". Restart to start using it.") : Tr.t(". Ready to use."))]);
             }
             const newest = Math.max(...fresh.map(e => e.at));
             Quickshell.execDetached(["sh", "-c", 'mkdir -p "$(dirname "$1")" && printf %s "$2" > "$1"', "sh", root.seenFile, String(newest)]);

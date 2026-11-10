@@ -39,7 +39,7 @@ SettingsPage {
         anchor: layoutButton
         shown: page.open === "layout"
         placeholder: Tr.t("Language")
-        results: Keyboard.search(query, 30).map(h => ({ value: h.layout + ":" + h.variant, title: h.name, caption: h.variant ? h.layout + " · " + h.variant : h.layout }))
+        results: Keyboard.search(query, 30).map(h => ({ value: h.layout + ":" + h.variant, title: h.name, caption: h.variant ? h.layout + ", " + h.variant : h.layout }))
         empty: query.trim() ? Tr.t("Nothing by that name") : ""
         onPicked: v => { const [l, vr] = v.split(":"); Keyboard.add(l, vr); page.open = ""; }
         onClosed: page.open = ""
