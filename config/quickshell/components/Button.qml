@@ -18,7 +18,7 @@ Rectangle {
     readonly property bool filled: primary || danger
     readonly property bool iconOnly: text === ""
     TextMetrics { id: measure; font: label.font; text: root.text }
-    readonly property real natural: measure.advanceWidth + (icon !== "" ? 23 : 0) + 32
+    readonly property real natural: measure.advanceWidth + (icon !== "" ? 24 : 0) + 32
     readonly property bool tight: !iconOnly && width < natural
 
     implicitHeight: Theme.controlHeight
@@ -37,7 +37,7 @@ Rectangle {
         anchors.centerIn: parent
         spacing: Theme.space8
         Spinner { visible: root.busy; size: 15 }
-        Icon { visible: !root.busy && root.icon !== "" && (root.iconOnly || !root.tight); name: root.icon; size: 15; color: root.filled ? root.fillInk : Theme.text }
+        Icon { visible: !root.busy && root.icon !== "" && (root.iconOnly || !root.tight); name: root.icon; size: 16; color: root.filled ? root.fillInk : Theme.text }
         Label {
             id: label
             visible: !root.iconOnly

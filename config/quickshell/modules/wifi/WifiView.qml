@@ -323,7 +323,7 @@ Item {
                     implicitHeight: 38
                     radius: Theme.r(12)
                     color: Theme.accent
-                    Icon { anchors.centerIn: parent; name: "lock"; size: 17; color: Theme.textOnAccent }
+                    Icon { anchors.centerIn: parent; name: "lock"; size: 16; color: Theme.textOnAccent }
                 }
                 ColumnLayout {
                     Layout.fillWidth: true

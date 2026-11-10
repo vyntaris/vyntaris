@@ -87,7 +87,7 @@ Item {
                             visible: !row.can
                             text: row.modelData.takenOver ? Tr.t("Off") : Tr.t("Not connected")
                         }
-                        Icon { visible: row.chosen; name: "check"; size: 15; color: Theme.accentInk }
+                        Icon { visible: row.chosen; name: "check"; size: 16; color: Theme.accentInk }
                     }
                     PressArea {
                         label: row.modelData.label

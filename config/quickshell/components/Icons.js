@@ -132,7 +132,26 @@ function wifiLevel(s) {
 
 var outlineOnly = { "battery_android_0": true };
 
+// Wi-Fi strength as solid shapes only: the whole fan dim, and a slice of it from the tip in colour, up to where
+// Material's 1, 2 and 3 bars end. Their own shapes draw the rest as a 1 px outline, which came out blurred.
+var wifiReach = [242, 339, 444];
+function wifiFan(color, dimColor, level, px) {
+    var fan = Material.paths["signal_wifi_4_bar"];
+    var body;
+    if (level < 0 || level >= wifiReach.length) {
+        body = '<g fill="' + color + '">' + fan + '</g>';
+    } else {
+        var r = wifiReach[level], cx = 480, cy = -145, d = r * Math.SQRT1_2;
+        var slice = '<path d="M' + cx + ' ' + cy + 'L' + (cx - d) + ' ' + (cy - d) + 'A' + r + ' ' + r + ' 0 0 1 '
+            + (cx + d) + ' ' + (cy - d) + 'Z"/>';
+        body = '<g fill="' + dimColor + '">' + fan + '</g><g fill="' + color + '">' + slice + '</g>';
+    }
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="' + px
+        + '" height="' + px + '" viewBox="0 -960 960 960">' + body + '</svg>');
+}
+
 function svg(name, color, dimColor, stroke, level, px, filled) {
+    if (name === "wifi") return wifiFan(color, dimColor, level, px);
     var m = material[name];
     if (m) {
         var list = m.levels || m;
