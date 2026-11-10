@@ -259,7 +259,8 @@ public:
             for (auto &[k, v] : open) if (v.get() == raw) { v->click(); break; }
         });
         if (!id) return;
-        connect(raw, &QWebEngineNotification::closed, this, [this, id] { open.erase(id); clicks.erase(id); });
+        // Kept after WhatsApp closes it (soon, or when another message comes): clicked from the island's list later, it
+        // still opens that chat. Let go when the island closes it.
         n->show();
         open[id] = std::move(n);
     }
