@@ -275,7 +275,6 @@
  "Exchange rate of {0}": "Kurs za {0}",
  "Extras": "Dodaci",
  "FPS": "FPS",
- "FPS and temperatures in the island": "FPS i temperature u islandu",
  "Fastest": "Najbrže",
  "Few people use it.": "Malo ljudi ga koristi.",
  "File manager": "Upravljač fajlova",
@@ -555,7 +554,6 @@
  "Paused": "Pauzirano",
  "Peach": "Breskva",
  "Performance": "Performanse",
- "Performance mode": "Režim performansi",
  "Performance when plugged in": "Performanse kad je na punjaču",
  "Phone": "Telefon",
  "Phone connected": "Telefon je povezan",
@@ -731,7 +729,6 @@
  "Signed in to Google Drive": "Prijavljen si na Google Drive",
  "Signing in didn't finish.": "Prijava nije završena.",
  "Signing in…": "Prijavljujem se…",
- "Silence notifications": "Utišaj obaveštenja",
  "Silent": "Tiho",
  "Since the last start, from {0}. Most are harmless; one that repeats points at what's wrong.": "Od poslednjeg pokretanja, iz: {0}. Većina je bezopasna; ona koja se ponavlja pokazuje šta nije u redu.",
  "Skip": "Preskoči",
@@ -759,7 +756,6 @@
  "Springs past and settles": "Prelete pa se smiri",
  "Start": "Pokreni",
  "Start a timer": "Pokreni tajmer",
- "Start by itself": "Pokreni se sam",
  "Start here": "Počni ovde",
  "Start it again": "Pokreni ga ponovo",
  "Start its driver with the system": "Pokreni njen drajver sa sistemom",
@@ -767,7 +763,6 @@
  "Start · type to search": "Start · kucaj za pretragu",
  "Start ↵": "Pokreni ↵",
  "Starting…": "Pokrećem…",
- "Starts with games": "Pali se uz igre",
  "Startup apps": "Aplikacije pri pokretanju",
  "Stay on screen": "Ostaje na ekranu",
  "Stop": "Zaustavi",
@@ -1064,5 +1059,7 @@
  "Turn on anyway": "Ipak uključi",
  "Turning off…": "Isključivanje…",
  "Turning on…": "Uključivanje…",
- "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet ti dolazi preko Wi-Fi-ja, a kartica ne može istovremeno i da ga deli: uključivanje ga prekida. Priključi kabl ili telefon preko USB-a da bi delio taj internet."
+ "Your internet comes over Wi-Fi, and the card can't share it at the same time: turning this on disconnects it. Plug in a cable, or your phone over USB, to share that.": "Internet ti dolazi preko Wi-Fi-ja, a kartica ne može istovremeno i da ga deli: uključivanje ga prekida. Priključi kabl ili telefon preko USB-a da bi delio taj internet.",
+ "Quiet": "Tišina",
+ "With games": "Uz igre"
 }
