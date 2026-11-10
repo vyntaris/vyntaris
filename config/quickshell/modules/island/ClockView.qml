@@ -78,8 +78,8 @@ Item {
             color: Theme.accent
         }
 
-        // As tall as the row, and what's in it placed on whole pixels: centred, a 13 px icon in 16 sat
-        // on half a pixel and came out blurred.
+        // As tall as the row, its icon on whole pixels and at 16 px: smaller, a detailed one (the package cube)
+        // came out a blur.
         Item {
             id: activityMark
             visible: root.activity !== null
@@ -98,7 +98,7 @@ Item {
                 x: Math.round((16 - size) / 2)
                 y: activityMark.markTop + Math.round((16 - size) / 2)
                 name: root.activity?.icon ?? ""
-                size: (root.activity?.progress ?? -1) >= 0 ? 9 : 13
+                size: (root.activity?.progress ?? -1) >= 0 ? 9 : 16
                 color: Theme.ink(root.activity?.color ?? Theme.accent)
             }
             MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: root.openActivity() }

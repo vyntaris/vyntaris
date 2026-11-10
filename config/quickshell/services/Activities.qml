@@ -216,7 +216,7 @@ Singleton {
                        progress: pct / 100, color: Theme.accent, paused: false });
         }
         if (installing)
-            out.push({ kind: "packages", icon: "download", text: packages.count > 0 ? packages.count + ", " + packages.name : root.removing ? Tr.t("Removing") : Tr.t("Installing"),
+            out.push({ kind: "packages", icon: "package-update", text: packages.count > 0 ? packages.count + ", " + packages.name : root.removing ? Tr.t("Removing") : Tr.t("Installing"),
                        progress: -1, color: Theme.accent, paused: false });
         return out;
     }
