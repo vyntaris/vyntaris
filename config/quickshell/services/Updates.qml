@@ -33,7 +33,7 @@ Singleton {
     property string lastResult: ""
     readonly property string upgradeState: (Quickshell.env("XDG_RUNTIME_DIR") || "/tmp") + "/vyntaris-upgrade"
     function upgrade() {
-        if (upgrading) return;
+        if (busy) return;
         upgrading = true;
         lastResult = "";
         output = [];
@@ -48,6 +48,12 @@ Singleton {
         recheck.restart();
     }
     property var output: []
+    // An update from a terminal (pacman -Syu) shows as one from here: the same panel, its last lines.
+    readonly property bool fromTerminal: !upgrading && Activities.installing && (Activities.packages?.upgrade ?? false)
+    readonly property bool busy: upgrading || fromTerminal
+    readonly property var lastLines: upgrading ? output
+        : fromTerminal ? Terminal.screen((Activities.packages?.lines ?? []).join("\n"), 8) : []
+    onFromTerminalChanged: if (!fromTerminal) recheck.restart()
     Timer {
         interval: 500
         repeat: true

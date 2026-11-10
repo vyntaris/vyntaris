@@ -8,6 +8,9 @@ query=' -(Q|Ss|Si|Sl|Sg|Sp|F|T|G|P)[[:alnum:]]*( |$)| --(query|search|info|print
 { [ -e /var/lib/pacman/db.lck ] || pgrep -x 'makepkg' >/dev/null \
     || pgrep -a -x 'yay|paru|pikaur|trizen|pamac' | grep -qvE -- "$query" \
     || pgrep -a -x pacman | grep -v -- '--dbpath' | grep -qvE -- "$query"; } && busy=1
+# A whole-system update (-Syu, -Su) rather than installing or removing a package.
+upgrade=0
+pgrep -a -x 'pacman|yay|paru|pikaur|trizen' | grep -qE -- ' -[A-Za-z]*S[A-Za-z]*u|--sysupgrade' && upgrade=1
 from="$(date -d "@$((since - 1))" +%Y-%m-%dT%H:%M:%S)"
 
 window_screen() {
@@ -33,7 +36,7 @@ if [ "$source" = log ]; then
     # progress line that redraws itself stays one line.
     [ -n "$run" ] && screen="$(tail -c 24000 "$run")" && source=run
 fi
-tail -n 4000 /var/log/pacman.log 2>/dev/null | awk -v from="$from" -v since="$since" -v busy="$busy" -v source="$source" '
+tail -n 4000 /var/log/pacman.log 2>/dev/null | awk -v from="$from" -v since="$since" -v busy="$busy" -v source="$source" -v upgrade="$upgrade" '
     substr($1, 2, 19) < from { next }
     { line = $0; sub(/^\[[^]]*\] /, "", line); lines[++nl] = line }
     /\[PACMAN\] Running / { if (open) failed = 1; open = 0 }
@@ -44,7 +47,7 @@ tail -n 4000 /var/log/pacman.log 2>/dev/null | awk -v from="$from" -v since="$si
     /\[ALPM\] removed / { removed++ }
     END {
         state = open ? "running" : failed ? "failed" : done > 0 ? "done" : "none"
-        print since, state, n + 0, busy, (last == "" ? "-" : last), source, removed + 0
+        print since, state, n + 0, busy, (last == "" ? "-" : last), source, removed + 0, upgrade
         if (source == "log") for (i = (nl > 80 ? nl - 79 : 1); i <= nl; i++) print lines[i]
     }'
 [ "$source" != log ] && printf '%s\n' "$screen" | sed 's/[[:space:]]*$//'
