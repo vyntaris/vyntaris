@@ -58,6 +58,8 @@ jobs:
         run: tools/settings-index.py
       - name: The translations parse and hold no text the shell no longer has (and how much of each is done)
         run: tools/i18n.py
+      - name: The passwords extension shipped is signed and the same as its source
+        run: tools/sign-extension.py --check
       - name: Lua parses
         run: for f in config/hypr/hyprland.lua config/hypr/lib/*.lua; do luac5.4 -p "$f"; done
       - name: JSON parses
