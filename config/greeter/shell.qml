@@ -21,6 +21,18 @@ ShellRoot {
     readonly property string user: picked || cfg.user || (people[0]?.name ?? "")
     readonly property bool synced: user === cfg.user
     readonly property var session: cfg.session ?? ["vyntaris-session"]
+    // A wallpaper that changes through the day (greeter-sync.sh): the picture for now, checked every minute.
+    FileView { id: dynamic; path: Quickshell.shellPath("dynamic/schedule.json"); blockLoading: true; printErrors: false }
+    readonly property var schedule: { try { return JSON.parse(dynamic.text()); } catch (e) { return []; } }
+    property int minute: 0
+    function tick() { const d = new Date(); minute = d.getHours() * 60 + d.getMinutes(); }
+    Timer { running: root.schedule.length > 0; repeat: true; triggeredOnStart: true; interval: 60000; onTriggered: root.tick() }
+    readonly property string wallpaper: {
+        if (!schedule.length) return cfg.wallpaper || "";
+        let now = schedule[schedule.length - 1];
+        for (const e of schedule) if (e.m <= minute) now = e;
+        return Quickshell.shellPath("dynamic/" + (now.f ?? "frame-" + now.i + ".jpg"));
+    }
     property string status: Greetd.available ? "" : "Preview — not under greetd (Esc quits)"
     property string pending: ""
 
@@ -74,7 +86,7 @@ ShellRoot {
                 others: root.people.filter(p => p.name !== root.user)
                 onUserPicked: name => { if (root.status === "checking") return; root.picked = name; root.status = Greetd.available ? "" : root.status; }
                 status: root.status
-                wallpaper: root.cfg.wallpaper || ""
+                wallpaper: root.wallpaper
                 title: "Welcome"
                 showPower: true
                 onSubmit: pw => root.login(pw)
