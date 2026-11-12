@@ -1,6 +1,7 @@
 pragma Singleton
 import Quickshell
 import Quickshell.Io
+import Quickshell.Hyprland
 import QtQuick
 import qs.config
 
@@ -86,7 +87,13 @@ Singleton {
     }
 
     function open(fromField) {
-        if (!fromField) { site = ""; app = ""; userField = false; userEmpty = false; atUser = false; signup = false; tab = "logins"; }
+        if (!fromField) {
+            // The shortcut: Enter fills the window that had the focus, copies when there's none.
+            const w = Hyprland.activeToplevel;
+            const id = (w?.wayland?.appId ?? w?.lastIpcObject?.class ?? "").toLowerCase();
+            site = ""; app = id && !id.includes("quickshell") ? id : "";
+            userField = false; userEmpty = false; atUser = false; signup = false; tab = "logins";
+        }
         refresh();
         Panels.passwordsOpen = true;
     }
@@ -100,8 +107,9 @@ Singleton {
         const args = kind === "fill" ? (kindOf(name) !== "logins" ? ["fill-fields", name] : ["fill", name, atUser ? "here" : extra ? "user" : ""])
             : kind === "copy" ? ["copy", name, extra]
             : ["show", name];
-        if (kind === "fill") Panels.passwordsOpen = false;
+        // Busy first: closing the island drops a pending that isn't busy, and a locked fill needs it.
         busy = true;
+        if (kind === "fill") Panels.passwordsOpen = false;
         actProc.command = [tool].concat(args);
         actProc.running = true;
     }
