@@ -133,6 +133,12 @@ Item {
         Panels.passwordsOpen = false;
     }
 
+    readonly property var tabs: ["logins", "people", "cards", "notes"]
+    function cycleTab(step) {
+        Passwords.tab = tabs[(tabs.indexOf(Passwords.tab) + step + tabs.length) % tabs.length];
+        current = 0;
+    }
+
     function pick(name) {
         if (!name) return;
         // A note is only read; personal info and cards fill a form, or open when nothing asked.
@@ -262,6 +268,8 @@ Item {
             input.onTextChanged: root.current = 0
             input.Keys.onDownPressed: root.current = Math.min(root.current + 1, root.rows.length - 1)
             input.Keys.onUpPressed: root.current = Math.max(root.current - 1, 0)
+            input.Keys.onTabPressed: root.cycleTab(1)
+            input.Keys.onBacktabPressed: root.cycleTab(-1)
             input.Keys.onReturnPressed: event => {
                 if (event.modifiers & Qt.ControlModifier) root.newEntry();
                 else if (root.rows.length) root.pick(root.rows[root.current]);
