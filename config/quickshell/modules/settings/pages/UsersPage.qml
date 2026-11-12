@@ -95,6 +95,54 @@ SettingsPage {
         color: Theme.warning
         text: newPw.text.length < 4 ? Tr.t("4 characters at least") : Tr.t("The two aren't the same")
     }
+    // Off: a master password of their own, asked when they're used; picked first when the keyring has the key's.
+    SettingsRow {
+        title: Tr.t("Passwords open when you sign in")
+        Switch {
+            id: withLogin
+            checked: Config.passwords.withLogin && !masterBox.visible
+            onToggled: on => {
+                masterLabel.failed = false;
+                if (on || !Passwords.kept) { masterBox.visible = false; Passwords.setWithLogin(on); }
+                else { masterBox.visible = true; master.text = ""; master2.text = ""; }
+                checked = Qt.binding(() => Config.passwords.withLogin && !masterBox.visible);
+            }
+        }
+    }
+    RowLayout {
+        id: masterBox
+        Layout.fillWidth: true
+        visible: false
+        spacing: Theme.space8
+        Field { id: master; Layout.fillWidth: true; secret: true; canReveal: true; placeholder: Tr.t("Master password") }
+        Field {
+            id: master2; Layout.fillWidth: true; secret: true; revealed: master.revealed; placeholder: Tr.t("Again")
+            invalid: text !== "" && text !== master.text
+        }
+        Button { text: Tr.t("Cancel"); onClicked: masterBox.visible = false }
+        Button {
+            primary: true
+            text: Tr.t("Save")
+            active: master.text.length >= 6 && master.text === master2.text && !Passwords.busy
+            onClicked: if (active) Passwords.setWithLogin(false, master.text)
+        }
+    }
+    Connections {
+        target: Passwords
+        function onWithLoginDone(ok) {
+            masterLabel.failed = !ok;
+            if (ok) { masterBox.visible = false; master.text = ""; master2.text = ""; }
+        }
+    }
+    Label {
+        id: masterLabel
+        property bool failed: false
+        visible: masterBox.visible
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        color: failed ? Theme.error : Theme.overlay1
+        text: failed ? Tr.t("The master password couldn't be set.") : Tr.t("Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.")
+    }
 
     SettingsSection { text: Accounts.others.length ? Tr.t("Other people") : Tr.t("Other people: none") }
     Repeater {

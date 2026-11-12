@@ -1115,5 +1115,10 @@
  "Search notes…": "Pretraži bilješke…",
  "Security code (CVV)": "Sigurnosni kod (CVV)",
  "number": "broj",
- "open": "otvori"
+ "open": "otvori",
+ "Your passwords are kept encrypted on this computer, and open when you sign in. Anyone who knows your login password can read them.": "Lozinke se čuvaju šifrovane na ovom računaru i otključavaju se kad se prijaviš. Ko zna tvoju lozinku za prijavu može da ih pročita.",
+ "Asked this once: from now on your passwords open when you sign in.": "Traži se samo ovaj put: od sada se lozinke otključavaju kad se prijaviš.",
+ "Passwords open when you sign in": "Lozinke se otključavaju pri prijavi",
+ "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Izaberi glavnu lozinku za svoje lozinke: traži se kad ih koristiš. Ako je zaboraviš, ne mogu da se pročitaju.",
+ "The master password couldn't be set.": "Glavna lozinka nije mogla da se postavi."
 }

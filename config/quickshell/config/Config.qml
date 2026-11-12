@@ -262,6 +262,8 @@ Singleton {
             property JsonObject passwords: JsonObject {
                 property bool autoOpen: true
                 property var never: []
+                // Opened by signing in (the passphrase in the login keyring), not a master password of its own.
+                property bool withLogin: true
             }
 
             property JsonObject notifications: JsonObject {
