@@ -87,12 +87,16 @@ Singleton {
         return values;
     }
 
+    property bool fromShortcut: false
     function open(fromField) {
+        fromShortcut = !fromField;
         if (!fromField) {
-            // The shortcut: Enter fills the window that had the focus, copies when there's none.
+            // The shortcut: Enter fills Firefox's page (its extension finds the password field), else copies.
+            // Other apps' fields open the island themselves (pass-watch); typing into a window not known to
+            // be at one could show the password in a chat or a terminal.
             const w = Hyprland.activeToplevel;
             const id = (w?.wayland?.appId ?? w?.lastIpcObject?.class ?? "").toLowerCase();
-            site = ""; app = id && !id.includes("quickshell") ? id : "";
+            site = ""; app = id.includes("firefox") ? "firefox" : "";
             userField = false; userEmpty = false; atUser = false; signup = false; tab = "logins";
         }
         refresh();
@@ -105,7 +109,7 @@ Singleton {
         if (busy) return;
         pending = { kind, name, extra: extra ?? "" };
         failure = "";
-        const args = kind === "fill" ? (kindOf(name) !== "logins" ? ["fill-fields", name] : ["fill", name, atUser ? "here" : extra ? "user" : ""])
+        const args = kind === "fill" ? (kindOf(name) !== "logins" ? ["fill-fields", name] : ["fill", name, atUser ? "here" : extra ? "user" : fromShortcut ? "page" : ""])
             : kind === "copy" ? ["copy", name, extra]
             : ["show", name];
         // Busy first: closing the island drops a pending that isn't busy, and a locked fill needs it.
@@ -141,6 +145,8 @@ Singleton {
         }
         pending = null;
         locked = false;
+        // The shortcut's fill, and the page had no password field: copied instead.
+        if (actProc.code === 6) { act("copy", p.name, ""); return; }
         if (actProc.code !== 0) { failure = Tr.t("That entry couldn't be read."); return; }
         if (p.kind === "show") opened(p.name, actProc.text);
         if (p.kind === "copy") {

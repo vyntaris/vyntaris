@@ -11,9 +11,9 @@
 #                          the only copy of a made-up one), then out of the keyring
 #   forget                 out of the keyring: asked for again
 #   show NAME              the entry (exit 5: locked)
-#   fill NAME [user|here]  into the field with the focus: through Firefox's extension, else typed (the
+#   fill NAME [user|here|page]  into the field with the focus: through Firefox's extension, else typed (the
 #                          password; the username, Tab, the password from the password field (user) or
-#                          from the username field (here))
+#                          from the username field (here)); page: only through the extension (exit 6: it didn't)
 #   fill-fields NAME       personal info or a card ("key: value" lines) into the form with the focus, through Firefox's extension
 #   check SITE             a login (username and password lines on stdin): same | changed NAME | new NAME | locked
 #   copy NAME [login|field:KEY|note]   to the clipboard (the password, the username, a "KEY:" line, a note's text),
@@ -117,6 +117,8 @@ fill)
         | "$(dirname "$0")/pass-host.py" fill; then
         exit 0
     fi
+    # Not known to be a password field: never typed.
+    [ "$3" = page ] && exit 6
     if [ "$3" = here ]; then
         printf '%s' "$user" | wtype -
         wtype -k Tab
