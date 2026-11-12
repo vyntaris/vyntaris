@@ -36,7 +36,7 @@ Item {
 
         Row_ {
             text: Tr.t("Right now")
-            Switch { checked: ShellState.nightLight; onToggled: ShellState.toggle("nightlight") }
+            Switch { checked: NightLight.active; onToggled: NightLight.toggle() }
         }
         Row_ {
             text: Tr.t("On a schedule")

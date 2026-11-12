@@ -22,7 +22,7 @@ Item {
     PanelHeader {
         icon: "gamepad"
         title: Tr.t("Game mode")
-        Switch { checked: ShellState.gameMode; onToggled: ShellState.toggle("gamemode") }
+        Switch { checked: GameMode.active; onToggled: GameMode.toggle() }
     }
 
     PanelBody {
