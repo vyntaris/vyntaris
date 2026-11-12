@@ -47,7 +47,7 @@ Item {
     Timer {
         id: focusLater
         interval: 40
-        onTriggered: (root.page === "setup" ? phrase.input : root.page === "unlock" ? unlockField.input
+        onTriggered: (root.page === "setup" ? (Config.passwords.withLogin ? content : phrase.input) : root.page === "unlock" ? unlockField.input
             : root.page === "edit" ? (!nameField.text ? nameField.input : !userField.text ? userField.input : passField.input)
             : root.page === "identity" ? identityLabel.input : root.page === "note" ? noteLabel.input : search.input).forceActiveFocus()
     }
@@ -156,7 +156,7 @@ Item {
             onClicked: root.newEntry()
         }
         HeaderButton {
-            visible: root.page === "list" && !Passwords.locked
+            visible: root.page === "list" && !Passwords.locked && !Config.passwords.withLogin
             icon: "lock"; label: Tr.t("Lock")
             onClicked: { Passwords.lock(); Panels.passwordsOpen = false; }
         }
@@ -167,6 +167,7 @@ Item {
         id: content
         spacing: Theme.space10
 
+        Keys.onReturnPressed: if (root.page === "setup") setupButton.clicked()
         Keys.onEscapePressed: {
             if (root.page !== "list") { root.editing = false; root.editingIdentity = false; root.editingNote = false; focusLater.restart(); }
             else Panels.passwordsOpen = false;
@@ -181,7 +182,7 @@ Item {
             text: Tr.t("pass isn't installed.")
         }
 
-        // The first time: a master password for the new store.
+        // The first time: a master password for the new store, or only a yes when the login opens it.
         ColumnLayout {
             Layout.fillWidth: true
             visible: root.page === "setup"
@@ -190,11 +191,14 @@ Item {
                 Layout.fillWidth: true
                 wrapMode: Text.Wrap
                 color: Theme.subtext0
-                text: Tr.t("Your passwords are kept encrypted on this computer. Pick a master password: it's asked when you use them, and again after the screen locks. If you forget it, they can't be read.")
+                text: Config.passwords.withLogin
+                    ? Tr.t("Your passwords are kept encrypted on this computer, and open when you sign in. Anyone who knows your login password can read them.")
+                    : Tr.t("Your passwords are kept encrypted on this computer. Pick a master password: it's asked when you use them, and again after the screen locks. If you forget it, they can't be read.")
             }
             Field {
                 id: phrase
                 Layout.fillWidth: true
+                visible: !Config.passwords.withLogin
                 secret: true; canReveal: true
                 placeholder: Tr.t("Master password")
                 input.Keys.onReturnPressed: phrase2.input.forceActiveFocus()
@@ -202,6 +206,7 @@ Item {
             Field {
                 id: phrase2
                 Layout.fillWidth: true
+                visible: !Config.passwords.withLogin
                 secret: true; revealed: phrase.revealed
                 invalid: text !== "" && text !== phrase.text
                 placeholder: Tr.t("Again")
@@ -221,7 +226,7 @@ Item {
                     id: setupButton
                     primary: true
                     icon: Passwords.busy ? "" : "check"
-                    active: !Passwords.busy && phrase.text.length >= 6 && phrase.text === phrase2.text
+                    active: !Passwords.busy && (Config.passwords.withLogin || phrase.text.length >= 6 && phrase.text === phrase2.text)
                     text: Passwords.busy ? Tr.t("Setting up…") : Tr.t("Set up")
                     onClicked: if (active) Passwords.setup(phrase.text)
                 }
@@ -245,6 +250,13 @@ Item {
                 visible: Passwords.wrong
                 color: Theme.error
                 text: Tr.t("That isn't the master password.")
+            }
+            Label {
+                Layout.fillWidth: true
+                visible: Config.passwords.withLogin && !Passwords.wrong
+                wrapMode: Text.Wrap
+                color: Theme.overlay1
+                text: Tr.t("Asked this once: from now on your passwords open when you sign in.")
             }
         }
 

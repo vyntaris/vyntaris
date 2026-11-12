@@ -27,6 +27,7 @@ Singleton {
     function refresh() {
         statusProc.running = false; statusProc.running = true;
         listProc.running = false; listProc.running = true;
+        keptProc.running = false; keptProc.running = true;
     }
     // Known from the start, for Firefox's fields and logins before the island was ever opened.
     Component.onCompleted: refresh()
@@ -139,6 +140,7 @@ Singleton {
             return;
         }
         pending = null;
+        locked = false;
         if (actProc.code !== 0) { failure = Tr.t("That entry couldn't be read."); return; }
         if (p.kind === "show") opened(p.name, actProc.text);
         if (p.kind === "copy") {
@@ -157,7 +159,7 @@ Singleton {
     Process {
         id: unlockProc
         property string input: ""
-        command: [root.tool, "unlock"]
+        command: [root.tool, "unlock", Config.passwords.withLogin ? "remember" : ""]
         stdinEnabled: true
         onStarted: { write(input + "\n"); input = ""; stdinEnabled = false; }
         onExited: code => {
@@ -165,6 +167,7 @@ Singleton {
             root.busy = false;
             if (code !== 0) { root.wrong = true; return; }
             root.locked = false;
+            root.refresh();
             const p = root.pending;
             root.pending = null;
             if (p) root.act(p.kind, p.name, p.extra);
@@ -175,17 +178,57 @@ Singleton {
         locked = true;
     }
 
+    // With the login: nothing to pick, a passphrase made up and kept in the keyring.
     function setup(phrase) {
-        if (busy || !phrase) return;
+        if (busy || !phrase && !Config.passwords.withLogin) return;
         busy = true;
         failure = "";
-        setupProc.input = phrase;
+        setupProc.input = phrase ?? "";
+        setupProc.command = [tool, "setup", Config.passwords.withLogin ? "login" : ""];
         setupProc.running = true;
+    }
+    // On: kept at the next unlock. Off: the keyring's passphrase (maybe made up, its only copy) changed to the
+    // master password picked, first.
+    property bool kept: false
+    signal withLoginDone(bool ok)
+    function setWithLogin(on, phrase) {
+        if (on || !kept) {
+            Config.passwords.withLogin = on;
+            Config.saveSoon();
+            withLoginDone(true);
+            return;
+        }
+        if (busy || !phrase) return;
+        busy = true;
+        masterProc.input = phrase;
+        masterProc.running = true;
+    }
+    Process {
+        id: masterProc
+        property string input: ""
+        command: [root.tool, "master"]
+        stdinEnabled: true
+        onStarted: { write(input + "\n"); input = ""; stdinEnabled = false; }
+        onExited: code => {
+            masterProc.stdinEnabled = true;
+            root.busy = false;
+            if (code === 0) {
+                root.kept = false;
+                root.locked = true;
+                Config.passwords.withLogin = false;
+                Config.saveSoon();
+            }
+            root.withLoginDone(code === 0);
+        }
+    }
+    Process {
+        id: keptProc
+        command: [root.tool, "kept"]
+        onExited: code => root.kept = code === 0
     }
     Process {
         id: setupProc
         property string input: ""
-        command: [root.tool, "setup"]
         stdinEnabled: true
         onStarted: { write(input + "\n"); input = ""; stdinEnabled = false; }
         onExited: code => {

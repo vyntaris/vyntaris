@@ -2,9 +2,14 @@
 # The island's passwords, kept by pass (passwordstore.org): GPG-encrypted files in ~/.password-store.
 #   status                 ready | nokey
 #   list                   every entry
-#   setup                  a new key and store; the passphrase on stdin
-#   unlock                 the passphrase on stdin; gpg-agent keeps it for a while
+#   setup [login]          a new key and store; the passphrase on stdin, or (login) a random one kept in the
+#                          login keyring, which signing in opens
+#   unlock [remember]      the passphrase on stdin; gpg-agent keeps it for a while (remember: the keyring too)
 #   lock                   forget it now
+#   kept                   exit 0 if the passphrase is in the keyring
+#   master                 off the login: the key's passphrase changed to the one on stdin (from the keyring's,
+#                          the only copy of a made-up one), then out of the keyring
+#   forget                 out of the keyring: asked for again
 #   show NAME              the entry (exit 5: locked)
 #   fill NAME [user|here]  into the field with the focus: through Firefox's extension, else typed (the
 #                          password; the username, Tab, the password from the password field (user) or
@@ -18,16 +23,21 @@
 #   generate               a new password
 store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
 
+# The passphrase in the login keyring, opened by signing in.
+keyring=(service vyntaris-passwords)
+remember() { printf '%s' "$1" | secret-tool store --label="Vyntaris passwords" "${keyring[@]}"; }
+
+open_entry() {
+    gpg --quiet --batch --pinentry-mode error -d "$store/$1.gpg" 2>/dev/null && return
+    # Not in gpg-agent any more: from the keyring, without asking.
+    local phrase
+    phrase=$(secret-tool lookup "${keyring[@]}" 2>/dev/null)
+    [ -n "$phrase" ] && gpg --quiet --batch --pinentry-mode loopback --passphrase-fd 3 -d "$store/$1.gpg" \
+        3<<<"$phrase" 2>/dev/null
+}
 decrypt() {
     [ -f "$store/$1.gpg" ] || exit 1
-    local err
-    err=$(mktemp) || exit 1
-    if gpg --quiet --batch --pinentry-mode error -d "$store/$1.gpg" 2>"$err"; then
-        rm -f "$err"
-        return
-    fi
-    rm -f "$err"
-    exit 5
+    open_entry "$1" || exit 5
 }
 
 # The first line is the password; the username is a "login:" line, or the entry's last part ("site/name").
@@ -46,7 +56,12 @@ list)
     [ -d "$store" ] || exit 0
     cd "$store" && find . -name '*.gpg' -printf '%P\n' | sed 's/\.gpg$//' | sort ;;
 setup)
-    IFS= read -r phrase || exit 1
+    if [ "$2" = login ]; then
+        phrase=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 40)
+        remember "$phrase" || exit 1
+    else
+        IFS= read -r phrase || exit 1
+    fi
     [ -n "$phrase" ] || exit 1
     name=$(getent passwd "$USER" | cut -d: -f5 | cut -d, -f1)
     uid="${name:-$USER} <$USER@$(cat /etc/hostname 2>/dev/null || echo vyntaris)>"
@@ -67,11 +82,29 @@ unlock)
         # Nothing to open yet: check the passphrase against the key itself.
         fpr=$(head -n 1 "$store/.gpg-id")
         printf 'x' | gpg --batch --pinentry-mode loopback --passphrase-fd 3 -u "$fpr" -s -o /dev/null 3<<<"$phrase" 2>/dev/null || exit 2
-        exit 0
+    else
+        gpg --quiet --batch --pinentry-mode loopback --passphrase-fd 0 -d "$store/$any" >/dev/null 2>&1 <<<"$phrase" || exit 2
     fi
-    gpg --quiet --batch --pinentry-mode loopback --passphrase-fd 0 -d "$store/$any" >/dev/null 2>&1 <<<"$phrase" || exit 2 ;;
+    [ "$2" = remember ] && remember "$phrase"
+    exit 0 ;;
 lock)
     gpg-connect-agent reloadagent /bye >/dev/null 2>&1 ;;
+kept)
+    secret-tool lookup "${keyring[@]}" >/dev/null 2>&1 ;;
+master)
+    IFS= read -r new || exit 1
+    [ -n "$new" ] || exit 1
+    old=$(secret-tool lookup "${keyring[@]}" 2>/dev/null)
+    [ -n "$old" ] || exit 1
+    fpr=$(head -n 1 "$store/.gpg-id")
+    printf '%s\n%s\n' "$old" "$new" | gpg --batch --pinentry-mode loopback --command-fd 0 --passwd "$fpr" 2>/dev/null
+    # Out of the keyring only once the new one opens the key.
+    gpg-connect-agent reloadagent /bye >/dev/null 2>&1
+    printf 'x' | gpg --batch --pinentry-mode loopback --passphrase-fd 3 -u "$fpr" -s -o /dev/null 3<<<"$new" 2>/dev/null || exit 1
+    secret-tool clear "${keyring[@]}"
+    gpg-connect-agent reloadagent /bye >/dev/null 2>&1 ;;
+forget)
+    secret-tool clear "${keyring[@]}" ;;
 show)
     decrypt "$2" ;;
 fill)
@@ -137,7 +170,7 @@ check)
             [ "$part" = "$site" ] || [[ "$site" == *".$part" ]] && hit=1
         done
         [ -n "$hit" ] || continue
-        entry=$(gpg --quiet --batch --pinentry-mode error -d "$store/$e.gpg" 2>/dev/null) || { echo locked; exit 0; }
+        entry=$(open_entry "$e") || { echo locked; exit 0; }
         l=$(login "$e" <<<"$entry")
         if [ -z "$user" ] || [ -z "$l" ] || [ "$l" = "$user" ]; then
             if [ "$(password <<<"$entry")" = "$secret" ]; then echo same; else echo "changed $e"; fi
