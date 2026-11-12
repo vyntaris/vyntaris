@@ -1115,5 +1115,10 @@
  "Search notes…": "Pesquisar notas…",
  "Security code (CVV)": "Código de segurança (CVV)",
  "number": "número",
- "open": "abrir"
+ "open": "abrir",
+ "Your passwords are kept encrypted on this computer, and open when you sign in. Anyone who knows your login password can read them.": "Suas senhas ficam criptografadas neste computador e abrem quando você entra. Quem souber sua senha de login pode lê-las.",
+ "Asked this once: from now on your passwords open when you sign in.": "Pedida só desta vez: a partir de agora suas senhas abrem quando você entra.",
+ "Passwords open when you sign in": "Abrir as senhas ao entrar",
+ "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Escolha uma senha mestra para suas senhas: ela é pedida quando você as usa. Se esquecer, elas não podem ser lidas.",
+ "The master password couldn't be set.": "Não foi possível definir a senha mestra."
 }

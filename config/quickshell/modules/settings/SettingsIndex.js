@@ -129,6 +129,7 @@ var rows = [
     { page: "users", title: "Name" },
     { page: "users", title: "Picture" },
     { page: "users", title: "Password" },
+    { page: "users", title: "Passwords open when you sign in" },
     { page: "users", title: "Add someone" },
     { page: "users", title: "Full name" },
     { page: "users", title: "User name" },
