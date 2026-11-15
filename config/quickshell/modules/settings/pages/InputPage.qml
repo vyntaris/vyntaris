@@ -1,3 +1,4 @@
+import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import qs.config
@@ -74,6 +75,11 @@ SettingsPage {
         // Several can be on: picking one turns it on or off, and the list stays open.
         onPicked: v => page.setOptions(page.options.includes(v) ? page.options.filter(o => o !== v) : page.options.concat([v]))
         onClosed: page.open = ""
+    }
+    // Changed where they're all listed: click one's keys there and press others.
+    SettingsRow {
+        title: Tr.t("Shortcuts")
+        Button { icon: "keyboard"; text: Tr.t("Change"); onClicked: Quickshell.execDetached(["vyntaris-app", "help"]) }
     }
     SettingsSection { text: Tr.t("Mouse and touchpad") }
     SettingsRow {

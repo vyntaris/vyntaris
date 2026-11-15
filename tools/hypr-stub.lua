@@ -11,7 +11,7 @@ local function anything(name)
     })
 end
 hl = anything("hl")
-rawset(hl, "bind", function (_, _, opts) binds = binds + 1 end)
+rawset(hl, "bind", function (keys, _, opts) binds = binds + 1; print("BIND=" .. tostring(keys)) end)
 rawset(hl, "notification", { create = function (t) notes[#notes + 1] = t.text end })
 rawset(hl, "get_config", function () return nil end)
 rawset(hl, "exec_cmd", function (cmd) if tostring(cmd):match("notify%-send") then notes[#notes + 1] = cmd end end)

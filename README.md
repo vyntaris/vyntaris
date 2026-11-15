@@ -270,7 +270,9 @@ on the setting's page with the setting flashing. What needs root (users, the lan
 root: Settings asks for the current one too and gives both to `passwd` (`system/change-password` answers its
 prompts in a terminal of its own), and `pam_gnome_keyring` in `/etc/pam.d/passwd`, which `vyntaris-setup` adds,
 changes the login keyring's password with it, so the keyring still opens at the next login. Night light and game mode are set in the
-island, from their tiles. Help (`help.qml`) lists every shortcut, read from Hyprland itself.
+island, from their tiles. Help (`help.qml`) lists every shortcut, read from Hyprland itself. Press Edit, click a
+shortcut's keys and press others to change it (Backspace turns it off). Keys another shortcut has are refused, with
+which one it is. The changes go in `shortcuts` in settings.json, and `hyprland.lua` binds them.
 
 ---
 
