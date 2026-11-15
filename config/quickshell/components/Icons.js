@@ -58,6 +58,7 @@ var material = {
     "refresh": "refresh",
     "history": "history",
     "cpu": "memory",
+    "gpu": "developer_board",
     "memory": "memory_alt",
     "thermometer": "thermostat",
     "disk": "hard_drive",
