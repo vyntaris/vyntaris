@@ -94,6 +94,7 @@ var rows = [
     { page: "startup", title: "Command" },
     { page: "input", title: "Keyboard layout" },
     { page: "input", title: "Options" },
+    { page: "input", title: "Shortcuts" },
     { page: "input", title: "Pointer speed" },
     { page: "input", title: "Acceleration" },
     { page: "input", title: "Natural scrolling" },

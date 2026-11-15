@@ -13,6 +13,7 @@ local defaults = {
     display = { scale = 1, monitors = {} },
     audio   = { boost = false },
     bar     = { windowGap = 8, corners = "round", inside = "rounded" },
+    shortcuts = {},
 }
 
 local function merge(base, over)
@@ -59,6 +60,11 @@ local function tidy(s)
         end
     end
     d.monitors = monitors
+    local shortcuts = {}
+    for k, v in pairs(s.shortcuts) do
+        if type(k) == "string" and type(v) == "string" then shortcuts[k] = v end
+    end
+    s.shortcuts = shortcuts
     return s
 end
 

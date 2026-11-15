@@ -302,6 +302,14 @@ Item {
                     onClicked: Panels.systemOpen = true
                 }
                 Gauge {
+                    visible: SystemStats.gpu >= 0
+                    value: SystemStats.gpu
+                    color: parent.tint(SystemStats.gpu)
+                    text: Math.round(SystemStats.gpu * 100)
+                    caption: Tr.t("GPU")
+                    onClicked: Panels.systemOpen = true
+                }
+                Gauge {
                     visible: SystemStats.temperature >= 0
                     value: SystemStats.temperature / 100
                     color: SystemStats.temperature > 85 ? Theme.error : SystemStats.temperature > 70 ? Theme.warning : Theme.accent

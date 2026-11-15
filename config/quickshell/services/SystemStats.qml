@@ -18,6 +18,8 @@ Singleton {
     property real diskTotal: 0
     readonly property real disk: diskTotal > 0 ? diskUsed / diskTotal : 0
     property real uptime: 0
+    // The busiest graphics card, 0 to 1; -1 when none says (an Intel one doesn't, nor a sleeping one).
+    property real gpu: -1
 
     function formatBytes(b, decimals = 1) {
         const units = ["B", "KB", "MB", "GB", "TB"];
@@ -40,6 +42,7 @@ Singleton {
         meminfo.reload();
         uptimeFile.reload();
         if (tempFile.path) tempFile.reload();
+        if (!gpuProc.running) gpuProc.running = true;
     }
     Timer { id: firstRate; interval: 500; onTriggered: root.sample() }
     Timer {
@@ -111,5 +114,26 @@ Singleton {
             }
         }
     }
+    // A sleeping card isn't read, so it isn't woken. NVIDIA's second card is asked only while an app has it awake:
+    // asked all the time, it wouldn't go back to sleep.
+    readonly property bool askNvidia: !Gpu.present || (Gpu.awake && Gpu.users.length > 0)
+    Process {
+        id: gpuProc
+        command: ["sh", "-c",
+            'best=-1; for c in /sys/class/drm/card[0-9]*; do case "$c" in *-*) continue ;; esac; d=$(readlink -f "$c/device"); '
+            + '[ "$(cat "$d/power/runtime_status" 2>/dev/null || echo active)" = active ] || continue; '
+            + 'if [ -r "$d/gpu_busy_percent" ]; then b=$(cat "$d/gpu_busy_percent" 2>/dev/null); '
+            + 'elif [ "$(cat "$d/vendor")" = 0x10de ] && [ "$1" = 1 ] && command -v nvidia-smi >/dev/null; then '
+            + 'b=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -n1 | tr -dc 0-9); '
+            + 'else continue; fi; [ -n "$b" ] && [ "$b" -gt "$best" ] && best=$b; done; echo "$best"',
+            "sh", root.askNvidia ? "1" : "0"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const v = parseInt(text);
+                root.gpu = isNaN(v) || v < 0 ? -1 : Math.min(1, v / 100);
+            }
+        }
+    }
+
     Component.onCompleted: df.running = true
 }

@@ -12,6 +12,7 @@ Singleton {
         + "/quickshell/settings.json"
 
     property alias theme: adapter.theme
+    property alias shortcuts: adapter.shortcuts
     property alias apps: adapter.apps
     property alias input: adapter.input
     property alias display: adapter.display
@@ -173,6 +174,9 @@ Singleton {
 
         JsonAdapter {
             id: adapter
+
+            // Shortcuts given other keys, by the keys they come with ("" for none). hyprland.lua reads it.
+            property var shortcuts: ({})
 
             property JsonObject theme: JsonObject {
                 property string flavor: "mocha"
