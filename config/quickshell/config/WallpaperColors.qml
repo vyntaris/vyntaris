@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "Palettes.js" as Palettes
 
 Singleton {
     id: root
@@ -67,7 +68,8 @@ Singleton {
         }
         const winner = Object.values(hues).sort((x, y) => y.count - x.count)[0];
         vibrant = winner ? winner.top.c : colors[0].c;
-        chosen = winner ? hex(winner.top.c) : "lavender";
+        // Kept as light as the eight accents, so text on it reads: an accent of your own is used as it is.
+        chosen = winner ? Palettes.fit(hex(winner.top.c), true) : "lavender";
         ready = true;
         apply();
     }

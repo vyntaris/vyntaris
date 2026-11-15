@@ -14,6 +14,13 @@ SettingsPage {
     // Which list is open under its row ("" for none): every value here is picked, none typed.
     property string open: ""
     function toggle(which) { open = open === which ? "" : which; }
+    readonly property bool customAccent: Palettes.isCustom(Theme.accentName) && !Config.theme.wallpaperAccent
+    // "#abc", "abc", "#aabbcc" or "aabbcc", as "#aabbcc"; "" when it's none of those.
+    function hex(v) {
+        let t = String(v).trim().replace(/^#/, "").toLowerCase();
+        if (/^[0-9a-f]{3}$/.test(t)) t = t.split("").map(c => c + c).join("");
+        return /^[0-9a-f]{6}$/.test(t) ? "#" + t : "";
+    }
     readonly property var times: {
         const out = [];
         for (let m = 0; m < 24 * 60; m += 15) out.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"));
@@ -86,13 +93,72 @@ SettingsPage {
             }
           Grid {
             anchors.verticalCenter: parent.verticalCenter
-            columns: 8
+            columns: 9
             spacing: Theme.space8
             Repeater {
                 model: Palettes.accentChoices
                 AccentSwatch { required property string modelData; accent: modelData; size: 24 }
             }
+            // Your own colour: the ring, with it in the middle once it's picked.
+            Item {
+                id: customSwatch
+                readonly property bool current: page.customAccent
+                width: 24; height: 24
+                scale: customArea.containsMouse ? 1.12 : 1
+                Behavior on scale { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
+                ColorRing { anchors.fill: parent; size: 24; interactive: false }
+                Rectangle {
+                    anchors.centerIn: parent
+                    visible: customSwatch.current
+                    width: 14; height: 14; radius: 7
+                    color: Theme.accent
+                    border { width: 2; color: Theme.isDark ? "#ffffff" : Theme.text }
+                }
+                PressArea {
+                    id: customArea
+                    anchors.fill: parent
+                    label: Tr.t("Custom color")
+                    role: Accessible.RadioButton
+                    checked: customSwatch.current
+                    onClicked: page.toggle("accent")
+                }
+            }
           }
+        }
+    }
+    SettingsRow {
+        visible: page.open === "accent" || page.customAccent
+        title: Tr.t("Custom color")
+        RowLayout {
+            spacing: Theme.space16
+            ColumnLayout {
+                spacing: Theme.space8
+                Layout.alignment: Qt.AlignVCenter
+                Field {
+                    id: hexField
+                    implicitWidth: 140
+                    mono: true
+                    placeholder: "#89b4fa"
+                    text: page.customAccent ? Theme.accentName : ""
+                    onCommitted: v => {
+                        const hex = page.hex(v);
+                        invalid = v !== "" && hex === "";
+                        if (hex) Config.setAccent(hex);
+                    }
+                    // Used as soon as it's a whole colour: nothing else to press.
+                    onTextChanged: {
+                        invalid = false;
+                        const hex = /^#?[0-9a-fA-F]{6}$/.test(text.trim()) ? page.hex(text) : "";
+                        if (hex && hex !== Theme.accentName) Config.setAccent(hex);
+                    }
+                }
+            }
+            ColorRing {
+                Layout.topMargin: Theme.space8
+                Layout.bottomMargin: Theme.space8
+                color: page.customAccent ? Theme.accentName : ""
+                onPicked: c => { Config.setAccent(c); hexField.text = c; }
+            }
         }
     }
     SettingsRow {
