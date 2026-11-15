@@ -74,6 +74,14 @@ Item {
         }
 
         StatRow {
+            visible: root.s.gpu >= 0
+            icon: "gpu"
+            label: Tr.t("GPU")
+            value: root.s.gpu
+            valueText: Math.round(root.s.gpu * 100) + "%"
+        }
+
+        StatRow {
             icon: "memory"
             label: Tr.t("Memory")
             value: root.s.memory
