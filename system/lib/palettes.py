@@ -67,22 +67,13 @@ def from_hsl(h, s, l):
                else (0, x, c) if h < 240 else (x, 0, c) if h < 300 else (c, 0, x))
     return "#" + "".join(f"{math.floor((v + m) * 255 + 0.5):02x}" for v in (r, g, b))
 
-def is_dark(pal):
-    return hsl(pal["base"])[2] < 0.5
-
-def fit(colour, dark):
-    h, s, _ = hsl(colour)
-    if dark:
-        return from_hsl(h, min(0.92, max(0.6, s)), 0.77)
-    return from_hsl(h, min(0.92, max(0.6, s)), 0.77)
-
 def partner_of(colour):
     h, s, l = hsl(colour)
     return from_hsl(h - 45, s, l)
 
 def accent(pal, name):
     if HEX.fullmatch(name or ""):
-        a = fit(name, is_dark(pal))
+        a = name.lower()
         return a, partner_of(a)
     if name not in pal:
         name = "blue"
