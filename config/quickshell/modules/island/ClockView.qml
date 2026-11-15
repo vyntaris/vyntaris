@@ -67,14 +67,14 @@ Item {
         Icon {
             visible: Notifications.dnd
             name: "bell-off"
-            size: 12
+            size: 16
             color: Theme.overlay1
         }
         Rectangle {
             visible: !Notifications.dnd && Notifications.unread > 0
-            implicitWidth: 6
-            implicitHeight: 6
-            radius: 3
+            implicitWidth: 8
+            implicitHeight: 8
+            radius: 4
             color: Theme.accent
         }
 

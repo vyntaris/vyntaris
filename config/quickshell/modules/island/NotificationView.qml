@@ -88,6 +88,8 @@ Item {
 
         NotificationIcon {
             Layout.alignment: Qt.AlignTop
+            size: 56
+            iconScale: 0.72
             image: root.n?.image ?? ""
             appIcon: root.n?.appIcon ?? ""
             appName: root.n?.appName ?? ""

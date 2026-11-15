@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
+import Quickshell.Services.Pipewire
 import Quickshell.Hyprland
 import QtQuick
 import qs.config
@@ -35,6 +36,83 @@ Singleton {
     readonly property int maxHistory: 50
     property int unread: 0
     property bool dnd: false
+
+    // In Do Not Disturb an app's own sound (WhatsApp's, Discord's) is muted too: its streams that start as its
+    // notification comes, for a few seconds. A call or music it already had playing is left alone.
+    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream)
+    PwObjectTracker { objects: root.dnd || root.stale.length ? root.streams : [] }
+    property var firstSeen: ({})
+    onStreamsChanged: {
+        const now = Date.now(), seen = {};
+        for (const n of streams) seen[n.id] = firstSeen[n.id] ?? now;
+        firstSeen = seen;
+    }
+    property var hushApps: []
+    property double hushFrom: 0
+    property var hushed: []
+    // PipeWire hands a gone stream's id to the next one.
+    function streamKey(n) { return n.id + "@" + (firstSeen[n.id] ?? 0); }
+    // Apps whose muted stream ended before it was unmuted: WirePlumber would start their next one muted.
+    property var stale: []
+
+    function streamNames(n) {
+        const p = n.properties ?? {};
+        if (p["media.class"] !== "Stream/Output/Audio") return [];
+        return [p["application.process.binary"], p["application.name"], p["application.id"]].filter(x => x).map(x => String(x).toLowerCase());
+    }
+    function sameApp(names, keys) {
+        return names.some(x => keys.some(k => k.length >= 3 && (x === k || x.includes(k) || k.includes(x))));
+    }
+    function hush(desktopEntry, appName) {
+        const keys = [desktopEntry, appName].filter(x => x).map(x => String(x).toLowerCase().replace(/\.desktop$/, "").split(".").pop());
+        if (keys.length === 0) return;
+        hushApps = keys;
+        hushFrom = Date.now() - 1500;
+        hushTimer.restart();
+        hushNow();
+    }
+    function hushNow() {
+        for (const n of streams) {
+            if (!n.audio || n.audio.muted) continue;
+            if ((firstSeen[n.id] ?? 0) < hushFrom && !hushed.some(h => h.key === streamKey(n))) continue;
+            const names = streamNames(n);
+            if (!sameApp(names, hushApps)) continue;
+            n.audio.muted = true;
+            hushed = hushed.filter(h => h.key !== streamKey(n)).concat([{ key: streamKey(n), names: names }]);
+        }
+    }
+    function unhush() {
+        hushTimer.stop();
+        const gone = [];
+        for (const h of hushed) {
+            const n = streams.find(s => streamKey(s) === h.key);
+            if (n?.audio) n.audio.muted = false;
+            else if (!n) gone.push(...h.names);
+        }
+        hushed = hushed.filter(h => streams.some(n => streamKey(n) === h.key));
+        stale = stale.concat(gone);
+    }
+    function unstale() {
+        for (const n of streams) {
+            if (!n.audio?.muted || (firstSeen[n.id] ?? 0) < Date.now() - 5000) continue;
+            const names = streamNames(n);
+            if (!sameApp(names, stale)) continue;
+            n.audio.muted = false;
+            stale = stale.filter(x => !names.includes(x));
+        }
+    }
+    Timer {
+        id: hushTimer
+        interval: 4000
+        onTriggered: root.unhush()
+    }
+    // A stream's properties come a moment after it does.
+    Timer {
+        interval: 100
+        repeat: true
+        running: hushTimer.running || root.stale.length > 0
+        onTriggered: hushTimer.running ? root.hushNow() : root.unstale()
+    }
 
     function remove(n) {
         queue = queue.filter(x => x !== n);
@@ -85,7 +163,10 @@ Singleton {
     }
     property bool loaded: false
     onHistoryChanged: if (loaded) saveTimer.restart()
-    onDndChanged: if (loaded) saveTimer.restart()
+    onDndChanged: {
+        if (!dnd) unhush();
+        if (loaded) saveTimer.restart();
+    }
     Timer {
         id: saveTimer
         interval: 1000
@@ -140,6 +221,7 @@ Singleton {
 
             const critical = n.urgency === NotificationUrgency.Critical;
             if (root.dnd && !critical) {
+                root.hush(n.desktopEntry, n.appName);
                 n.dismiss();
                 return;
             }
