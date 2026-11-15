@@ -9,6 +9,7 @@ ClippingRectangle {
     property string appIcon
     property color tint: Theme.accent
     property int size: 40
+    property real iconScale: 0.6
 
     property string appName: ""
     readonly property string iconName: {
@@ -41,7 +42,7 @@ ClippingRectangle {
     }
     IconImage {
         anchors.centerIn: parent
-        implicitSize: root.size * 0.6
+        implicitSize: root.size * root.iconScale
         visible: !root.hasImage && root.iconPath !== ""
         source: root.iconPath
     }
