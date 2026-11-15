@@ -265,59 +265,80 @@ local run = function(cmd)
         .. tostring(cmd):gsub("'", "'\\''") .. "'")
 end
 
-hl.bind(mainMod .. " + Return",    run(settings.apps.terminal), { description = "Terminal" })
-hl.bind(mainMod .. " + E",         run(settings.apps.fileManager), { description = "Files" })
-hl.bind(mainMod .. " + B",         run(settings.apps.browser), { description = "Browser" })
-hl.bind(mainMod .. " + C",         run(settings.apps.editor), { description = "Code editor" })
-hl.bind("CTRL + SHIFT + Escape",   run("vyntaris-monitor"), { description = "Task manager" })
-hl.bind(mainMod .. " + H",         run("vyntaris-monitor"), { description = "Task manager" })
-hl.bind(mainMod .. " + SHIFT + H", qs("wiki toggle"), { description = "Arch Wiki" })
-hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"), { description = "Pick a color from the screen" })
+-- Shortcuts changed in Settings, by the keys they come with: other keys, or "" for none. Every one is written
+-- down for the Help window, which is where they're changed.
+local listed = {}
+local function bind(keys, action, opts)
+    opts = opts or {}
+    local new = settings.shortcuts[keys]
+    local fixed = opts.mouse or opts.release or keys:find("mouse") or keys:find("switch:") or false
+    if fixed then new = nil end
+    listed[#listed + 1] = { default = keys, keys = new or keys, description = opts.description or "", editable = not fixed }
+    if new == "" then return end
+    if new and not pcall(hl.bind, new, action, opts) then
+        listed[#listed].keys = keys
+        tell("A shortcut couldn't be set", "{0} is back to its own keys.", opts.description or keys)
+        new = nil
+    end
+    if not new then hl.bind(keys, action, opts) end
+end
+-- While Help records new keys none of them may do anything else. (A submap needs a bind to exist: one on a key
+-- no keyboard has.)
+hl.define_submap("vyntaris-record", function() hl.bind("F35", hl.dsp.submap("reset")) end)
 
-hl.bind("SUPER + Super_L",          shell("control"), { release = true, description = "Start: control center, type to search apps (tap SUPER)" })
-hl.bind(mainMod .. " + R",          shell("run"), { description = "Run a command" })
-hl.bind(mainMod .. " + SHIFT + E",  shell("files"), { description = "Search files" })
-hl.bind(mainMod .. " + period",     shell("emoji"), { description = "Emoji" })
-hl.bind(mainMod .. " + V",          shell("clipboard"), { description = "Clipboard history" })
-hl.bind(mainMod .. " + I",          app("settings toggle"), { description = "Settings" })
-hl.bind(mainMod .. " + Escape",     shell("power"), { description = "Power menu" })
-hl.bind(mainMod .. " + L",          hl.dsp.exec_cmd("loginctl lock-session"), { description = "Lock" })
-hl.bind(mainMod .. " + Delete",     hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), { description = "Log out" })
-hl.bind(mainMod .. " + W",          shell("wallpaper"), { description = "Wallpapers" })
-hl.bind(mainMod .. " + SHIFT + W",  qs("wallpaper random"), { description = "Random wallpaper" })
-hl.bind(mainMod .. " + K",          qs("keyboard open"), { description = "Keyboard layouts (again: next)" })
-hl.bind(mainMod .. " + space",      qs("keyboard switchLayout"), { description = "Next keyboard layout" })
-hl.bind(mainMod .. " + T",          shell("timer"), { description = "Timer and stopwatch" })
-hl.bind(mainMod .. " + A",          shell("apps"), { description = "All apps" })
-hl.bind(mainMod .. " + SHIFT + A",  shell("sound"), { description = "Sound: outputs and inputs" })
-hl.bind("ALT + Tab",                qs("switcher next"), { description = "Switch windows" })
-hl.bind("ALT + SHIFT + Tab",        qs("switcher previous"), { description = "Switch windows, backwards" })
+bind(mainMod .. " + Return",    run(settings.apps.terminal), { description = "Terminal" })
+bind(mainMod .. " + E",         run(settings.apps.fileManager), { description = "Files" })
+bind(mainMod .. " + B",         run(settings.apps.browser), { description = "Browser" })
+bind(mainMod .. " + C",         run(settings.apps.editor), { description = "Code editor" })
+bind("CTRL + SHIFT + Escape",   run("vyntaris-monitor"), { description = "Task manager" })
+bind(mainMod .. " + H",         run("vyntaris-monitor"), { description = "Task manager" })
+bind(mainMod .. " + SHIFT + H", qs("wiki toggle"), { description = "Arch Wiki" })
+bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"), { description = "Pick a color from the screen" })
+
+bind("SUPER + Super_L",          shell("control"), { release = true, description = "Start: control center, type to search apps (tap SUPER)" })
+bind(mainMod .. " + R",          shell("run"), { description = "Run a command" })
+bind(mainMod .. " + SHIFT + E",  shell("files"), { description = "Search files" })
+bind(mainMod .. " + period",     shell("emoji"), { description = "Emoji" })
+bind(mainMod .. " + V",          shell("clipboard"), { description = "Clipboard history" })
+bind(mainMod .. " + I",          app("settings toggle"), { description = "Settings" })
+bind(mainMod .. " + Escape",     shell("power"), { description = "Power menu" })
+bind(mainMod .. " + L",          hl.dsp.exec_cmd("loginctl lock-session"), { description = "Lock" })
+bind(mainMod .. " + Delete",     hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), { description = "Log out" })
+bind(mainMod .. " + W",          shell("wallpaper"), { description = "Wallpapers" })
+bind(mainMod .. " + SHIFT + W",  qs("wallpaper random"), { description = "Random wallpaper" })
+bind(mainMod .. " + K",          qs("keyboard open"), { description = "Keyboard layouts (again: next)" })
+bind(mainMod .. " + space",      qs("keyboard switchLayout"), { description = "Next keyboard layout" })
+bind(mainMod .. " + T",          shell("timer"), { description = "Timer and stopwatch" })
+bind(mainMod .. " + A",          shell("apps"), { description = "All apps" })
+bind(mainMod .. " + SHIFT + A",  shell("sound"), { description = "Sound: outputs and inputs" })
+bind("ALT + Tab",                qs("switcher next"), { description = "Switch windows" })
+bind("ALT + SHIFT + Tab",        qs("switcher previous"), { description = "Switch windows, backwards" })
 -- transparent: Hyprland shadows a modifier's release bind once another bind used it (ALT + Tab), so letting go
 -- of Alt did nothing and it took a second tap of Alt to switch
-hl.bind("ALT + Alt_L",              qs("switcher commit"), { release = true, transparent = true, description = "Switch to the window picked" })
-hl.bind("ALT + SHIFT + Alt_L",      qs("switcher commit"), { release = true, transparent = true, description = "Switch to the window picked" })
-hl.bind("switch:on:Lid Switch", qs("session lid"), { locked = true, description = "Lid closed" })
+bind("ALT + Alt_L",              qs("switcher commit"), { release = true, transparent = true, description = "Switch to the window picked" })
+bind("ALT + SHIFT + Alt_L",      qs("switcher commit"), { release = true, transparent = true, description = "Switch to the window picked" })
+bind("switch:on:Lid Switch", qs("session lid"), { locked = true, description = "Lid closed" })
 
-hl.bind(mainMod .. " + SHIFT + S",  qs("screenshot region"), { description = "Screenshot of a region" })
-hl.bind("Print",                    qs("screenshot region"), { description = "Screenshot of a region" })
-hl.bind("XF86SelectiveScreenshot",  qs("screenshot region"), { description = "Screenshot of a region" })
-hl.bind("SHIFT + Print",            qs("screenshot screen"), { description = "Screenshot of the screen" })
-hl.bind(mainMod .. " + SHIFT + P",  qs("passwords toggle"), { description = "Passwords" })
-hl.bind(mainMod .. " + SHIFT + N",  qs("hotspot panel"), { description = "Hotspot" })
-hl.bind(mainMod .. " + SHIFT + T",  qs("screenshot text"), { description = "Copy text from the screen" })
-hl.bind(mainMod .. " + SHIFT + R",  qs("record toggle"), { description = "Record a region (again: stop)" })
-hl.bind(mainMod .. " + CTRL + R",   qs("record screen"), { description = "Record the screen" })
+bind(mainMod .. " + SHIFT + S",  qs("screenshot region"), { description = "Screenshot of a region" })
+bind("Print",                    qs("screenshot region"), { description = "Screenshot of a region" })
+bind("XF86SelectiveScreenshot",  qs("screenshot region"), { description = "Screenshot of a region" })
+bind("SHIFT + Print",            qs("screenshot screen"), { description = "Screenshot of the screen" })
+bind(mainMod .. " + SHIFT + P",  qs("passwords toggle"), { description = "Passwords" })
+bind(mainMod .. " + SHIFT + N",  qs("hotspot panel"), { description = "Hotspot" })
+bind(mainMod .. " + SHIFT + T",  qs("screenshot text"), { description = "Copy text from the screen" })
+bind(mainMod .. " + SHIFT + R",  qs("record toggle"), { description = "Record a region (again: stop)" })
+bind(mainMod .. " + CTRL + R",   qs("record screen"), { description = "Record the screen" })
 
-hl.bind(mainMod .. " + Q",             hl.dsp.window.close(), { description = "Close window" })
-hl.bind("ALT + F4",                    hl.dsp.window.close(), { description = "Close window" })
-hl.bind(mainMod .. " + SHIFT + Q",     hl.dsp.window.kill(), { description = "Force quit a frozen window" })
-hl.bind(mainMod .. " + F",             hl.dsp.window.fullscreen({ action = "toggle" }), { description = "Fullscreen" })
-hl.bind(mainMod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }), { description = "Float / tile window" })
-hl.bind(mainMod .. " + P",             hl.dsp.window.pin({ action = "toggle" }), { description = "Pin window on all workspaces" })
-hl.bind(mainMod .. " + S",             hl.dsp.layout("togglesplit"), { description = "Switch split direction" })
-hl.bind(mainMod .. " + G",             hl.dsp.group.toggle(), { description = "Group windows (tabs)" })
-hl.bind(mainMod .. " + bracketleft",   hl.dsp.group.prev(), { description = "Previous tab in group" })
-hl.bind(mainMod .. " + bracketright",  hl.dsp.group.next(), { description = "Next tab in group" })
+bind(mainMod .. " + Q",             hl.dsp.window.close(), { description = "Close window" })
+bind("ALT + F4",                    hl.dsp.window.close(), { description = "Close window" })
+bind(mainMod .. " + SHIFT + Q",     hl.dsp.window.kill(), { description = "Force quit a frozen window" })
+bind(mainMod .. " + F",             hl.dsp.window.fullscreen({ action = "toggle" }), { description = "Fullscreen" })
+bind(mainMod .. " + SHIFT + space", hl.dsp.window.float({ action = "toggle" }), { description = "Float / tile window" })
+bind(mainMod .. " + P",             hl.dsp.window.pin({ action = "toggle" }), { description = "Pin window on all workspaces" })
+bind(mainMod .. " + S",             hl.dsp.layout("togglesplit"), { description = "Switch split direction" })
+bind(mainMod .. " + G",             hl.dsp.group.toggle(), { description = "Group windows (tabs)" })
+bind(mainMod .. " + bracketleft",   hl.dsp.group.prev(), { description = "Previous tab in group" })
+bind(mainMod .. " + bracketright",  hl.dsp.group.next(), { description = "Next tab in group" })
 
 local function zoom(step)
     return function()
@@ -325,66 +346,80 @@ local function zoom(step)
         hl.config({ cursor = { zoom_factor = math.max(1, z + step) } })
     end
 end
-hl.bind(mainMod .. " + equal", zoom(0.5), { description = "Zoom in" })
-hl.bind(mainMod .. " + minus", zoom(-0.5), { description = "Zoom out" })
+bind(mainMod .. " + equal", zoom(0.5), { description = "Zoom in" })
+bind(mainMod .. " + minus", zoom(-0.5), { description = "Zoom out" })
 
 for _, d in ipairs({ "left", "right", "up", "down" }) do
-    hl.bind(mainMod .. " + " .. d,         hl.dsp.focus({ direction = d }), { description = "Focus " .. d })
-    hl.bind(mainMod .. " + SHIFT + " .. d, hl.dsp.window.move({ direction = d }), { description = "Move window " .. d })
+    bind(mainMod .. " + " .. d,         hl.dsp.focus({ direction = d }), { description = "Focus " .. d })
+    bind(mainMod .. " + SHIFT + " .. d, hl.dsp.window.move({ direction = d }), { description = "Move window " .. d })
     local dx = (d == "right" and 30) or (d == "left" and -30) or 0
     local dy = (d == "down" and 30) or (d == "up" and -30) or 0
-    hl.bind(mainMod .. " + CTRL + " .. d,  hl.dsp.window.resize({ x = dx, y = dy, relative = true }), { repeating = true, description = "Resize window " .. d })
+    bind(mainMod .. " + CTRL + " .. d,  hl.dsp.window.resize({ x = dx, y = dy, relative = true }), { repeating = true, description = "Resize window " .. d })
 end
 
 for i = 1, 10 do
     local key = i % 10
-    hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }), { description = "Go to workspace " .. i })
-    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }), { description = "Move window to workspace " .. i })
-    hl.bind(mainMod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i, follow = false }), { description = "Send window to workspace " .. i })
+    bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }), { description = "Go to workspace " .. i })
+    bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }), { description = "Move window to workspace " .. i })
+    bind(mainMod .. " + ALT + " .. key,   hl.dsp.window.move({ workspace = i, follow = false }), { description = "Send window to workspace " .. i })
 end
-hl.bind(mainMod .. " + ALT + right",         hl.dsp.focus({ workspace = "r+1" }), { description = "Next workspace" })
-hl.bind(mainMod .. " + ALT + left",          hl.dsp.focus({ workspace = "r-1" }), { description = "Previous workspace" })
-hl.bind(mainMod .. " + ALT + down",          hl.dsp.focus({ workspace = "empty" }), { description = "Empty workspace" })
-hl.bind(mainMod .. " + SHIFT + ALT + right", hl.dsp.window.move({ workspace = "r+1" }), { description = "Move window to the next workspace" })
-hl.bind(mainMod .. " + SHIFT + ALT + left",  hl.dsp.window.move({ workspace = "r-1" }), { description = "Move window to the previous workspace" })
+bind(mainMod .. " + ALT + right",         hl.dsp.focus({ workspace = "r+1" }), { description = "Next workspace" })
+bind(mainMod .. " + ALT + left",          hl.dsp.focus({ workspace = "r-1" }), { description = "Previous workspace" })
+bind(mainMod .. " + ALT + down",          hl.dsp.focus({ workspace = "empty" }), { description = "Empty workspace" })
+bind(mainMod .. " + SHIFT + ALT + right", hl.dsp.window.move({ workspace = "r+1" }), { description = "Move window to the next workspace" })
+bind(mainMod .. " + SHIFT + ALT + left",  hl.dsp.window.move({ workspace = "r-1" }), { description = "Move window to the previous workspace" })
 
-hl.bind(mainMod .. " + grave",         hl.dsp.workspace.toggle_special("magic"), { description = "Scratchpad" })
-hl.bind(mainMod .. " + SHIFT + grave", hl.dsp.window.move({ workspace = "special:magic", follow = false }), { description = "Send window to the scratchpad" })
+bind(mainMod .. " + grave",         hl.dsp.workspace.toggle_special("magic"), { description = "Scratchpad" })
+bind(mainMod .. " + SHIFT + grave", hl.dsp.window.move({ workspace = "special:magic", follow = false }), { description = "Send window to the scratchpad" })
 
-hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }), { description = "Next workspace (scroll)" })
-hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }), { description = "Previous workspace (scroll)" })
+bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }), { description = "Next workspace (scroll)" })
+bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }), { description = "Previous workspace (scroll)" })
 
-hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true, description = "Move window (drag)" })
-hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, description = "Resize window (drag)" })
-hl.bind(mainMod .. " + SHIFT + mouse:272", hl.dsp.window.resize(), { mouse = true, description = "Resize window (drag, touchpad)" })
+bind(mainMod .. " + mouse:272", hl.dsp.window.drag(), { mouse = true, description = "Move window (drag)" })
+bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true, description = "Resize window (drag)" })
+bind(mainMod .. " + SHIFT + mouse:272", hl.dsp.window.resize(), { mouse = true, description = "Resize window (drag, touchpad)" })
 
 local vol = function(cmd) return hl.dsp.exec_cmd("wpctl " .. cmd) end
-hl.bind("XF86AudioRaiseVolume", vol("set-volume -l " .. (settings.audio.boost and "1.5" or "1") .. " @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Volume up" })
-hl.bind("XF86AudioLowerVolume", vol("set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true, description = "Volume down" })
-hl.bind("XF86AudioMute",        vol("set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, description = "Mute" })
-hl.bind("XF86AudioMicMute",     vol("set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, description = "Mute the microphone" })
+bind("XF86AudioRaiseVolume", vol("set-volume -l " .. (settings.audio.boost and "1.5" or "1") .. " @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true, description = "Volume up" })
+bind("XF86AudioLowerVolume", vol("set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true, repeating = true, description = "Volume down" })
+bind("XF86AudioMute",        vol("set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, description = "Mute" })
+bind("XF86AudioMicMute",     vol("set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true, description = "Mute the microphone" })
 
-hl.bind("XF86MonBrightnessUp",   qs("brightness up"), { locked = true, repeating = true, description = "Brightness up" })
-hl.bind("XF86MonBrightnessDown", qs("brightness down"), { locked = true, repeating = true, description = "Brightness down" })
-hl.bind("XF86AudioNext",  qs("media next"), { locked = true, description = "Next track" })
-hl.bind("XF86AudioPause", qs("media toggle"), { locked = true, description = "Play / pause" })
-hl.bind("XF86AudioPlay",  qs("media toggle"), { locked = true, description = "Play / pause" })
-hl.bind("XF86AudioPrev",  qs("media previous"), { locked = true, description = "Previous track" })
-hl.bind("XF86Calculator", qs("launcher query ''"), { description = "Calculator" })
-hl.bind("XF86RFKill",            qs("hardware airplaneKey"), { locked = true, description = "Airplane mode" })
-hl.bind("XF86TouchpadToggle",    qs("hardware touchpad"), { locked = true, description = "Touchpad on / off" })
-hl.bind("XF86TouchpadOn",        qs("hardware touchpadOn"), { locked = true, description = "Touchpad on" })
-hl.bind("XF86TouchpadOff",       qs("hardware touchpadOff"), { locked = true, description = "Touchpad off" })
-hl.bind("XF86WebCam",            qs("hardware camera"), { locked = true, description = "Camera" })
-hl.bind("XF86RefreshRateToggle", qs("hardware vrr"), { description = "Adaptive sync" })
-hl.bind("XF86Display",           app("settings page displays"), { description = "Display settings" })
-hl.bind("XF86Launch1",           shell("control"), { description = "Control center" })
-hl.bind("XF86Launch2",           qs("hardware powerMode"), { description = "Power mode" })
-hl.bind("XF86Launch3",           qs("system toggle"), { description = "System panel" })
-hl.bind("XF86Launch4",           qs("hardware powerMode"), { description = "Power mode" })
-hl.bind("XF86Favorites",         qs("launcher toggle"), { description = "App launcher" })
-hl.bind("Help",                  app("help toggle"), { description = "Help: all shortcuts" })
-hl.bind(mainMod .. " + F1",        app("help toggle"), { description = "Help: all shortcuts" })
+bind("XF86MonBrightnessUp",   qs("brightness up"), { locked = true, repeating = true, description = "Brightness up" })
+bind("XF86MonBrightnessDown", qs("brightness down"), { locked = true, repeating = true, description = "Brightness down" })
+bind("XF86AudioNext",  qs("media next"), { locked = true, description = "Next track" })
+bind("XF86AudioPause", qs("media toggle"), { locked = true, description = "Play / pause" })
+bind("XF86AudioPlay",  qs("media toggle"), { locked = true, description = "Play / pause" })
+bind("XF86AudioPrev",  qs("media previous"), { locked = true, description = "Previous track" })
+bind("XF86Calculator", qs("launcher query ''"), { description = "Calculator" })
+bind("XF86RFKill",            qs("hardware airplaneKey"), { locked = true, description = "Airplane mode" })
+bind("XF86TouchpadToggle",    qs("hardware touchpad"), { locked = true, description = "Touchpad on / off" })
+bind("XF86TouchpadOn",        qs("hardware touchpadOn"), { locked = true, description = "Touchpad on" })
+bind("XF86TouchpadOff",       qs("hardware touchpadOff"), { locked = true, description = "Touchpad off" })
+bind("XF86WebCam",            qs("hardware camera"), { locked = true, description = "Camera" })
+bind("XF86RefreshRateToggle", qs("hardware vrr"), { description = "Adaptive sync" })
+bind("XF86Display",           app("settings page displays"), { description = "Display settings" })
+bind("XF86Launch1",           shell("control"), { description = "Control center" })
+bind("XF86Launch2",           qs("hardware powerMode"), { description = "Power mode" })
+bind("XF86Launch3",           qs("system toggle"), { description = "System panel" })
+bind("XF86Launch4",           qs("hardware powerMode"), { description = "Power mode" })
+bind("XF86Favorites",         qs("launcher toggle"), { description = "App launcher" })
+bind("Help",                  app("help toggle"), { description = "Help: all shortcuts" })
+bind(mainMod .. " + F1",        app("help toggle"), { description = "Help: all shortcuts" })
+
+do
+    local function q(v)
+        if type(v) == "boolean" then return tostring(v) end
+        return '"' .. tostring(v):gsub('[%c"\\]', function (c) return string.format("\\u%04x", c:byte()) end) .. '"'
+    end
+    local rows = {}
+    for _, b in ipairs(listed) do
+        rows[#rows + 1] = "{" .. '"default":' .. q(b.default) .. ',"keys":' .. q(b.keys) .. ',"description":' .. q(b.description)
+            .. ',"editable":' .. q(b.editable) .. "}"
+    end
+    local f = io.open((os.getenv("XDG_RUNTIME_DIR") or "/tmp") .. "/vyntaris-shortcuts.json", "w")
+    if f then f:write("[" .. table.concat(rows, ",\n") .. "]\n"); f:close() end
+end
 
 hl.window_rule({
     name  = "suppress-maximize-events",

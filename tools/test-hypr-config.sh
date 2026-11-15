@@ -11,8 +11,9 @@ config() {
     rm -rf "${T:?}/home"; mkdir -p "$T/home/.config/quickshell" "$T/home/.config/hypr"
     [ -n "$1" ] && printf '%s' "$1" > "$T/home/.config/quickshell/settings.json"
     [ -n "${2:-}" ] && printf '%s' "$2" > "$T/home/.config/hypr/user.lua"
-    HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" "$REPO/tools/hypr-stub.lua" "$REPO/config/hypr" > "$T/out" 2>&1
+    HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" XDG_RUNTIME_DIR="$T" "$LUA" "$REPO/tools/hypr-stub.lua" "$REPO/config/hypr" > "$T/out" 2>&1
 }
+bound() { grep -qxF "BIND=$1" "$T/out"; }
 whole() { ! grep -q '^ERROR=' "$T/out" && [ "$(sed -n 's/^BINDS=//p' "$T/out")" -ge 100 ]; }
 kinds() {
     HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "
@@ -54,9 +55,26 @@ null
 {"display":{"scale":0,"monitors":[{"name":5},{"name":""},7,{"name":"DP-1","scale":"x","mode":3}]}}
 {"display":{"monitors":{"name":"DP-1"}}}
 CASES
+echo ":: shortcuts"
+config '{"shortcuts":{"SUPER + E":"SUPER + SHIFT + F"}}'
+check "other keys: bound to them"            bound "SUPER + SHIFT + F"
+check "… not to its own"                     eval '! bound "SUPER + E"'
+check "… and written down for Help"          grep -q '"default":"SUPER + E","keys":"SUPER + SHIFT + F"' "$T/vyntaris-shortcuts.json"
+check "… every one written down"             eval '[ "$(grep -c description "$T/vyntaris-shortcuts.json")" -ge 100 ]'
+config '{"shortcuts":{"SUPER + E":""}}'
+check "none: not bound"                      eval '! bound "SUPER + E"'
+check "… still listed, off"                  grep -q '"default":"SUPER + E","keys":""' "$T/vyntaris-shortcuts.json"
+config '{"shortcuts":{"SUPER + mouse:272":"SUPER + X"}}'
+check "a mouse one stays"                    bound "SUPER + mouse:272"
+for case in '{"shortcuts":5}' '{"shortcuts":{"SUPER + E":5}}' '{"shortcuts":["x"]}'; do
+    config "$case"
+    check "whole with $case"                 whole
+    check "… its own keys"                   bound "SUPER + E"
+done
+
 config ""
 printf '{"theme":{"flavor":"mocha"' > "$T/home/.config/quickshell/settings.json"
-HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" "$REPO/tools/hypr-stub.lua" "$REPO/config/hypr" > "$T/out" 2>&1
+HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" XDG_RUNTIME_DIR="$T" "$LUA" "$REPO/tools/hypr-stub.lua" "$REPO/config/hypr" > "$T/out" 2>&1
 check "a file cut short (a full disk): whole"  whole
 check "… kept aside by the shell, and said"  grep -q '\.broken' "$REPO/config/quickshell/config/Config.qml"
 check "nothing said in Hyprland's own notifications" bash -c "! grep -q 'hl.notification' '$REPO/config/hypr/hyprland.lua'"
