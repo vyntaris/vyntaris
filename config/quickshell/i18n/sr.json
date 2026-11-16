@@ -1143,5 +1143,7 @@
  "the clipboard": "clipboard",
  "the microphone": "mikrofon",
  "where you are": "tvoju lokaciju",
- "your screen": "tvoj ekran"
+ "your screen": "tvoj ekran",
+ "Review the AUR's changes": "Pregledaj izmene sa AUR-a",
+ "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "Sistem je ažuriran. Aplikacije sa AUR-a čekaju da pogledaš njihove izmene, u Ažuriranjima."
 }

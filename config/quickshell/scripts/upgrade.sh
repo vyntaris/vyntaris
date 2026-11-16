@@ -26,17 +26,9 @@ onscreen pkexec pacman -Syu --noconfirm
 code=$?; asked "$code"
 [ "$code" -eq 0 ] || end failed "$(plain | grep -m1 -iE '^error:' | sed 's/^error: *//')"
 
+# Apps from the AUR aren't built from here: anyone can change a recipe there, so they're built in a terminal where the
+# changes are shown first (Updates: "Review the AUR's changes").
 if [ -n "$helper" ] && command -v "$helper" >/dev/null && [ -n "$("$helper" -Qua 2>/dev/null)" ]; then
-    if ! pacman -Q base-devel >/dev/null 2>&1; then
-        onscreen pkexec pacman -S --needed --noconfirm base-devel
-        code=$?; asked "$code"; [ "$code" -eq 0 ] || end failed "$(T "The build tools couldn't be installed.")"
-    fi
-    case "$helper" in
-        paru) paru -Sua --noconfirm --skipreview --sudo pkexec >> "$log" 2>&1 ;;
-        *) yay -Sua --noconfirm --answerclean None --answerdiff None --answeredit None --removemake \
-               --sudo pkexec >> "$log" 2>&1 ;;
-    esac
-    code=$?; asked "$code"
-    [ "$code" -eq 0 ] || end failed "$(T "An app from the AUR couldn't be built.")"
+    end ok "$(T "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.")"
 fi
 end ok "$(T "Everything is updated.")"

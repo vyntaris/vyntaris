@@ -1143,5 +1143,7 @@
  "the clipboard": "gli appunti",
  "the microphone": "il microfono",
  "where you are": "la tua posizione",
- "your screen": "il tuo schermo"
+ "your screen": "il tuo schermo",
+ "Review the AUR's changes": "Controlla le modifiche dall'AUR",
+ "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "Il sistema è aggiornato. Le app dall'AUR aspettano che tu ne controlli le modifiche, in Aggiornamenti."
 }
