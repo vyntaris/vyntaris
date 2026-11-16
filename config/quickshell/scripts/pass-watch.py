@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # Tells the shell when any app's password field gets the focus: one JSON line each time, with the site
 # (a browser's page) or the app, and whether a username field comes right before it.
+import ctypes
 import json
+import signal
 import sys
 import warnings
 from urllib.parse import urlparse
@@ -102,6 +104,13 @@ def focused(ev):
     except GLib.Error:
         pass
 
+
+# Gone with the shell that started it, even one killed outright: otherwise each crash left one behind.
+try:
+    ctypes.CDLL("libc.so.6").prctl(1, signal.SIGTERM)  # PR_SET_PDEATHSIG
+except OSError:
+    pass
+signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
 
 turn_on()
 listener = Atspi.EventListener.new(focused)
