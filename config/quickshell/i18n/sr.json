@@ -928,7 +928,6 @@
  "Volume edge": "Ivica za jačinu zvuka",
  "Volume −": "Jačina −",
  "Votes: {0}": "Glasova: {0}",
- "Vyntaris couldn't start after it, so it went back to how it was on ": "Vyntaris posle njega nije mogao da se pokrene, pa se vratio na stanje od ",
  "Vyntaris is installed": "Vyntaris je instaliran",
  "Vyntaris {0}": "Vyntaris {0}",
  "Waiting for Vyntaris": "Čeka Vyntaris",
@@ -1136,5 +1135,6 @@
  "Asked this once: from now on your passwords open when you sign in.": "Traži se samo ovaj put: od sada se lozinke otključavaju kad se prijaviš.",
  "Passwords open when you sign in": "Lozinke se otključavaju pri prijavi",
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Izaberi glavnu lozinku za svoje lozinke: traži se kad ih koristiš. Ako je zaboraviš, ne mogu da se pročitaju.",
- "The master password couldn't be set.": "Glavna lozinka nije mogla da se postavi."
+ "The master password couldn't be set.": "Glavna lozinka nije mogla da se postavi.",
+ "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris nije mogao da se pokrene posle njega, pa se vratio na stanje od {0}. Tvoji fajlovi nisu dirani. Iste verzije se neće ponovo instalirati, novije hoće."
 }

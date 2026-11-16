@@ -928,7 +928,6 @@
  "Volume edge": "Lautstärkerand",
  "Volume −": "Lautstärke −",
  "Votes: {0}": "Stimmen: {0}",
- "Vyntaris couldn't start after it, so it went back to how it was on ": "Vyntaris konnte danach nicht starten und wurde zurückgesetzt auf den Stand vom ",
  "Vyntaris is installed": "Vyntaris ist installiert",
  "Vyntaris {0}": "Vyntaris {0}",
  "Waiting for Vyntaris": "Wartet auf Vyntaris",
@@ -1136,5 +1135,6 @@
  "Asked this once: from now on your passwords open when you sign in.": "Nur dieses eine Mal: Ab jetzt werden deine Passwörter beim Anmelden entsperrt.",
  "Passwords open when you sign in": "Passwörter beim Anmelden entsperren",
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Wähle ein Hauptpasswort für deine Passwörter: Es wird abgefragt, wenn du sie verwendest. Wenn du es vergisst, können sie nicht gelesen werden.",
- "The master password couldn't be set.": "Das Hauptpasswort konnte nicht gesetzt werden."
+ "The master password couldn't be set.": "Das Hauptpasswort konnte nicht gesetzt werden.",
+ "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris konnte danach nicht starten und ist zum Stand vom {0} zurückgekehrt. Deine Dateien wurden nicht angerührt. Dieselben Versionen werden nicht noch einmal installiert, neuere schon."
 }

@@ -5,7 +5,7 @@ GUARD="$REPO/system/update-guard/update-guard.sh"
 INITRD="$REPO/system/update-guard/initrd-rollback.sh"
 
 T="$(mktemp -d)"
-trap 'rm -rf "$T"' EXIT
+trap "${KEEP:+: }rm -rf \"$T\"" EXIT
 fails=0
 ok() { echo "   ok    $*"; }
 no() { echo "   FAIL  $*"; fails=$((fails + 1)); }
@@ -26,6 +26,11 @@ printf '#!/bin/sh\ntouch "%s/snapshots-listed"\n' "$T" > "$SYS/usr/lib/vyntaris/
 echo 'HOOKS=(base systemd autodetect block filesystems vyntaris-rollback)' > "$SYS/etc/mkinitcpio.conf"
 echo '{ "btrfs_mode" : "true" }' > "$SYS/etc/timeshift/timeshift.json"
 echo "uki before the update" > "$ESP/EFI/Linux/vyntaris.efi"
+# a subvolume inside the system (marked .subvol): snapshots leave it empty, like Btrfs does
+mkdir -p "$SYS/swap" "$SYS/var/lib/pacman/local" "$SYS/etc"
+touch "$SYS/swap/.subvol"; echo "swap" > "$SYS/swap/swapfile"
+printf 'hyprland 1\nlinux 6.1\n' > "$SYS/var/lib/pacman/pkgs"
+printf '[options]\nColor\n\n[core]\nInclude = /etc/pacman.d/mirrorlist\n' > "$SYS/etc/pacman.conf"
 
 stub() { printf '#!/usr/bin/env bash\n%s\n' "$2" > "$T/bin/$1"; chmod 755 "$T/bin/$1"; }
 stub id 'echo 0'
@@ -35,15 +40,25 @@ stub mount 'd="${!#}"; rmdir "$d" && ln -s "'"$TOP"'" "$d"'
 stub umount 'rm "$1" && mkdir "$1"'
 stub btrfs 'args=("$@"); [ "${args[0]}" = -q ] && args=("${args[@]:1}")
 case "${args[0]} ${args[1]}" in
-    "subvolume snapshot") cp -a "${args[2]}" "${args[3]}" ;;
-    "subvolume delete") rm -rf "${args[2]}" ;;
+    "subvolume snapshot") cp -a "${args[2]}" "${args[3]}"
+        find "${args[3]}" -mindepth 2 -name .subvol -printf "%h\n" | while read -r d; do rm -rf "$d"; mkdir "$d"; done ;;
+    "subvolume delete") rm -rf "${args[-1]}" ;;
+    "subvolume list") find "${args[-1]}" -mindepth 2 -name .subvol -printf "%h\n" |
+        while read -r d; do echo "ID 300 gen 1 top level 256 path @${d#*/@}"; done ;;
 esac'
 stub timeshift 'snaps="'"$TOP"'/timeshift-btrfs/snapshots"
 case "$1" in
-    --create) n="$(cat "'"$T"'/clock")"; mkdir -p "$snaps/$n"; cp -a "'"$TOP"'/@" "$snaps/$n/@" ;;
+    --create) n="$(cat "'"$T"'/clock")"; mkdir -p "$snaps/$n"; cp -a "'"$TOP"'/@" "$snaps/$n/@"
+        find "$snaps/$n/@" -mindepth 2 -name .subvol -printf "%h\n" | while read -r d; do rm -rf "$d"; mkdir "$d"; done ;;
     --list) echo "Num     Name                 Tags  Description"
             i=0; for d in $(ls "$snaps" 2>/dev/null); do echo "$i    >  $d  D  before upgrade"; i=$((i + 1)); done ;;
 esac'
+stub pacman 'db=""; for ((i = 1; i <= $#; i++)); do [ "${!i}" = --dbpath ] && { j=$((i + 1)); db="${!j}"; }; done
+case "$1" in
+    -Q) cat "$db/pkgs" ;;
+    -Si) awk -v n="${!#}" '"'"'$1 == n {print "Version         : " $2}'"'"' "'"$T"'/repo" 2>/dev/null ;;
+esac'
+stub vercmp '[ "$1" = "$2" ] && { echo 0; exit; }; [ "$(printf "%s\n%s\n" "$1" "$2" | sort -V | tail -1)" = "$1" ] && echo 1 || echo -1'
 stub pgrep 'case "$*" in *quickshell*) [ -z "${FAKE_NO_SHELL:-}" ] && echo 4343 ;; *) echo 4242 ;; esac'
 stub ps 'echo "${FAKE_UPTIME:-30}"'
 export VYNTARIS_JSON="${VYNTARIS_JSON:-$REPO/rust/target/release/vyntaris-json}"
@@ -66,6 +81,7 @@ check "status: the point"                   test "$(status 's["point"]')" = 2026
 
 echo ":: the update, then on trial"
 echo "hyprland 2 (broken)" > "$SYS/usr/bin/Hyprland"
+printf 'hyprland 2\nlinux 6.1\n' > "$SYS/var/lib/pacman/pkgs"
 echo "kernel 6.2" > "$SYS/usr/lib/modules/6.1.1-arch1-1/vmlinuz"
 echo "uki after the update" > "$ESP/EFI/Linux/vyntaris.efi"
 guard post >/dev/null
@@ -102,6 +118,8 @@ check "the snapshot is the system now"      grep -q "hyprland 1" "$SYS/usr/bin/H
 check "the system as it was is kept aside"  compgen -G "$TOP/@.broken-*/usr/bin/Hyprland"
 check "it says so in the system"            grep -q '^snapshot=timeshift-btrfs/snapshots/2026-10-13_16-00-00/@' "$SYS/var/lib/vyntaris/rolled-back"
 check "the point is used up"                test ! -e "$TOP/.vyntaris-rollback"
+check "a subvolume inside comes along (/swap)" test -f "$SYS/swap/swapfile"
+check "… out of the system set aside"       bash -c '! compgen -G "$0/@.broken-*/swap/swapfile"' "$TOP"
 UPDATE_GUARD_ROOT="$T/initrd" "$INITRD" >/dev/null
 check "a second start from it changes nothing" test "$(compgen -G "$TOP/@.broken-*" | wc -l)" = 1
 
@@ -117,6 +135,14 @@ check "only the newest system rolled back from stays" test "$(compgen -G "$TOP/@
 check "the snapshot list is made again"     test -f "$T/snapshots-listed"
 check "status: the rollback, for the desktop" test "$(status 's["rollback"]["snapshot"]')" = "timeshift-btrfs/snapshots/2026-10-13_16-00-00/@"
 check "status: no point any more"           test "$(status 's["point"]')" = None
+check "the update undone is held back"      grep -qx "hyprland 2" "$SYS/var/lib/vyntaris/held-updates"
+check "… for pacman (IgnorePkg)"            grep -q "^IgnorePkg = hyprland" "$SYS/etc/pacman.d/vyntaris-held.conf"
+check "… which pacman.conf reads in [options]" test "$(sed -n '2p' "$SYS/etc/pacman.conf")" = "Include = /etc/pacman.d/vyntaris-held.conf"
+echo "hyprland 2" > "$T/repo"; guard release >/dev/null
+check "still held while the same version is out" grep -q hyprland "$SYS/var/lib/vyntaris/held-updates"
+echo "hyprland 3" > "$T/repo"; guard release >/dev/null
+check "let go once a newer one is"          test ! -e "$SYS/var/lib/vyntaris/held-updates"
+check "… for pacman too"                    bash -c '! grep -q IgnorePkg "$0"' "$SYS/etc/pacman.d/vyntaris-held.conf"
 
 echo ":: an update that proves itself"
 echo 2026-10-15_12-00-00 > "$T/clock"

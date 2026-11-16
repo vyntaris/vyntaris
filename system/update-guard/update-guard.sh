@@ -11,6 +11,7 @@ gets three tries to start, then the snapshot comes back by itself.
   update-guard boot-ok    at a start on trial: succeeds once the desktop or the login screen is up, its shell too
   update-guard rebuilt UKI   after mkinitcpio made a boot image: one on trial stays so
   update-guard undo       the next start undoes the last update
+  update-guard release    let go of packages held since an update was undone, once newer versions are out
   update-guard status     the status as JSON
 USAGE
 }
@@ -132,6 +133,7 @@ arm() {
     fi
 }
 post() {
+    release
     if [ -z "$(unsupported)" ] && [ -f "$POINT" ]; then
         rm -f "$PROVEN"
         arm && log "the next start tries the update ($TRIES tries before it's undone)"
@@ -146,10 +148,49 @@ rebuilt() {
     write_status
 }
 
+# The update that was undone isn't installed again: its packages are held (IgnorePkg) until a newer version is out.
+HELD="$STATE/held-updates"
+HELD_CONF="$R/etc/pacman.d/vyntaris-held.conf"
+write_held() {
+    install -d "$STATE" "$(dirname "$HELD_CONF")"
+    if [ -s "$HELD" ]; then
+        printf '# Held after an update was undone (update-guard); let go once newer versions are out.\nIgnorePkg = %s\n' \
+            "$(cut -d' ' -f1 "$HELD" | tr '\n' ' ')" > "$HELD_CONF"
+    else
+        rm -f "$HELD" "$HELD_CONF"
+    fi
+    grep -qxF "Include = /etc/pacman.d/vyntaris-held.conf" "$R/etc/pacman.conf" 2>/dev/null ||
+        sed -i '/^\[options\]/a Include = /etc/pacman.d/vyntaris-held.conf' "$R/etc/pacman.conf" 2>/dev/null
+    [ -e "$HELD_CONF" ] || : > "$HELD_CONF"
+}
+hold_broken() {
+    local broken; broken="$(sed -n 's/^broken=//p' "$ROLLED")"
+    [ -n "$broken" ] && [ -d "$TOP/$broken/var/lib/pacman/local" ] || return 0
+    join -j1 -o 1.1,1.2,2.2 -a1 -e none \
+        <(pacman -Q --dbpath "$TOP/$broken/var/lib/pacman" 2>/dev/null | sort) \
+        <(pacman -Q --dbpath "$R/var/lib/pacman" 2>/dev/null | sort) |
+        awk '$2 != $3 {print $1, $2}' > "$HELD.new"
+    cat "$HELD.new" "$HELD" 2>/dev/null | awk '!seen[$1]++' > "$HELD.all"; mv -f "$HELD.all" "$HELD"; rm -f "$HELD.new"
+    [ -s "$HELD" ] && log "held back until newer versions are out: $(cut -d' ' -f1 "$HELD" | tr '\n' ' ')"
+    write_held
+}
+release() {
+    [ -s "$HELD" ] || return 0
+    local name ver newest
+    : > "$HELD.keep"
+    while read -r name ver; do
+        newest="$(pacman -Si --dbpath "$R/var/lib/pacman" "$name" 2>/dev/null | awk '/^Version/ {print $3; exit}')"
+        if [ -n "$newest" ] && [ "$(vercmp "$newest" "$ver")" -gt 0 ]; then log "$name $newest is out: no longer held"
+        else echo "$name $ver" >> "$HELD.keep"; fi
+    done < "$HELD"
+    mv -f "$HELD.keep" "$HELD"
+    write_held
+}
+
 broken_cleanup() {
     local sub; sub="$(root_subvol)"
     find "$TOP/" -mindepth 1 -maxdepth 1 -name "$sub.broken-*" | sort | head -n -1 |
-        while read -r d; do btrfs -q subvolume delete "$d" || log "couldn't delete $d"; done
+        while read -r d; do btrfs -q subvolume delete -R "$d" || log "couldn't delete $d"; done
 }
 finish() {
     local b k base
@@ -166,13 +207,14 @@ finish() {
     done
     rm -f "$b/loader/entries/$ENTRY" "$b/vyntaris/rollback.efi" "$POINT"
     sync -f "$b/EFI/Linux" || { log "couldn't write the boot partition"; return 1; }
+    with_top hold_broken || true
     with_top broken_cleanup || true
     mv -f "$ROLLED" "$LAST" && sync -f "$LAST"
     "$R/usr/lib/vyntaris/snapshots" >/dev/null 2>&1 || true
     log "rolled back to the snapshot $(sed -n 's/^snapshot=//p' "$LAST")"
 }
 at_boot() {
-    [ -f "$ROLLED" ] && finish
+    if [ -f "$ROLLED" ]; then finish; else release; fi
     write_status
 }
 
@@ -214,6 +256,7 @@ case "${1:-}" in
     boot-ok) boot_ok ;;
     rebuilt) rebuilt "${2:-}" ;;
     undo) undo ;;
+    release) release ;;
     status) cat "$STATUS" 2>/dev/null || echo '{"protected": false, "reason": "not set up yet"}' ;;
     *) usage >&2; exit 2 ;;
 esac

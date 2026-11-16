@@ -928,7 +928,6 @@
  "Volume edge": "Borde de volumen",
  "Volume −": "Volumen −",
  "Votes: {0}": "Votos: {0}",
- "Vyntaris couldn't start after it, so it went back to how it was on ": "Vyntaris no pudo arrancar después, así que volvió a como estaba el ",
  "Vyntaris is installed": "Vyntaris está instalado",
  "Vyntaris {0}": "Vyntaris {0}",
  "Waiting for Vyntaris": "Esperando a Vyntaris",
@@ -1136,5 +1135,6 @@
  "Asked this once: from now on your passwords open when you sign in.": "Solo esta vez: a partir de ahora tus contraseñas se abren al iniciar sesión.",
  "Passwords open when you sign in": "Abrir las contraseñas al iniciar sesión",
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Elige una contraseña maestra para tus contraseñas: se pide al usarlas. Si la olvidas, no se podrán leer.",
- "The master password couldn't be set.": "No se pudo establecer la contraseña maestra."
+ "The master password couldn't be set.": "No se pudo establecer la contraseña maestra.",
+ "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris no pudo arrancar después, así que volvió a como estaba el {0}. Tus archivos no se tocaron. Las mismas versiones no se volverán a instalar; las nuevas sí."
 }
