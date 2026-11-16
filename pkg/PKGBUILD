@@ -8,7 +8,7 @@ license=(GPL-3.0-or-later)
 install=vyntaris.install
 depends=(
     hyprland quickshell kitty zsh zsh-autosuggestions zsh-syntax-highlighting python
-    pipewire pipewire-pulse wireplumber networkmanager networkmanager-openvpn bluez bluez-obex
+    pipewire pipewire-pulse wireplumber networkmanager networkmanager-openvpn dnsmasq bluez bluez-obex
     xdg-desktop-portal-hyprland xdg-desktop-portal-gtk adw-gtk-theme papirus-icon-theme qt6ct
     inter-font ttf-jetbrains-mono ttf-nerd-fonts-symbols-mono noto-fonts noto-fonts-emoji
     ttf-carlito ttf-caladea ttf-liberation
