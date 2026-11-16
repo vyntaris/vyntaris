@@ -309,7 +309,6 @@
  "Folders backed up": "Folderi koji se čuvaju",
  "Font": "Font",
  "For": "Za",
- "For everything twice the size, set the scale to 2 under Displays.": "Da sve bude duplo veće, podesi razmeru na 2 u delu Ekrani.",
  "Formats": "Formati",
  "Formats: how dates, numbers and money are written. Both show fully at the next login.": "Formati: kako se pišu datumi, brojevi i novac. Oba se potpuno vide od sledeće prijave.",
  "Free space": "Slobodan prostor",
@@ -1136,5 +1135,6 @@
  "Passwords open when you sign in": "Lozinke se otključavaju pri prijavi",
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Izaberi glavnu lozinku za svoje lozinke: traži se kad ih koristiš. Ako je zaboraviš, ne mogu da se pročitaju.",
  "The master password couldn't be set.": "Glavna lozinka nije mogla da se postavi.",
- "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris nije mogao da se pokrene posle njega, pa se vratio na stanje od {0}. Tvoji fajlovi nisu dirani. Iste verzije se neće ponovo instalirati, novije hoće."
+ "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris nije mogao da se pokrene posle njega, pa se vratio na stanje od {0}. Tvoji fajlovi nisu dirani. Iste verzije se neće ponovo instalirati, novije hoće.",
+ "For everything twice the size, set the scale to 200% under Displays.": "Da sve bude duplo veće, podesi razmeru na 200% u delu Ekrani."
 }

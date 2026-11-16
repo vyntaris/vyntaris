@@ -309,7 +309,6 @@
  "Folders backed up": "Pastas no backup",
  "Font": "Font",
  "For": "Por",
- "For everything twice the size, set the scale to 2 under Displays.": "Para ver tudo ao dobro do tamanho, defina a escala como 2 em Ecrãs.",
  "Formats": "Formatos",
  "Formats: how dates, numbers and money are written. Both show fully at the next login.": "Formatos: como datas, números e dinheiro são escritos. Ambos valem por completo no próximo login.",
  "Free space": "Espaço livre",
@@ -1136,5 +1135,6 @@
  "Passwords open when you sign in": "Abrir as senhas ao entrar",
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Escolha uma senha mestra para suas senhas: ela é pedida quando você as usa. Se esquecer, elas não podem ser lidas.",
  "The master password couldn't be set.": "Não foi possível definir a senha mestra.",
- "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "O Vyntaris não conseguiu iniciar depois dela, então voltou a como estava em {0}. Seus arquivos não foram tocados. As mesmas versões não serão instaladas de novo; as mais novas sim."
+ "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "O Vyntaris não conseguiu iniciar depois dela, então voltou a como estava em {0}. Seus arquivos não foram tocados. As mesmas versões não serão instaladas de novo; as mais novas sim.",
+ "For everything twice the size, set the scale to 200% under Displays.": "Para ver tudo ao dobro do tamanho, defina a escala como 200% em Ecrãs."
 }

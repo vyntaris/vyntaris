@@ -309,7 +309,6 @@
  "Folders backed up": "Kopiowane foldery",
  "Font": "Font",
  "For": "Na",
- "For everything twice the size, set the scale to 2 under Displays.": "Aby wszystko było dwa razy większe, ustaw skalę 2 w sekcji Ekrany.",
  "Formats": "Formaty",
  "Formats: how dates, numbers and money are written. Both show fully at the next login.": "Formaty: jak zapisywane są daty, liczby i kwoty. Oba w pełni zadziałają po następnym zalogowaniu.",
  "Free space": "Wolne miejsce",
@@ -1136,5 +1135,6 @@
  "Passwords open when you sign in": "Otwieraj hasła po zalogowaniu",
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Wybierz hasło główne do swoich haseł: będzie wymagane przy ich używaniu. Jeśli je zapomnisz, nie da się ich odczytać.",
  "The master password couldn't be set.": "Nie udało się ustawić hasła głównego.",
- "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris nie mógł się po nim uruchomić, więc wrócił do stanu z {0}. Twoje pliki nie zostały ruszone. Te same wersje nie zostaną zainstalowane ponownie, nowsze tak."
+ "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris nie mógł się po nim uruchomić, więc wrócił do stanu z {0}. Twoje pliki nie zostały ruszone. Te same wersje nie zostaną zainstalowane ponownie, nowsze tak.",
+ "For everything twice the size, set the scale to 200% under Displays.": "Aby wszystko było dwa razy większe, ustaw skalę 200% w sekcji Ekrany."
 }

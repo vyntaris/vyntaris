@@ -25,6 +25,8 @@ local function merge(base, over)
             if type(v) == "table" then merge(base[k], v) end
         elseif type(v) == want and (want ~= "number" or (v == v and v > -math.huge and v < math.huge)) then
             base[k] = v
+        elseif k == "scale" and v == "auto" then
+            base[k] = v -- Hyprland picks it from the screen
         end
     end
     return base
@@ -41,7 +43,7 @@ local function tidy(s)
     w.rounding = clamp(w.rounding, 0, 40)
     w.gapsIn = clamp(w.gapsIn, 0, 60)
     w.border = clamp(w.border, 0, 12)
-    d.scale = clamp(d.scale, 0.5, 4)
+    if d.scale ~= "auto" then d.scale = clamp(d.scale, 0.5, 4) end
     s.bar.windowGap = clamp(s.bar.windowGap, 0, 60)
     s.input.sensitivity = clamp(s.input.sensitivity, -1, 1)
     if s.input.kbLayout == "" then s.input.kbLayout = defaults.input.kbLayout end
@@ -55,7 +57,8 @@ local function tidy(s)
                 name = m.name,
                 mode = type(m.mode) == "string" and m.mode ~= "" and m.mode or nil,
                 position = type(m.position) == "string" and m.position ~= "" and m.position or nil,
-                scale = type(m.scale) == "number" and m.scale == m.scale and clamp(m.scale, 0.5, 4) or nil,
+                scale = m.scale == "auto" and "auto"
+                    or type(m.scale) == "number" and m.scale == m.scale and clamp(m.scale, 0.5, 4) or nil,
             }
         end
     end
