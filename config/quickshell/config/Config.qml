@@ -103,6 +103,11 @@ Singleton {
         return "echo; read -rp '" + text.replace(/'/g, "'\\''") + "'";
     }
 
+    // A command's words for sh, each in quotes: a path with spaces or quotes stays one word.
+    function quote(args) {
+        return args.map(a => "'" + String(a).replace(/'/g, "'\\''") + "'").join(" ");
+    }
+
     function runInTerminal(script) {
         launch(["sh", "-c", `${apps.terminalRun} sh -c "$1"`, "sh", script]);
     }

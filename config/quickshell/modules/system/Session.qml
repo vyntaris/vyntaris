@@ -33,7 +33,7 @@ Scope {
             if (a.command) { Config.launch(["sh", "-c", a.command]); continue; }
             const e = DesktopEntries.byId(a.id);
             if (!e) continue;
-            if (e.runInTerminal) Config.runInTerminal(e.command.join(" "));
+            if (e.runInTerminal) Config.runInTerminal(Config.quote(e.command));
             else if (!Games.launch(e)) Config.openEntry(e);
         }
     }

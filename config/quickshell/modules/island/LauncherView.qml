@@ -204,7 +204,7 @@ Item {
         const r = results[i];
         if (!r) return;
         if (r.kind === "app") {
-            if (r.app.runInTerminal) Config.runInTerminal(r.app.command.join(" "));
+            if (r.app.runInTerminal) Config.runInTerminal(Config.quote(r.app.command));
             else if (!Games.launch(r.app)) Config.openEntry(r.app);
             countLaunch(r.app.id);
         } else if (r.kind === "action") {
