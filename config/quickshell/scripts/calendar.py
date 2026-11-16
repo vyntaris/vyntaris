@@ -212,6 +212,22 @@ def from_google(e, cal, defaults):
             "allDay": all_day, "remind": min(popups) if popups else -1, "google": True}
 
 
+def gid(ev):
+    """The id Google keeps a local event under: chosen here, so sending it again can't make a second one."""
+    return ev["id"].removeprefix("local-") if ev.get("id", "").startswith("local-") else None
+
+
+def send(token, ev):
+    """The event to Google, once: if it got there already (an answer lost on the way), that one is taken."""
+    body = to_google(ev) | ({"id": gid(ev)} if gid(ev) else {})
+    try:
+        return call(token, "POST", "/calendars/primary/events", body)
+    except urllib.error.HTTPError as e:
+        if e.code != 409 or not gid(ev):
+            raise
+        return call(token, "GET", f"/calendars/primary/events/{gid(ev)}")
+
+
 def to_google(ev):
     if ev["allDay"]:
         start, end = {"date": ev["start"][:10]}, {"date": ev["end"][:10]}
@@ -231,11 +247,13 @@ def sync():
         return
     try:
         # Added here while offline, or before the account was: to Google now.
-        for ev in data["pending"]:
-            made = call(token, "POST", "/calendars/primary/events", to_google(ev))
+        for ev in list(data["pending"]):
+            made = send(token, ev)
             data["events"] = [e for e in data["events"] if e["id"] != ev["id"]]
             data["events"].append(from_google(made, "primary", []) | {"remind": ev["remind"]})
-        data["pending"] = []
+            # Off the list as soon as it's there, so a failure later on doesn't send it twice.
+            data["pending"] = [p for p in data["pending"] if p["id"] != ev["id"]]
+            store(data)
         now = datetime.now(timezone.utc)
         window = {"timeMin": (now - timedelta(days=31)).isoformat(), "timeMax": (now + timedelta(days=366)).isoformat(),
                   "singleEvents": "true", "orderBy": "startTime", "maxResults": "2500"}
@@ -267,13 +285,14 @@ def add():
     data = load()
     _, token = google()
     made = None
+    local_ev = ev | {"id": "local-" + uuid.uuid4().hex, "calendar": "", "google": False}
     if token:
         try:
-            made = from_google(call(token, "POST", "/calendars/primary/events", to_google(ev)), "primary", []) | {"remind": ev["remind"]}
+            made = from_google(send(token, local_ev), "primary", []) | {"remind": ev["remind"]}
         except (urllib.error.URLError, OSError):
             pass
     if not made:
-        made = ev | {"id": "local-" + uuid.uuid4().hex, "calendar": "", "google": False}
+        made = local_ev
         # Google didn't take it (offline): sent at the next sync.
         if token:
             data["pending"].append(made)
