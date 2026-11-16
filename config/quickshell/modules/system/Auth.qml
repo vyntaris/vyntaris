@@ -122,7 +122,12 @@ Scope {
                     ColumnLayout {
                         spacing: Theme.space2
                         Label { overline: true; color: Theme.accentInk; text: Tr.t("Authentication required") }
-                        Label { color: Theme.subtext0; font.pixelSize: Theme.fontSizeSmall; text: Quickshell.env("USER") || "" }
+                        // Whose password polkit asks for: the chosen identity, not necessarily who is signed in.
+                        Label {
+                            color: Theme.subtext0
+                            font.pixelSize: Theme.fontSizeSmall
+                            text: root.flow?.selectedIdentity?.displayName || Quickshell.env("USER") || ""
+                        }
                     }
                 }
 
@@ -130,6 +135,14 @@ Scope {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     text: root.flow?.message ?? ""
+                }
+
+                // More than one may answer (several admins): the password is that of the one picked here.
+                Choice {
+                    visible: (root.flow?.identities?.length ?? 0) > 1
+                    options: (root.flow?.identities ?? []).map((id, i) => ({ value: i, label: id.displayName }))
+                    current: (root.flow?.identities ?? []).indexOf(root.flow?.selectedIdentity)
+                    onPicked: v => { root.flow.selectedIdentity = root.flow.identities[v]; field.text = ""; }
                 }
 
                 RowLayout {
