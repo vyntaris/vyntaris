@@ -76,7 +76,10 @@ Item {
             id: slot
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
             implicitWidth: children.length > 0 ? children[0].implicitWidth : 0
-            implicitHeight: Math.max(30, childrenRect.height)
+            implicitHeight: Math.max(30, kid?.height ?? 0)
+            // Something shorter than the row's 30 (a value) in its middle, level with the title.
+            readonly property Item kid: children.length > 0 ? children[0] : null
+            Binding { target: slot.kid; property: "y"; value: Math.round((slot.height - (slot.kid?.height ?? 0)) / 2); when: slot.kid !== null }
         }
     }
 }
