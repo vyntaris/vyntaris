@@ -36,7 +36,7 @@ fn windows(list: &str) -> Vec<Window> {
 
 fn screen_title(name: &str, model: &str) -> String {
     if ["eDP", "LVDS", "DSI"].iter().any(|p| name.starts_with(p)) {
-        return tr("Built-in screen").into();
+        return tr("Built-in screen");
     }
     let code = model
         .trim_start_matches("0x")

@@ -117,7 +117,7 @@ fn merge_actions(uca: &str, extra: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-fn riseup_gateways<'a>(eip: &'a Value) -> impl Iterator<Item = &'a Value> {
+fn riseup_gateways(eip: &Value) -> impl Iterator<Item = &Value> {
     eip["gateways"].as_array().into_iter().flatten().filter(|g| {
         g["capabilities"]["transport"].as_array().is_some_and(|t| t.iter().any(|t| t["type"] == "openvpn"))
     })

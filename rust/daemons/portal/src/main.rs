@@ -88,14 +88,12 @@ fn changes() -> tokio::sync::mpsc::UnboundedReceiver<()> {
         let _ = std::fs::create_dir_all(&dir);
         let flags = AddWatchFlags::IN_CLOSE_WRITE | AddWatchFlags::IN_MOVED_TO | AddWatchFlags::IN_CREATE | AddWatchFlags::IN_DELETE;
         let watch = Inotify::init(InitFlags::IN_CLOEXEC).and_then(|i| i.add_watch(&dir, flags).map(|_| i));
-        match watch {
-            Ok(ino) => loop {
-                let Ok(events) = ino.read_events() else { break };
+        if let Ok(ino) = watch {
+            while let Ok(events) = ino.read_events() {
                 if events.iter().any(|e| e.name.as_deref().is_some_and(|n| n == "gtk.css")) && tx.send(()).is_err() {
                     return;
                 }
-            },
-            Err(_) => {}
+            }
         }
         while tx.send(()).is_ok() {
             std::thread::sleep(Duration::from_secs(5));
