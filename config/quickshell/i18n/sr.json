@@ -1188,5 +1188,13 @@
  "Model for this chat: {0}": "Model za ovaj razgovor: {0}",
  "Session": "Sesija",
  "Week": "Nedelja",
- "resets {0}": "resetuje se {0}"
+ "resets {0}": "resetuje se {0}",
+ "Claude in {0}": "Claude — {0}",
+ "Continue here": "Nastavi ovde",
+ "Done in {0}.": "Gotovo ({0}).",
+ "Waiting for you in {0}.": "Čeka te ({0}).",
+ "Working in {0}. You can follow it here.": "Radi ({0}). Ovde možeš da pratiš.",
+ "a terminal": "terminal",
+ "another app": "druga aplikacija",
+ "working": "radi"
 }

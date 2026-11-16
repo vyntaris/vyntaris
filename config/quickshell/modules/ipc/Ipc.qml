@@ -163,6 +163,7 @@ Scope {
         function toggle(): void { Panels.claudeOpen = !Panels.claudeOpen }
         function send(text: string): void { Panels.claude(text) }
         function sessions(): void { Panels.claudeOpen = true; Claude.browseWanted() }
+        function watch(id: string): void { Claude.watch(id); Panels.claudeOpen = true }
         function draft(text: string): void { Panels.claudeOpen = true; Claude.draftWanted(text) }
         // from scripts/claude-hook.py
         function event(id: string): void { Claude.refresh() }

@@ -193,7 +193,14 @@ case_claude() {
     ipc claude send "hello"; sleep 0.6; shot claude-busy; sleep 2.5; shot claude-chat
     ipc island close; ipc claude send "and now?"; sleep 0.3; ipc island close; sleep 2.5; shot claude-notified
     ipc claude open; sleep 1.5; shot claude-chat2; ipc island close; sleep 1
+    local live="$XDG_RUNTIME_DIR/vyntaris-claude/session-live-1.json"
+    printf '{"id":"live-1","cwd":"%s","state":"working","title":"fix the failing tests","doing":{"verb":"run","what":"npm test"}}' "$HOME/Projects/site" > "$live"
+    ipc claude event live-1; sleep 1
     ipc claude sessions; sleep 2; shot claude-sessions; ipc island close; sleep 1
+    ipc claude watch live-1; sleep 2.5; shot claude-watch
+    printf '{"id":"live-1","cwd":"%s","state":"done","title":"fix the failing tests"}' "$HOME/Projects/site" > "$live"
+    ipc claude event live-1; sleep 2; shot claude-watch-done; ipc island close; sleep 1
+    rm -f "$live"; ipc claude event live-1
     ipc claude draft "/co"; sleep 1.5; shot claude-commands
     ipc claude draft ""; ipc claude send "/model sonnet"; sleep 1.5; shot claude-model; ipc island close; sleep 1
     local run="$XDG_RUNTIME_DIR/vyntaris-claude" id="uitest-$$"
@@ -276,6 +283,7 @@ STUB
         mkdir -p "$H/.claude/projects/-p-site" "$H/.claude/projects/-p-notes" "$H/Projects/site" "$H/Projects/notes"
         printf '{"type":"user","cwd":"%s","message":{"content":"make the landing page faster"}}\n{"type":"ai-title","aiTitle":"Faster landing page"}\n{"type":"assistant","message":{"content":[{"type":"text","text":"Done: images are lazy now."}]}}\n' "$H/Projects/site" > "$H/.claude/projects/-p-site/s1.jsonl"
         printf '{"type":"user","cwd":"%s","message":{"content":"sort my notes by date"}}\n' "$H/Projects/notes" > "$H/.claude/projects/-p-notes/s2.jsonl"
+        printf '{"type":"user","cwd":"%s","entrypoint":"claude-vscode","message":{"content":"fix the failing tests"}}\n{"type":"assistant","entrypoint":"claude-vscode","message":{"content":[{"type":"text","text":"Looking at the tests first."},{"type":"tool_use","name":"Bash","input":{"command":"npm test"}}]}}\n' "$H/Projects/site" > "$H/.claude/projects/-p-site/live-1.jsonl"
     fi
     ln -s "$HOME/.local/share/applications" "$H/.local/share/applications"
     ln -s "$HOME/.local/share/icons" "$H/.local/share/icons"

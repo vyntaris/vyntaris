@@ -1188,5 +1188,13 @@
  "Model for this chat: {0}": "Model dla tej rozmowy: {0}",
  "Session": "Sesja",
  "Week": "Tydzień",
- "resets {0}": "resetuje się {0}"
+ "resets {0}": "resetuje się {0}",
+ "Claude in {0}": "Claude — {0}",
+ "Continue here": "Kontynuuj tutaj",
+ "Done in {0}.": "Gotowe ({0}).",
+ "Waiting for you in {0}.": "Czeka na ciebie ({0}).",
+ "Working in {0}. You can follow it here.": "Pracuje ({0}). Możesz śledzić tutaj.",
+ "a terminal": "terminal",
+ "another app": "inna aplikacja",
+ "working": "pracuje"
 }

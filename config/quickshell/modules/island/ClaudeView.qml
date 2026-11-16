@@ -81,16 +81,21 @@ Item {
         return out;
     }
 
+    // A session from elsewhere being watched, else the island's own chat
+    readonly property bool watching: Claude.watching !== "" && !browsing
+    readonly property var shown: watching ? Claude.watched : Claude.messages
+
     PanelHeader {
-        title: root.browsing ? Tr.t("Sessions") : "Claude"
+        icon: "claude"
+        title: root.browsing ? Tr.t("Sessions") : root.watching ? Tr.f("Claude in {0}", Claude.watchedPlace) : "Claude"
         HeaderButton {
             visible: Claude.loggedIn
-            icon: root.browsing ? "chevron-left" : "history"
-            label: root.browsing ? Tr.t("Back") : Tr.t("Sessions")
-            onClicked: root.browse(!root.browsing)
+            icon: root.browsing || root.watching ? "chevron-left" : "history"
+            label: root.browsing || root.watching ? Tr.t("Back") : Tr.t("Sessions")
+            onClicked: { if (root.watching) Claude.unwatch(); else root.browse(!root.browsing); }
         }
-        HeaderButton { visible: !root.browsing && Claude.messages.length > 0; icon: "plus"; label: Tr.t("New chat"); onClicked: Claude.newChat(Claude.cwd) }
-        HeaderButton { visible: Claude.loggedIn; icon: "terminal"; label: Tr.t("Continue in the terminal"); onClicked: { Panels.claudeOpen = false; Claude.openInTerminal(); } }
+        HeaderButton { visible: !root.browsing && !root.watching && Claude.messages.length > 0; icon: "plus"; label: Tr.t("New chat"); onClicked: Claude.newChat(Claude.cwd) }
+        HeaderButton { visible: Claude.loggedIn && !root.watching; icon: "terminal"; label: Tr.t("Continue in the terminal"); onClicked: { Panels.claudeOpen = false; Claude.openInTerminal(); } }
         HeaderButton { icon: "close"; label: Tr.t("Close"); onClicked: Panels.claudeOpen = false }
     }
 
@@ -199,7 +204,7 @@ Item {
                         elide: Text.ElideMiddle
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.subtext1
-                        text: Claude.folderName(Claude.workdir())
+                        text: Claude.folderName(root.watching ? (Claude.watchedMeta.cwd || Claude.watchedSession?.cwd || "") : Claude.workdir())
                     }
                 }
                 PressArea { id: folderArea; anchors.fill: parent; label: Tr.t("Sessions"); onClicked: root.browse(true) }
@@ -208,7 +213,7 @@ Item {
                 visible: text !== ""
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.overlay1
-                text: root.modelName(Claude.model)
+                text: root.watching ? "" : root.modelName(Claude.model)
             }
             Item { Layout.fillWidth: true }
             Repeater {
@@ -237,7 +242,7 @@ Item {
                 }
             }
             Label {
-                visible: Claude.cost > 0
+                visible: Claude.cost > 0 && !root.watching
                 mono: true
                 font.pixelSize: Theme.fontSizeSmall
                 color: Theme.overlay1
@@ -294,7 +299,9 @@ Item {
                             PanelSurface {
                                 id: row
                                 required property var modelData
-                                readonly property bool chosen: modelData.id === Claude.sessionId
+                                readonly property bool chosen: modelData.id === (Claude.watching || Claude.sessionId)
+                                // running right now somewhere else: opened to watch, not to take over
+                                readonly property bool live: Claude.sessions.some(s => s.id === modelData.id && s.state !== "done")
                                 Layout.fillWidth: true
                                 implicitHeight: 38
                                 radius: Theme.r(12)
@@ -310,10 +317,11 @@ Item {
                                         color: row.chosen ? Theme.textOnAccent : Theme.text
                                         text: row.modelData.title
                                     }
+                                    Spinner { visible: row.live; size: 11; color: row.chosen ? Theme.textOnAccent : Theme.accent }
                                     Label {
                                         font.pixelSize: Theme.fontSizeSmall
                                         color: row.chosen ? Theme.textOnAccent : Theme.overlay1
-                                        text: root.ago(row.modelData.at)
+                                        text: row.live ? Tr.t("working") : root.ago(row.modelData.at)
                                     }
                                 }
                                 MouseArea {
@@ -321,7 +329,11 @@ Item {
                                     anchors.fill: parent
                                     hoverEnabled: true
                                     cursorShape: Qt.PointingHandCursor
-                                    onClicked: { Claude.resume(row.modelData); root.browse(false); }
+                                    onClicked: {
+                                        if (row.live) Claude.watch(row.modelData.id);
+                                        else { Claude.unwatch(); Claude.resume(row.modelData); }
+                                        root.browse(false);
+                                    }
                                 }
                             }
                         }
@@ -334,7 +346,7 @@ Item {
             id: chat
             Layout.fillWidth: true
             Layout.preferredHeight: Math.min(column.implicitHeight, 420)
-            visible: Claude.messages.length > 0 && !root.browsing
+            visible: root.shown.length > 0 && !root.browsing
             contentHeight: column.implicitHeight
             clip: true
             boundsBehavior: Flickable.StopAtBounds
@@ -346,7 +358,7 @@ Item {
                 spacing: Theme.space10
 
                 Repeater {
-                    model: Claude.messages
+                    model: root.shown
                     ColumnLayout {
                         id: msg
                         required property var modelData
@@ -419,10 +431,16 @@ Item {
                 }
 
                 RowLayout {
-                    visible: Claude.busy
+                    visible: root.watching ? Claude.watchedState === "working" : Claude.busy
                     spacing: Theme.space8
                     Spinner { size: 12 }
-                    Label { color: Theme.overlay1; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("Thinking…") }
+                    Label {
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        color: Theme.overlay1
+                        font.pixelSize: Theme.fontSizeSmall
+                        text: root.watching ? Claude.doingText(Claude.watchedSession?.doing) : Claude.doingText(Claude.chatDoing)
+                    }
                 }
             }
         }
@@ -463,10 +481,37 @@ Item {
             }
         }
 
+        // Watching: it's answered where it runs; once it's done it can go on here instead
+        RowLayout {
+            Layout.fillWidth: true
+            visible: root.watching
+            spacing: Theme.space10
+            Icon {
+                name: Claude.watchedState === "waiting" ? "bell" : Claude.watchedState === "working" ? "claude" : "check"
+                size: 15
+                color: Claude.watchedState === "waiting" ? Theme.warning : Theme.overlay1
+            }
+            Label {
+                Layout.fillWidth: true
+                wrapMode: Text.Wrap
+                color: Theme.subtext0
+                font.pixelSize: Theme.fontSizeSmall
+                text: Claude.watchedState === "working" ? Tr.f("Working in {0}. You can follow it here.", Claude.watchedPlace)
+                    : Claude.watchedState === "waiting" ? Tr.f("Waiting for you in {0}.", Claude.watchedPlace)
+                    : Tr.f("Done in {0}.", Claude.watchedPlace)
+            }
+            Button {
+                visible: Claude.watchedState !== "working"
+                icon: "claude"
+                text: Tr.t("Continue here")
+                onClicked: Claude.continueHere()
+            }
+        }
+
         // Like the other fields in the island; the disc sends, and while Claude works it stops it.
         PanelSurface {
             Layout.fillWidth: true
-            visible: Claude.installed && !Claude.needsLogin && !root.browsing
+            visible: Claude.installed && !Claude.needsLogin && !root.browsing && !root.watching
             implicitHeight: Theme.controlHeight
             radius: Theme.r(height / 2)
             fill: Theme.tint(parent, Theme.crust, 0.45)

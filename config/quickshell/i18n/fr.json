@@ -1188,5 +1188,13 @@
  "Model for this chat: {0}": "Modèle pour cette discussion : {0}",
  "Session": "Session",
  "Week": "Semaine",
- "resets {0}": "réinitialisé {0}"
+ "resets {0}": "réinitialisé {0}",
+ "Claude in {0}": "Claude dans {0}",
+ "Continue here": "Continuer ici",
+ "Done in {0}.": "Terminé dans {0}.",
+ "Waiting for you in {0}.": "Vous attend dans {0}.",
+ "Working in {0}. You can follow it here.": "Travaille dans {0}. Vous pouvez suivre ici.",
+ "a terminal": "un terminal",
+ "another app": "une autre app",
+ "working": "au travail"
 }
