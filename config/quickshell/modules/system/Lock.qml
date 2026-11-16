@@ -33,7 +33,8 @@ Scope {
         onCompleted: result => {
             root.pending = "";
             if (result === PamResult.Success) { root.status = ""; LockState.unlocked(); }
-            else root.status = "wrong";
+            // A message PAM gave (the account waits after too many tries) stays up instead of "wrong".
+            else if (root.status === "checking") root.status = "wrong";
         }
         onError: error => { root.pending = ""; root.status = PamError.toString(error); }
     }
