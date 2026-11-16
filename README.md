@@ -528,11 +528,12 @@ VDoc (documents), VSheet (spreadsheets) and VSlide (presentations), with the Off
 PowerPoint files, open password-protected ones (and save them protected again), and VSheet computes old
 workbooks the way Excel does. Their source is a repository of its own (`vyntaris-office`).
 
-### VWA
+### VChat
 
-WhatsApp in its own window, calls included: in the Store, or `sudo pacman -S vwa`. Notifications open the
+WhatsApp in its own window, calls included: in the Store, or `sudo pacman -S vchat`. Notifications open the
 chat, closing it keeps it running, and it follows light/dark and the accent. It's Qt WebEngine (Chromium:
-WebKitGTK has no WebRTC on Arch), so it isn't installed from the start (`qt/vwa`, `pkg/vwa`).
+WebKitGTK has no WebRTC on Arch), so it isn't installed from the start. It was VWA; an update puts it in
+VWA's place. Its source is a repository of its own (`vchat`).
 
 ---
 
@@ -996,7 +997,7 @@ way. Each release is signed with Vyntaris's key (the secret
 the package repository at `pkg.vyntarisos.com`, a Cloudflare R2 bucket (`vyntaris-packages`; CI writes to it
 with the key in `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` and `R2_ACCOUNT_ID`).
 
-Vyntaris Office goes to the same repository, signed the same way, from its own repository: a version tag
+Vyntaris Office and VChat go to the same repository, signed the same way, each from its own repository: a version tag
 there (`v1.0.1`) builds VDoc, VSheet, VSlide and vyntaris-office and publishes them with this repository's
 `tools/publish-repo.sh` (read with the deploy key in its `VYNTARIS_DEPLOY_KEY`, published with the same
 R2 secrets as here). Publishing replaces only

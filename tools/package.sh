@@ -14,7 +14,4 @@ git -C "$aur/yay-bin" -c advice.detachedHead=false checkout -q "$YAY_BIN_COMMIT"
     { echo "yay-bin: the pinned commit $YAY_BIN_COMMIT isn't on the AUR any more" >&2; exit 1; }
 (cd "$aur/yay-bin" && makepkg -f --nodeps --noconfirm >/dev/null)
 cp "$aur"/yay-bin/yay-bin-[0-9]*.pkg.tar.zst .
-# VWA is its own package, installed from the Store.
-(cd vwa && rm -rf src pkg build ./*.pkg.tar.* && makepkg -f --nodeps --noconfirm >/dev/null)
-cp vwa/vwa-[0-9]*.pkg.tar.zst .
-ls -1 "$PWD"/vyntaris-*.pkg.tar.zst "$PWD"/yay-bin-*.pkg.tar.zst "$PWD"/vwa-*.pkg.tar.zst
+ls -1 "$PWD"/vyntaris-*.pkg.tar.zst "$PWD"/yay-bin-*.pkg.tar.zst
