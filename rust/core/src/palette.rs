@@ -111,15 +111,6 @@ pub fn from_hsl(h: f64, s: f64, l: f64) -> String {
     format!("#{:02x}{:02x}{:02x}", byte(r), byte(g), byte(b))
 }
 
-pub fn is_dark(pal: &Palette) -> bool {
-    hsl(pal.get("base").map_or("#1e1e2e", String::as_str)).2 < 0.5
-}
-
-pub fn fit(colour: &str, dark: bool) -> String {
-    let (h, s, _) = hsl(colour);
-    if dark { from_hsl(h, s.clamp(0.6, 0.92), 0.77) } else { from_hsl(h, s.clamp(0.6, 0.92), 0.77) }
-}
-
 pub fn partner_of(colour: &str) -> String {
     let (h, s, l) = hsl(colour);
     from_hsl(h - 45.0, s, l)
@@ -127,7 +118,7 @@ pub fn partner_of(colour: &str) -> String {
 
 pub fn accent(pal: &Palette, name: &str) -> (String, String) {
     if is_hex(name) {
-        let a = fit(name, is_dark(pal));
+        let a = name.to_lowercase();
         let p = partner_of(&a);
         return (a, p);
     }

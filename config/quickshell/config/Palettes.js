@@ -156,7 +156,7 @@ function fit(color, dark) {
 }
 
 function accent(pal, name) {
-    return isCustom(name) ? fit(name, isDark(pal)) : (pal[name] || pal.blue);
+    return isCustom(name) ? name.toLowerCase() : (pal[name] || pal.blue);
 }
 
 function partnerOf(color) {

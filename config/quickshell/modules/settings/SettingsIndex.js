@@ -54,6 +54,7 @@ var rows = [
     { page: "appearance", title: "Light from" },
     { page: "appearance", title: "Dark from" },
     { page: "appearance", title: "Accent" },
+    { page: "appearance", title: "Custom color" },
     { page: "appearance", title: "Accent from wallpaper" },
     { page: "appearance", title: "Match apps to theme" },
     { page: "appearance", title: "Text size" },
