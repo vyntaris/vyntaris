@@ -127,6 +127,7 @@ case "${1:-}" in
             fi
             rm -f "$run_dir/error"
         done
+        error="$(printf '%s' "$error" | tr '\n\r\t' '   ' | tr -d '\000-\037')"  # one line, as the state file holds it
         { echo "last=$(date +%s)"; echo "boot=$this_boot"; echo "result=$([ -z "$error" ] && echo ok || echo failed)"; echo "error=$error"; } > "$state/cloud-backup"
         if [ -z "$error" ]; then now "done ok"; else now "done failed $error"; fi
         [ -z "$error" ]
@@ -174,6 +175,7 @@ case "${1:-}" in
         else
             c=false
         fi
+        error="$(printf '%s' "$error" | tr -d '\000-\037')"
         error="${error//\\/\\\\}"
         printf '{"connected": %s, "reconnect": %s, "running": %s, "last": %s, "result": "%s", "error": "%s", "used": %s, "total": %s}\n' \
             "$c" "$reconnect" "$running" "${last:-0}" "$result" "${error//\"/\\\"}" "${used:--1}" "${total:--1}"
