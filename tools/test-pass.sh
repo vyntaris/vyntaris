@@ -3,7 +3,7 @@
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 T="$(mktemp -d)"
-trap 'gpgconf --homedir "$T/gnupg" --kill gpg-agent 2>/dev/null; rm -rf "$T"' EXIT
+trap 'gpgconf --homedir "$T/gnupg" --kill gpg-agent 2>/dev/null; gpgconf --homedir "$T/gnupg2" --kill gpg-agent 2>/dev/null; rm -rf "$T"' EXIT
 fails=0
 ok() { echo "   ok    $*"; }
 no() { echo "   FAIL  $*"; fails=$((fails + 1)); }
@@ -52,6 +52,30 @@ check "the password to the clipboard"         test "$(cat "$T/copied")" = s3cret
 check "… marked sensitive (kept off the phone and the history)" grep -q -- --sensitive "$T/copied-args"
 "$P" copy github.com/me login >/dev/null 2>&1
 check "the username"                          test "$(cat "$T/copied")" = me
+
+echo ":: with the login: nothing asks, whoever opens the key"
+# A store of its own whose key has a passphrase, kept in the (stand-in) keyring as setup login does
+export GNUPGHOME="$T/gnupg2" PASSWORD_STORE_DIR="$T/store2"
+mkdir -m700 "$GNUPGHOME"
+cp "$REPO/config/quickshell/scripts/pinentry-keyring.py" "$T/scripts/"
+printf '#!/bin/sh\necho "OK ready"; while read -r l; do case "$l" in GETPIN) echo "ERR 83886179 Operation cancelled";; BYE) echo OK; exit;; *) echo OK;; esac; done\n' > "$T/bin/pinentry-none"
+chmod 755 "$T/bin/pinentry-none" "$T/scripts/pinentry-keyring.py"
+export VYNTARIS_PINENTRY_REAL="$T/bin/pinentry-none"   # a person who answers nothing
+printf '%s' 'Kx9mLong40CharsFromSetupLogin0000000000' | gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 0 \
+    --quick-gen-key "login@vyntaris.invalid" default default never 2>/dev/null
+pass init "login@vyntaris.invalid" >/dev/null
+printf 'hidden\n' | "$P" save site.org/x
+printf '#!/bin/sh\nprintf %%s Kx9mLong40CharsFromSetupLogin0000000000\n' > "$T/bin/secret-tool"
+"$P" kept
+check "kept: gpg-agent asks through the keyring"   grep -q '^pinentry-program .*pinentry-keyring' "$GNUPGHOME/gpg-agent.conf"
+gpgconf --kill gpg-agent
+check "pass in a terminal opens it, nobody asked" bash -c 'test "$(pass show site.org/x </dev/null 2>/dev/null)" = hidden'
+printf '#!/bin/sh\nexit 1\n' > "$T/bin/secret-tool"
+gpgconf --kill gpg-agent
+check "not in the keyring: asked as before"       bash -c '! pass show site.org/x </dev/null >/dev/null 2>&1'
+"$P" forget
+check "the login off: the usual pinentry again"   bash -c '! grep -q pinentry-keyring "$0"' "$GNUPGHOME/gpg-agent.conf"
+gpgconf --kill gpg-agent
 
 echo
 [ "$fails" = 0 ] && echo "pass: all checks passed" || echo "pass: $fails failed"

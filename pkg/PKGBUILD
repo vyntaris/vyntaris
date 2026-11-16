@@ -146,6 +146,7 @@ package() {
     install -Dm644 "$r/system/udev/90-laptop-switches.rules" "$d/usr/lib/udev/rules.d/90-vyntaris-laptop-switches.rules"
     install -Dm644 "$r/system/udev/80-nvidia-pm.rules" "$d/usr/lib/udev/rules.d/80-vyntaris-nvidia-pm.rules"
     install -Dm644 "$r/system/google-oauth" "$d/usr/share/vyntaris/google-oauth"
+    install -Dm755 "$r/config/quickshell/scripts/pinentry-keyring.py" "$d/usr/lib/vyntaris/pinentry-keyring"
     install -Dm644 "$r/system/polkit/50-vyntaris-fwupd.rules" "$d/usr/share/polkit-1/rules.d/50-vyntaris-fwupd.rules"
     install -Dm644 "$r/system/polkit/50-vyntaris-claude-snapshot.rules" "$d/usr/share/polkit-1/rules.d/50-vyntaris-claude-snapshot.rules"
     install -Dm644 "$r/config/claude/managed-settings.json" "$d/etc/claude-code/managed-settings.d/50-vyntaris.json"
