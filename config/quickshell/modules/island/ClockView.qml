@@ -25,7 +25,8 @@ Item {
         // During an update, open Updates like the bar icon does.
         else if (kind === "packages") { if (Updates.busy) Panels.updatesOpen = true; else Panels.packagesOpen = true; }
         else if (kind === "backup") Panels.cloudOpen = true;
-        else if (kind === "claude") Panels.claudeOpen = true;
+        // a session elsewhere opens on what it's doing; the island's own chat as it is
+        else if (kind === "claude") { if (activity.session) Claude.watch(activity.session); else Claude.unwatch(); Panels.claudeOpen = true; }
         else Panels.controlOpen = true;
     }
 

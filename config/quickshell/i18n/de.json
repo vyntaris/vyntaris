@@ -1212,5 +1212,13 @@
  "Charge limit": "Ladegrenze",
  "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Noch nicht erlaubt: starte nach der Einrichtung von Vyntaris einmal neu (dann lässt es sich umschalten)",
  "The defaults are in use. What the file held is kept in": "Es gelten die Standardwerte. Der Inhalt der Datei liegt in",
- "Your settings couldn't be read": "Deine Einstellungen konnten nicht gelesen werden"
+ "Your settings couldn't be read": "Deine Einstellungen konnten nicht gelesen werden",
+ "Claude in {0}": "Claude in {0}",
+ "Continue here": "Hier fortsetzen",
+ "Done in {0}.": "Fertig in {0}.",
+ "Waiting for you in {0}.": "Wartet in {0} auf dich.",
+ "Working in {0}. You can follow it here.": "Arbeitet in {0}. Du kannst hier zusehen.",
+ "a terminal": "einem Terminal",
+ "another app": "einer anderen App",
+ "working": "arbeitet"
 }

@@ -80,6 +80,7 @@ Singleton {
                         root.notify(Tr.t("Claude is waiting for you"), s.message || root.place(s), false);
                 root.sessions = ses;
                 root.asks = asks;
+                root.reloadWatched();
             }
         }
         onExited: if (root.rescan) { root.rescan = false; running = true; }
@@ -257,12 +258,14 @@ Singleton {
             const part = (win, was) => win?.utilization !== undefined ? { used: win.utilization, resets: was?.resets ?? "" } : was;
             usage = { session: part(w.five_hour, usage?.session), week: part(w.seven_day, usage?.week) };
         }
-        const m = last();
+        let m = last();
         if (!m || m.role !== "assistant") return;
         if (e.type === "assistant") {
+            // in the order it happened: text after tools, or tools after text, start a message of their own
+            const fresh = () => { m = { role: "assistant", text: "", tools: [] }; messages.push(m); };
             for (const c of e.message?.content ?? []) {
-                if (c.type === "text") m.text += (m.text ? "\n\n" : "") + c.text;
-                else if (c.type === "tool_use") { m.tools.push(tool(c.name, c.input ?? {})); chatDoing = doingOf(c.name, c.input ?? {}); }
+                if (c.type === "text") { if (m.tools.length) fresh(); m.text += (m.text ? "\n\n" : "") + c.text; }
+                else if (c.type === "tool_use") { if (m.text) fresh(); m.tools.push(tool(c.name, c.input ?? {})); chatDoing = doingOf(c.name, c.input ?? {}); }
             }
             touch();
         } else if (e.type === "result") {
@@ -317,6 +320,58 @@ Singleton {
         }
     }
 
+    // A session running elsewhere (VS Code, a terminal), watched from the island: its conversation as it goes, read
+    // from its transcript at each of its steps (the hook's events) and every 2 s while the panel shows it.
+    property string watching: ""
+    property var watched: []
+    property var watchedMeta: ({})
+    readonly property var watchedSession: sessions.find(s => s.id === watching) ?? null
+    readonly property string watchedState: watchedSession?.state ?? "done"
+    readonly property string watchedPlace: watchedMeta.entrypoint === "claude-vscode" ? "VS Code"
+        : (watchedMeta.entrypoint ?? "").startsWith("sdk") ? Tr.t("another app") : Tr.t("a terminal")
+    function watch(id) {
+        if (watching !== id) { watched = []; watchedMeta = {}; }
+        watching = id;
+        reloadWatched();
+    }
+    function unwatch() { watching = ""; watched = []; watchedMeta = {}; }
+    function continueHere() {
+        const id = watching, folder = watchedMeta.cwd || watchedSession?.cwd || "";
+        unwatch();
+        resume({ id, cwd: folder });
+    }
+    property bool watchAgain: false
+    function reloadWatched() {
+        if (!watching) return;
+        if (watchRead.running) { watchAgain = true; return; }
+        watchRead.past = [];
+        watchRead.command = ["python3", "-I", Quickshell.shellPath("scripts/claude-sessions.py"), "show", watching];
+        watchRead.running = true;
+    }
+    Process {
+        id: watchRead
+        property var past: []
+        stdout: SplitParser {
+            onRead: line => {
+                let m;
+                try { m = JSON.parse(line); } catch (err) { return; }
+                if (m.role === "meta") { root.watchedMeta = m; return; }
+                if (m.role === "assistant") m.tools = (m.tools ?? []).map(t => root.tool(t.name, t.input ?? {}));
+                watchRead.past.push(m);
+            }
+        }
+        onExited: {
+            if (root.watching) root.watched = watchRead.past;
+            if (root.watchAgain) { root.watchAgain = false; root.reloadWatched(); }
+        }
+    }
+    Timer {
+        interval: 2000
+        repeat: true
+        running: root.watching !== "" && Panels.claudeOpen
+        onTriggered: root.reloadWatched()
+    }
+
     Process {
         id: listing
         command: ["python3", "-I", Quickshell.shellPath("scripts/claude-sessions.py"), "list"]
@@ -332,6 +387,7 @@ Singleton {
             onRead: line => {
                 let m;
                 try { m = JSON.parse(line); } catch (err) { return; }
+                if (m.role === "meta") return;
                 if (m.role === "assistant") m.tools = (m.tools ?? []).map(t => root.tool(t.name, t.input ?? {}));
                 shown.past.push(m);
             }

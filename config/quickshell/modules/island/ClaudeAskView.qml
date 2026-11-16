@@ -16,6 +16,7 @@ Item {
     height: Theme.barHeight + hang
 
     PanelHeader {
+        icon: "claude"
         title: Claude.asks.length > 1 ? Tr.f("Claude asks ({0})", Claude.asks.length) : Tr.t("Claude asks")
         HeaderButton {
             visible: !root.ask?.island

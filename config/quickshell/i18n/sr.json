@@ -1212,5 +1212,13 @@
  "Charge limit": "Ograničenje punjenja",
  "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Još nije dozvoljeno: restartuj jednom posle podešavanja Vyntarisa (to omogućava da ovo menjaš)",
  "The defaults are in use. What the file held is kept in": "Koriste se podrazumevana podešavanja. Ono što je fajl sadržao čuva se u",
- "Your settings couldn't be read": "Tvoja podešavanja nisu mogla da se pročitaju"
+ "Your settings couldn't be read": "Tvoja podešavanja nisu mogla da se pročitaju",
+ "Claude in {0}": "Claude — {0}",
+ "Continue here": "Nastavi ovde",
+ "Done in {0}.": "Gotovo ({0}).",
+ "Waiting for you in {0}.": "Čeka te ({0}).",
+ "Working in {0}. You can follow it here.": "Radi ({0}). Ovde možeš da pratiš.",
+ "a terminal": "terminal",
+ "another app": "druga aplikacija",
+ "working": "radi"
 }

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Claude Code's sessions on this computer (~/.claude/projects), for the island.
 #   claude-sessions.py list         one JSON line per session, newest first: {id, cwd, title, at}
-#   claude-sessions.py show <id>    the session's conversation: one JSON line per message {role, text, tools}
+#   claude-sessions.py show <id>    the session's conversation: one JSON line per message {role, text, tools}, then
+#                                   {"role": "meta", "entrypoint", "cwd"}: where it runs (claude-vscode, cli, sdk-cli)
 import glob
 import json
 import os
@@ -61,7 +62,7 @@ def show(sid):
     paths = glob.glob(os.path.join(ROOT, "*", sid + ".jsonl"))
     if not paths:
         return
-    out = []
+    out, meta = [], {"role": "meta", "entrypoint": "", "cwd": ""}
     with open(paths[0], errors="ignore") as f:
         for line in f:
             if '"type":"user"' not in line.replace(" ", "") and '"type":"assistant"' not in line.replace(" ", ""):
@@ -72,6 +73,8 @@ def show(sid):
                 continue
             if e.get("isSidechain") or e.get("isMeta"):
                 continue
+            meta["entrypoint"] = e.get("entrypoint") or meta["entrypoint"]
+            meta["cwd"] = e.get("cwd") or meta["cwd"]
             content = (e.get("message") or {}).get("content")
             if e["type"] == "user":
                 t = text_of(content)
@@ -82,11 +85,18 @@ def show(sid):
                     out.append({"role": "assistant", "text": "", "tools": []})
                 m = out[-1]
                 for c in content or []:
+                    # In the order it happened: text after tools, or tools after text, start a message of their own
                     if c.get("type") == "text" and c.get("text", "").strip():
+                        if m["tools"]:
+                            m = {"role": "assistant", "text": "", "tools": []}
+                            out.append(m)
                         m["text"] += ("\n\n" if m["text"] else "") + c["text"].strip()
                     elif c.get("type") == "tool_use":
+                        if m["text"]:
+                            m = {"role": "assistant", "text": "", "tools": []}
+                            out.append(m)
                         m["tools"].append({"name": c.get("name", ""), "input": c.get("input") or {}})
-    for m in out[-40:]:
+    for m in out[-40:] + [meta]:
         print(json.dumps(m), flush=True)
 
 

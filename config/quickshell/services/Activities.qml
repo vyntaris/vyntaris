@@ -218,7 +218,7 @@ Singleton {
         if (Claude.busy)
             out.push({ kind: "claude", icon: "claude", text: Claude.doingText(Claude.chatDoing), title: "Claude", progress: -1, color: Theme.accent, paused: false });
         for (const c of Claude.working)
-            out.push({ kind: "claude", icon: "claude", text: Claude.doingText(c.doing), title: c.title ?? "Claude", progress: -1, color: Theme.accent, paused: false });
+            out.push({ kind: "claude", icon: "claude", text: Claude.doingText(c.doing), title: c.title ?? "Claude", session: c.id, progress: -1, color: Theme.accent, paused: false });
         if (installing)
             out.push({ kind: "packages", icon: "package-update", text: packages.count > 0 ? packages.count + ", " + packages.name : root.removing ? Tr.t("Removing") : Tr.t("Installing"),
                        progress: -1, color: Theme.accent, paused: false });
