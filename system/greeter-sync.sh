@@ -94,7 +94,7 @@ if [ "$(plymouth-set-default-theme 2>/dev/null)" = island ]; then
     if [ -n "$want" ] && [ "$want" != "$(cat "$splash/colours" 2>/dev/null)" ]; then
         systemctl stop 'vyntaris-splash-colours-*.timer' 2>/dev/null || true
         if [ -z "$(systemctl list-units --state=active --no-legend 'vyntaris-splash-colours-*.service')" ]; then
-            systemd-run --quiet --collect --on-active=60 --unit="vyntaris-splash-colours-$(date +%s)" \
+            systemd-run --quiet --collect --on-active=600 --unit="vyntaris-splash-colours-$(date +%s)" \
                 --description="The boot splash in $user's colours" \
                 sh -c 'while [ -e /var/lib/pacman/db.lck ]; do sleep 5; done
                        exec nice -n 19 ionice -c 3 /usr/bin/vyntaris-setup --splash --user "$1"' sh "$user" || true

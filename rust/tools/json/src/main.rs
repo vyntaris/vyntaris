@@ -43,6 +43,7 @@ fn greeter(args: &[String]) -> Value {
         "flatIsland": or(b, "flatIsland", json!(false)), "endCorners": or(b, "endCorners", json!(false)),
         "inside": or(b, "inside", json!("rounded")),
         "clockFormat": or(b, "clockFormat", json!("HH:mm")),
+        "wallpaperAccent": or(t, "wallpaperAccent", json!(false)),
     })
 }
 
@@ -54,6 +55,10 @@ fn splash(path: &str) -> Option<String> {
     let a = t.get("accent").and_then(Value::as_str).unwrap_or("mauve");
     let f = if f == "latte" || !word.is_match(f) { "mocha" } else { f };
     let a = if accent_ok.is_match(a) { a } else { "mauve" };
+    // An accent taken from the wallpaper changes with every picture, and each new splash colour is a new boot image:
+    // the splash takes the named accent closest to it, which changes only when the colour really does.
+    let from_wallpaper = t.get("wallpaperAccent").and_then(Value::as_bool).unwrap_or(false);
+    let a = if from_wallpaper && a.starts_with('#') { vyntaris_core::palette::nearest(f, a) } else { a.to_string() };
     Some(format!("{f} {a}"))
 }
 

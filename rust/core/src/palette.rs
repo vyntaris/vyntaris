@@ -149,3 +149,45 @@ mod tests {
         assert!(is_hex(&a) && is_hex(&p) && a != p);
     }
 }
+
+/// The accents a palette has by name, as Palettes.js lists them (accentNames).
+pub fn accent_names() -> &'static Vec<String> {
+    static NAMES: OnceLock<Vec<String>> = OnceLock::new();
+    NAMES.get_or_init(|| {
+        let Some(at) = PALETTES_JS.find("var accentNames") else { return vec![] };
+        let rest = &PALETTES_JS[at..];
+        let (Some(open), Some(close)) = (rest.find('['), rest.find(']')) else { return vec![] };
+        rest[open + 1..close].split(',').map(|n| n.trim().trim_matches('"').to_string()).filter(|n| !n.is_empty()).collect()
+    })
+}
+
+fn oklab(hex: &str) -> [f64; 3] {
+    let (r, g, b) = rgb(hex);
+    let lin = |v: f64| if v <= 0.04045 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) };
+    let (r, g, b) = (lin(r), lin(g), lin(b));
+    let l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b).cbrt();
+    let m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b).cbrt();
+    let s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b).cbrt();
+    [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+     1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+     0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]
+}
+
+/// The palette's named accent closest to a colour (Palettes.js nearest()).
+pub fn nearest(flavour: &str, colour: &str) -> String {
+    let pal = palette(flavour);
+    if !is_hex(colour) {
+        return if pal.contains_key(colour) { colour.to_string() } else { "blue".to_string() };
+    }
+    let t = oklab(colour);
+    let mut best = ("mauve".to_string(), f64::INFINITY);
+    for name in accent_names() {
+        let Some(hex) = pal.get(name) else { continue };
+        let p = oklab(hex);
+        let d = 0.3 * (p[0] - t[0]).powi(2) + (p[1] - t[1]).powi(2) + (p[2] - t[2]).powi(2);
+        if d < best.1 {
+            best = (name.clone(), d);
+        }
+    }
+    best.0
+}
