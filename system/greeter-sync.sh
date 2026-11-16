@@ -4,6 +4,28 @@ user="$1"
 home="$(getent passwd "$user" | cut -d: -f6)"
 [ -n "$home" ] || exit 1
 settings="$home/.config/quickshell/settings.json"
+
+# Apps run as administrator (Timeshift) in the user's theme: a copy of the theme's names and colours only, made by
+# root. Not the user's own folders: GTK reads modules from settings.ini, which would run the user's code as root.
+root_theme() {
+    local v d
+    install -d -m700 /root/.config
+    for v in gtk-3.0 gtk-4.0; do
+        d="/root/.config/$v"
+        [ -L "$d" ] && rm -f "$d"
+        install -d -m755 "$d"
+        { runuser -u "$user" -- cat -- "$home/.config/$v/settings.ini" 2>/dev/null || true; } |
+            grep -E '^\[Settings\]$|^gtk-(theme-name|icon-theme-name|cursor-theme-name|cursor-theme-size|font-name|application-prefer-dark-theme)=[A-Za-z0-9 ._+-]*$' \
+            > "$d/settings.ini.new" || true
+        mv -f "$d/settings.ini.new" "$d/settings.ini"
+        { runuser -u "$user" -- cat -- "$home/.config/$v/gtk.css" 2>/dev/null || true; } | grep -v '@import' > "$d/gtk.css.new" || true
+        mv -f "$d/gtk.css.new" "$d/gtk.css"
+    done
+    [ -L /root/.config/dconf ] && rm -f /root/.config/dconf
+    return 0
+}
+root_theme
+
 g=/etc/greetd/greeter
 [ -d "$g" ] || exit 0
 

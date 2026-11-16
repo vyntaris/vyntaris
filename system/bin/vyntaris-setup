@@ -346,6 +346,12 @@ if [ "$mode" = refresh ]; then
         fi
         greetd_config
     fi
+    # root's GTK theme was the user's folders, linked; now it's a copy of the safe part (greeter-sync)
+    if [ -L /root/.config/gtk-3.0 ]; then
+        owner="$(stat -c %U "$(readlink -f /root/.config/gtk-3.0)" 2>/dev/null || true)"
+        if [ -n "$owner" ] && [ "$owner" != root ]; then "$LIB/greeter-sync.sh" "$owner" || true; fi
+        rm -f /root/.config/gtk-3.0 /root/.config/gtk-4.0 /root/.config/dconf 2>/dev/null || true
+    fi
     [ -f /etc/kernel/cmdline ] && boot_menu
     shutdown_quick
     "$LIB/snapshots" >/dev/null 2>&1 || true
@@ -437,13 +443,7 @@ if [ -n "$user" ]; then
             "$SHARE/timeshift.json" > /etc/timeshift/timeshift.json
     fi
     step "Apps run as administrator (Timeshift) in $user's theme"
-    install -d -m700 /root/.config
-    for v in gtk-3.0 gtk-4.0 dconf; do
-        install -d -o "$user" -g "$user" "$home/.config/$v"
-        dst="/root/.config/$v"
-        [ -e "$dst" ] && [ ! -L "$dst" ] && mv "$dst" "$dst.bak"
-        ln -sfn "$home/.config/$v" "$dst"
-    done
+    "$LIB/greeter-sync.sh" "$user" || true
 fi
 
 if [ "$autologin" = 1 ] && [ -n "$user" ]; then autologin_tty; else login_screen; fi
