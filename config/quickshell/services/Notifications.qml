@@ -119,7 +119,7 @@ Singleton {
     }
 
     // A notification still open in its app, for one in the list: clicking it does what clicking the pop-up does
-    // (VWA opens the chat). Kept until it leaves the list.
+    // (VChat opens the chat). Kept until it leaves the list.
     function live(entry) {
         return server.trackedNotifications.values.find(n => n.id === entry.id && n.appName === entry.appName) ?? null;
     }

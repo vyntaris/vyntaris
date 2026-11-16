@@ -120,7 +120,6 @@ jobs:
           path: |
             pkg/vyntaris-*.pkg.tar.zst
             pkg/yay-bin-*.pkg.tar.zst
-            pkg/vwa-*.pkg.tar.zst
           retention-days: 3
 
   smoke:
@@ -233,7 +232,7 @@ jobs:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
         run: |
           printf '%s\n' "$SIGNING_KEY" | gpg --batch --quiet --import
-          tools/publish-repo.sh pkg/vyntaris-*.pkg.tar.zst pkg/yay-bin-*.pkg.tar.zst pkg/vwa-*.pkg.tar.zst
+          tools/publish-repo.sh pkg/vyntaris-*.pkg.tar.zst pkg/yay-bin-*.pkg.tar.zst
 
   iso:
     needs: smoke
