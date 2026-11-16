@@ -78,6 +78,32 @@ fn modified() -> Option<SystemTime> {
     std::fs::metadata(gtk_css()).and_then(|m| m.modified()).ok()
 }
 
+// A word each time gtk.css may have changed: from inotify (the daemon sleeps until then), or every 5 s if its
+// folder can't be watched.
+fn changes() -> tokio::sync::mpsc::UnboundedReceiver<()> {
+    use nix::sys::inotify::{AddWatchFlags, InitFlags, Inotify};
+    let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+    std::thread::spawn(move || {
+        let dir = gtk_css().parent().map(PathBuf::from).unwrap_or_default();
+        let _ = std::fs::create_dir_all(&dir);
+        let flags = AddWatchFlags::IN_CLOSE_WRITE | AddWatchFlags::IN_MOVED_TO | AddWatchFlags::IN_CREATE | AddWatchFlags::IN_DELETE;
+        let watch = Inotify::init(InitFlags::IN_CLOEXEC).and_then(|i| i.add_watch(&dir, flags).map(|_| i));
+        match watch {
+            Ok(ino) => loop {
+                let Ok(events) = ino.read_events() else { break };
+                if events.iter().any(|e| e.name.as_deref().is_some_and(|n| n == "gtk.css")) && tx.send(()).is_err() {
+                    return;
+                }
+            },
+            Err(_) => {}
+        }
+        while tx.send(()).is_ok() {
+            std::thread::sleep(Duration::from_secs(5));
+        }
+    });
+    rx
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> zbus::Result<()> {
     let look = Arc::new(Mutex::new(read(&std::fs::read_to_string(gtk_css()).unwrap_or_default())));
@@ -88,8 +114,11 @@ async fn main() -> zbus::Result<()> {
         .await?;
     let emitter = SignalEmitter::new(&conn, PATH)?;
     let mut seen = modified();
+    let mut changed = changes();
     loop {
-        tokio::time::sleep(Duration::from_secs(1)).await;
+        if changed.recv().await.is_none() {
+            break Ok(());
+        }
         let now = modified();
         if now == seen {
             continue;

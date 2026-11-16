@@ -36,15 +36,32 @@ pub fn local_seconds(stamp: &str) -> Option<f64> {
     (t != -1).then_some(t as f64)
 }
 
+fn exec(cmd: &[&str]) -> (i32, String) {
+    match Command::new(cmd[0]).args(&cmd[1..]).output() {
+        Ok(o) => (
+            o.status.code().unwrap_or(1),
+            String::from_utf8_lossy(&o.stdout).into_owned(),
+        ),
+        Err(_) => (127, String::new()),
+    }
+}
+
 impl Sys for Real {
     fn run(&self, cmd: &[&str]) -> (i32, String) {
-        match Command::new(cmd[0]).args(&cmd[1..]).output() {
-            Ok(o) => (
-                o.status.code().unwrap_or(1),
-                String::from_utf8_lossy(&o.stdout).into_owned(),
-            ),
-            Err(_) => (127, String::new()),
+        // checkupdates fetches the package lists: one check asks twice (crashes, updates), so it runs once a minute.
+        if cmd == ["checkupdates"] {
+            use std::sync::Mutex;
+            use std::time::{Duration, Instant};
+            static LAST: Mutex<Option<(Instant, (i32, String))>> = Mutex::new(None);
+            let mut last = LAST.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some((_, out)) = last.as_ref().filter(|(at, _)| at.elapsed() < Duration::from_secs(60)) {
+                return out.clone();
+            }
+            let out = exec(cmd);
+            *last = Some((Instant::now(), out.clone()));
+            return out;
         }
+        exec(cmd)
     }
     fn fetch(&self, url: &str) -> Option<String> {
         let (code, out) = self.run(&[

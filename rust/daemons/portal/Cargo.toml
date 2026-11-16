@@ -7,5 +7,6 @@ license.workspace = true
 
 [dependencies]
 vyntaris-core.workspace = true
-tokio = { version = "1", features = ["rt", "time", "macros"] }
+tokio = { version = "1", features = ["rt", "time", "macros", "sync"] }
+nix = { version = "0.31", default-features = false, features = ["inotify"] }
 zbus = { version = "5", default-features = false, features = ["tokio"] }
