@@ -5,7 +5,7 @@ GUARD="$REPO/system/update-guard/update-guard.sh"
 INITRD="$REPO/system/update-guard/initrd-rollback.sh"
 
 T="$(mktemp -d)"
-trap "${KEEP:+: }rm -rf \"$T\"" EXIT
+trap 'rm -rf "$T"' EXIT
 fails=0
 ok() { echo "   ok    $*"; }
 no() { echo "   FAIL  $*"; fails=$((fails + 1)); }
