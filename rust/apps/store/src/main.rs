@@ -267,11 +267,11 @@ impl Store {
         self.empty.set_visible(n == 0);
         let q = self.query.borrow().trim().to_string();
         self.empty.set_label(&if self.apps.borrow().is_empty() {
-            if self.indexing.get() { tr("Getting the list of apps…").into() } else { tr("No apps yet").into() }
+            if self.indexing.get() { tr("Getting the list of apps…") } else { tr("No apps yet") }
         } else if !q.is_empty() {
             trf!("Nothing called “{0}”", q)
         } else {
-            tr("Nothing here yet").into()
+            tr("Nothing here yet")
         });
         self.update_rows();
     }

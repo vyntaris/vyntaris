@@ -104,6 +104,11 @@ Singleton {
         return "echo; read -rp '" + text.replace(/'/g, "'\\''") + "'";
     }
 
+    // A command's words for sh, each in quotes: a path with spaces or quotes stays one word.
+    function quote(args) {
+        return args.map(a => "'" + String(a).replace(/'/g, "'\\''") + "'").join(" ");
+    }
+
     function runInTerminal(script) {
         launch(["sh", "-c", `${apps.terminalRun} sh -c "$1"`, "sh", script]);
     }
@@ -169,8 +174,8 @@ Singleton {
             if (ok) { if (root.leader) Qt.callLater(root.dropDim); return; }
             if (!root.leader) return;
             Quickshell.execDetached(["sh", "-c",
-                'cp -f "$1" "$1.broken" && notify-send -a Vyntaris -i dialog-warning "Your settings couldn\'t be read" '
-                + '"The defaults are in use. What the file held is kept in $1.broken"', "sh", root.path]);
+                'cp -f "$1" "$1.broken" && notify-send -a Vyntaris -i dialog-warning "$2" "$3 $1.broken"', "sh", root.path,
+                Tr.t("Your settings couldn't be read"), Tr.t("The defaults are in use. What the file held is kept in")]);
         }
 
         JsonAdapter {

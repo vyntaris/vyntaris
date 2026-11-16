@@ -69,10 +69,16 @@ Singleton {
     property string touchpadName: ""
     property bool touchpad: true
 
+    // A name from the device itself, as a Lua string: quotes or newlines in it can't become code.
+    function lua(text) {
+        return '"' + String(text).replace(/[\\"]/g, "\\$&")
+            .replace(/[\x00-\x1f\x7f]/g, c => "\\" + String(c.charCodeAt(0)).padStart(3, "0")) + '"';
+    }
+
     function setTouchpad(on) {
         if (!touchpadName) return;
         touchpad = on;
-        Quickshell.execDetached(["hyprctl", "eval", `hl.device({ name = "${touchpadName}", enabled = ${on} })`]);
+        Quickshell.execDetached(["hyprctl", "eval", `hl.device({ name = ${lua(touchpadName)}, enabled = ${on ? "true" : "false"} })`]);
         Osd.show("touchpad");
     }
     function toggleTouchpad() { setTouchpad(!touchpad); }
@@ -94,7 +100,7 @@ Singleton {
         target: Hyprland
         function onRawEvent(event) {
             if (event.name === "configreloaded" && !root.touchpad && root.touchpadName)
-                Quickshell.execDetached(["hyprctl", "eval", `hl.device({ name = "${root.touchpadName}", enabled = false })`]);
+                Quickshell.execDetached(["hyprctl", "eval", `hl.device({ name = ${root.lua(root.touchpadName)}, enabled = false })`]);
         }
     }
 

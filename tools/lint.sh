@@ -21,6 +21,7 @@ python3 -c 'import ast, sys; [ast.parse(open(f).read(), f) for f in sys.argv[1:]
 pyflakes "${pythons[@]}" || bad=1
 tools/check-contrast.py || bad=1
 tools/check-controls.py || bad=1
+tools/check-defaults.py || bad=1
 
 [ "$bad" = 0 ] && echo "$(( ${#shells[@]} + ${#packaging[@]} )) shell scripts and ${#pythons[@]} Python files: clean"
 exit "$bad"

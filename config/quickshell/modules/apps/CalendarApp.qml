@@ -81,10 +81,17 @@ Scope {
     function save() {
         const e = editing, t = title.text.trim();
         if (!e || !t) return;
-        const ok = s => /^\d{1,2}:\d{2}$/.test(s.trim()) ? s.trim().padStart(5, "0") : "";
+        // A real time of day, or nothing; a wrong one is marked and nothing is saved.
+        const ok = s => {
+            const m = s.trim().match(/^(\d{1,2}):(\d{2})$/);
+            return m && Number(m[1]) < 24 && Number(m[2]) < 60 ? m[1].padStart(2, "0") + ":" + m[2] : "";
+        };
         const day = Calendar.key(e.day);
-        const s = ok(startField.text) || "09:00";
-        const en = ok(endField.text) || s;
+        const s = startField.text.trim() ? ok(startField.text) : "09:00";
+        const en = endField.text.trim() ? ok(endField.text) : s;
+        startField.invalid = !e.allDay && !s;
+        endField.invalid = !e.allDay && (!en || (s && en < s));
+        if (startField.invalid || endField.invalid) return;
         Calendar.save({ id: e.id, title: t, allDay: e.allDay, remind: e.remind,
                         start: day + "T" + (e.allDay ? "00:00" : s), end: day + "T" + (e.allDay ? "00:00" : en) });
         editing = null;
@@ -614,9 +621,9 @@ Scope {
                                 visible: !(root.editing?.allDay ?? false)
                                 spacing: Theme.space8
                                 Label { Layout.fillWidth: true; text: Tr.t("Time") }
-                                Field { id: startField; implicitWidth: 92; mono: true; placeholder: "09:00"; input.Keys.onReturnPressed: root.save() }
+                                Field { id: startField; implicitWidth: 92; mono: true; placeholder: "09:00"; input.Keys.onReturnPressed: root.save(); onTextChanged: invalid = false }
                                 Label { text: "–"; color: Theme.overlay1 }
-                                Field { id: endField; implicitWidth: 92; mono: true; placeholder: "10:00"; input.Keys.onReturnPressed: root.save() }
+                                Field { id: endField; implicitWidth: 92; mono: true; placeholder: "10:00"; input.Keys.onReturnPressed: root.save(); onTextChanged: invalid = false }
                             }
                             ColumnLayout {
                                 Layout.fillWidth: true

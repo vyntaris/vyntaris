@@ -123,7 +123,7 @@ impl Doctor {
                     *d.findings.borrow_mut() = r["findings"].as_array().cloned().unwrap_or_default();
                     d.checked.set(r["checked"].as_f64().unwrap_or(glib::real_time() as f64 / 1e6));
                 }
-                _ => *d.failure.borrow_mut() = tr("The check didn't finish").into(),
+                _ => *d.failure.borrow_mut() = tr("The check didn't finish"),
             }
             d.checking.set(false);
             d.show();
@@ -182,7 +182,7 @@ impl Doctor {
                     d.sent_text.buffer().set_text(r["body"].as_str().unwrap_or(""));
                     d.report.replace(Some(r));
                 }
-                _ => *d.failure.borrow_mut() = tr("The report couldn't be made").into(),
+                _ => *d.failure.borrow_mut() = tr("The report couldn't be made"),
             }
             d.preparing.set(false);
             d.show_report();

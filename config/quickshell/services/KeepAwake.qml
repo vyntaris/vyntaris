@@ -54,7 +54,27 @@ Singleton {
         }
     }
 
+    property bool restored: false
+    function save() {
+        if (restored) SessionState.set("keepAwake", { mode, minutes, until: until.getTime() || 0 });
+    }
+    onMinutesChanged: save()
+    onUntilChanged: save()
+    Component.onCompleted: {
+        const s = SessionState.get("keepAwake");
+        if (s && s.mode && s.mode !== "off" && !(s.minutes > 0 && s.until <= Date.now())) {
+            minutes = s.minutes ?? 0;
+            if (minutes > 0) {
+                until = new Date(s.until);
+                remaining = (s.until - Date.now()) / 1000;
+            }
+            mode = s.mode;
+        }
+        restored = true;
+    }
+
     onModeChanged: {
+        save();
         inhibitor.running = false;
         restartInhibitor.restart();
     }

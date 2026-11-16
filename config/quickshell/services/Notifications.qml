@@ -170,7 +170,11 @@ Singleton {
     Timer {
         id: saveTimer
         interval: 1000
-        onTriggered: store.setText(JSON.stringify({ dnd: root.dnd, history: root.history }))
+        onTriggered: {
+            store.setText(JSON.stringify({ dnd: root.dnd, history: root.history }));
+            // what notifications said is for this user alone
+            Quickshell.execDetached(["chmod", "600", store.path]);
+        }
     }
 
     function removeAt(index) {
@@ -212,7 +216,8 @@ Singleton {
                 image: n.image, time: new Date(), urgency: n.urgency, desktopEntry: n.desktopEntry ?? "",
             };
             const seen = root.history.some(e => e.id === n.id && e.appName === n.appName && e.summary === n.summary);
-            if (!seen) {
+            // One the app calls passing (a code, a "copied") is shown, not kept in the history on disk.
+            if (!seen && !n.transient) {
                 const all = [entry].concat(root.history);
                 root.forget(all.slice(root.maxHistory));
                 root.history = all.slice(0, root.maxHistory);

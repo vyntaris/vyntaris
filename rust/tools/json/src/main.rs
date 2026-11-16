@@ -36,13 +36,14 @@ fn greeter(args: &[String]) -> Value {
         "user": arg(0), "session": ["vyntaris-session"], "wallpaper": arg(1), "face": arg(2), "fullName": full,
         "flavor": or(t, "flavor", json!("mocha")), "accent": or(t, "accent", json!("mauve")), "accentLight": or(t, "accentLight", json!("mauve")),
         "font": or(t, "fontFamily", json!("Inter")), "monoFont": or(t, "monoFamily", json!("JetBrains Mono")),
-        "fontSize": or(t, "fontSize", json!(13)), "animationSpeed": or(t, "animationSpeed", json!(1)),
+        "fontSize": or(t, "fontSize", json!(13)), "animationSpeed": or(t, "animationSpeed", json!(1.5)),
         "animationStyle": or(t, "animationStyle", json!("snappy")), "highContrast": or(a, "highContrast", json!(false)),
         "barHeight": or(b, "height", json!(28)), "endCurve": or(b, "endCurve", json!(16)),
         "corners": or(b, "corners", json!("round")), "notchStyle": or(b, "notchStyle", json!("slant")),
         "flatIsland": or(b, "flatIsland", json!(false)), "endCorners": or(b, "endCorners", json!(false)),
         "inside": or(b, "inside", json!("rounded")),
         "clockFormat": or(b, "clockFormat", json!("HH:mm")),
+        "wallpaperAccent": or(t, "wallpaperAccent", json!(false)),
     })
 }
 
@@ -54,6 +55,10 @@ fn splash(path: &str) -> Option<String> {
     let a = t.get("accent").and_then(Value::as_str).unwrap_or("mauve");
     let f = if f == "latte" || !word.is_match(f) { "mocha" } else { f };
     let a = if accent_ok.is_match(a) { a } else { "mauve" };
+    // An accent taken from the wallpaper changes with every picture, and each new splash colour is a new boot image:
+    // the splash takes the named accent closest to it, which changes only when the colour really does.
+    let from_wallpaper = t.get("wallpaperAccent").and_then(Value::as_bool).unwrap_or(false);
+    let a = if from_wallpaper && a.starts_with('#') { vyntaris_core::palette::nearest(f, a) } else { a.to_string() };
     Some(format!("{f} {a}"))
 }
 
@@ -112,7 +117,7 @@ fn merge_actions(uca: &str, extra: &str) -> std::io::Result<()> {
     Ok(())
 }
 
-fn riseup_gateways<'a>(eip: &'a Value) -> impl Iterator<Item = &'a Value> {
+fn riseup_gateways(eip: &Value) -> impl Iterator<Item = &Value> {
     eip["gateways"].as_array().into_iter().flatten().filter(|g| {
         g["capabilities"]["transport"].as_array().is_some_and(|t| t.iter().any(|t| t["type"] == "openvpn"))
     })

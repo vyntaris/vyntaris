@@ -104,8 +104,11 @@ INSTALL_FULLNAME="$(printf '%s' "${INSTALL_FULLNAME:-}" | tr ':\n\r' '   ' | sed
 while [ -z "${INSTALL_PASSWORD:-}" ]; do
     read -rsp "   Password: " p1; echo
     read -rsp "   Again: " p2; echo
-    if [ -n "$p1" ] && [ "$p1" = "$p2" ]; then INSTALL_PASSWORD="$p1"; else note "they don't match (or it's empty), again"; fi
+    if [ "${#p1}" -ge 4 ] && [ "$p1" = "$p2" ]; then INSTALL_PASSWORD="$p1"; else note "they don't match (or it's shorter than 4 characters), again"; fi
 done
+# Kept in this script only: nothing it starts (pacman hooks, the AUR build, VS Code) gets it in its environment.
+password="$INSTALL_PASSWORD"
+unset INSTALL_PASSWORD p1 p2
 while :; do
     ask INSTALL_HOSTNAME "Computer name" "vyntaris"
     printf '%s' "$INSTALL_HOSTNAME" | LC_ALL=C grep -qxE '[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?' && break
@@ -323,7 +326,7 @@ inside systemctl enable NetworkManager.service systemd-timesyncd.service >/dev/n
 
 step "User $INSTALL_USER"
 inside useradd -m -G wheel -s /usr/bin/zsh ${INSTALL_FULLNAME:+-c "$INSTALL_FULLNAME"} "$INSTALL_USER"
-printf '%s:%s\n' "$INSTALL_USER" "$INSTALL_PASSWORD" | inside chpasswd
+printf '%s:%s\n' "$INSTALL_USER" "$password" | inside chpasswd
 inside passwd -l root >/dev/null
 echo '%wheel ALL=(ALL:ALL) ALL' > "$MNT/etc/sudoers.d/10-wheel"
 chmod 440 "$MNT/etc/sudoers.d/10-wheel"

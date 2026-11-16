@@ -217,6 +217,12 @@ Item {
             onClicked: Updates.upgrade()
         }
         Button {
+            visible: Updates.aurWaiting && !Updates.busy
+            icon: "terminal"
+            text: Tr.t("Review the AUR's changes")
+            onClicked: { Panels.updatesOpen = false; Updates.reviewAur(); }
+        }
+        Button {
             visible: Updates.lastResult === "failed" && !Updates.busy && Updates.packages.length > 0
             icon: "terminal"
             text: Tr.t("Finish in a terminal")

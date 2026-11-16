@@ -307,10 +307,9 @@ Singleton {
                 const l = offerCheck.login;
                 offerCheck.stdinEnabled = true;
                 if (!l || !name) return;
-                // A new login is kept straight away; a changed one is asked about.
-                if (answer === "new") { root.save(name, l.password, l.user, l.site, ""); Osd.show("password-saved"); return; }
-                if (answer !== "changed") return;
-                root.offer = { site: l.site, user: l.user, password: l.password, name, update: true };
+                // A new login or a changed one is asked about in the island, never kept without asking.
+                if (answer !== "new" && answer !== "changed") return;
+                root.offer = { site: l.site, user: l.user, password: l.password, name, update: answer === "changed" };
                 offerTimer.restart();
             }
         }
@@ -320,7 +319,7 @@ Singleton {
     function saveOffer() {
         const o = offer;
         offer = null;
-        if (o) save(o.name, o.password, o.user, o.site, "");
+        if (o) { save(o.name, o.password, o.user, o.site, ""); if (!o.update) Osd.show("password-saved"); }
     }
     function never() {
         if (offer) { Config.passwords.never = (Config.passwords.never ?? []).concat([offer.site]); Config.saveSoon(); }

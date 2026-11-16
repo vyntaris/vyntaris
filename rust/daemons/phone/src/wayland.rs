@@ -119,12 +119,36 @@ impl VirtualPointer {
         Ok(())
     }
 
+    // What the compositor sent meanwhile (globals coming and going as screens do), read and let go: left unread it
+    // fills the socket until the compositor drops the connection. An error from it ends the connection here.
+    fn drain(&mut self) -> io::Result<()> {
+        let Some(sock) = self.sock.as_mut() else { return Ok(()) };
+        let mut chunk = [0u8; 4096];
+        loop {
+            match sock.read(&mut chunk) {
+                Ok(0) => return Err(refused("the compositor closed the connection")),
+                Ok(n) => {
+                    // wl_display.error: object 1, opcode 0, at the start of a message
+                    if n >= 8 && u32::from_le_bytes(chunk[0..4].try_into().unwrap_or_default()) == 1
+                        && u32::from_le_bytes(chunk[4..8].try_into().unwrap_or_default()) & 0xffff == 0
+                    {
+                        return Err(refused("the compositor refused a request"));
+                    }
+                }
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Ok(()),
+                Err(e) if e.kind() == io::ErrorKind::Interrupted => continue,
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
     fn request(&mut self, opcode: u32, payload: &[u8], frame: bool) -> io::Result<()> {
         for attempt in 0..2 {
             let r = (|| {
                 if self.sock.is_none() {
                     self.connect()?;
                 }
+                self.drain()?;
                 let pointer = self.pointer;
                 self.send(pointer, opcode, payload)?;
                 if frame {

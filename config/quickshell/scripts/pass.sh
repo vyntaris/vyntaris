@@ -27,6 +27,22 @@ store="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
 keyring=(service vyntaris-passwords)
 remember() { printf '%s' "$1" | secret-tool store --label="Vyntaris passwords" "${keyring[@]}"; }
 
+# While the passphrase is in the keyring, gpg-agent asks it through pinentry-keyring: whatever opens the key (pass in a
+# terminal, an add-on) gets it from the keyring instead of asking for a password nobody was ever told.
+agent_conf="${GNUPGHOME:-$HOME/.gnupg}/gpg-agent.conf"
+keyring_pinentry() {
+    local p=/usr/lib/vyntaris/pinentry-keyring want=""
+    [ -x "$p" ] || p="$(cd "$(dirname "$0")" && pwd)/pinentry-keyring.py"
+    [ "$1" = on ] && want="pinentry-program $p"
+    local now; now=$(grep -m1 '^pinentry-program ' "$agent_conf" 2>/dev/null)
+    case "$now" in ""|*pinentry-keyring*) ;; *) return 0 ;; esac  # one the user chose stays
+    [ "$now" = "$want" ] && return 0
+    mkdir -p "$(dirname "$agent_conf")"
+    { grep -v '^pinentry-program .*pinentry-keyring' "$agent_conf" 2>/dev/null; [ -n "$want" ] && echo "$want"; } > "$agent_conf.new"
+    mv -f "$agent_conf.new" "$agent_conf"
+    gpg-connect-agent reloadagent /bye >/dev/null 2>&1
+}
+
 open_entry() {
     gpg --quiet --batch --pinentry-mode error -d "$store/$1.gpg" 2>/dev/null && return
     # Not in gpg-agent any more: from the keyring, without asking.
@@ -59,6 +75,7 @@ setup)
     if [ "$2" = login ]; then
         phrase=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 40)
         remember "$phrase" || exit 1
+        keyring_pinentry on
     else
         IFS= read -r phrase || exit 1
     fi
@@ -85,12 +102,13 @@ unlock)
     else
         gpg --quiet --batch --pinentry-mode loopback --passphrase-fd 0 -d "$store/$any" >/dev/null 2>&1 <<<"$phrase" || exit 2
     fi
-    [ "$2" = remember ] && remember "$phrase"
+    [ "$2" = remember ] && remember "$phrase" && keyring_pinentry on
     exit 0 ;;
 lock)
     gpg-connect-agent reloadagent /bye >/dev/null 2>&1 ;;
 kept)
-    secret-tool lookup "${keyring[@]}" >/dev/null 2>&1 ;;
+    secret-tool lookup "${keyring[@]}" >/dev/null 2>&1 || exit 1
+    keyring_pinentry on ;;
 master)
     IFS= read -r new || exit 1
     [ -n "$new" ] || exit 1
@@ -102,9 +120,11 @@ master)
     gpg-connect-agent reloadagent /bye >/dev/null 2>&1
     printf 'x' | gpg --batch --pinentry-mode loopback --passphrase-fd 3 -u "$fpr" -s -o /dev/null 3<<<"$new" 2>/dev/null || exit 1
     secret-tool clear "${keyring[@]}"
+    keyring_pinentry off
     gpg-connect-agent reloadagent /bye >/dev/null 2>&1 ;;
 forget)
-    secret-tool clear "${keyring[@]}" ;;
+    secret-tool clear "${keyring[@]}"
+    keyring_pinentry off ;;
 show)
     decrypt "$2" ;;
 fill)
@@ -112,8 +132,10 @@ fill)
     user=$(login "$2" <<<"$entry")
     # The island goes first, so the field has the focus again.
     sleep 0.35
-    if U="$user" P="$(password <<<"$entry")" python3 -c \
-        'import json, os; print(json.dumps({"user": os.environ["U"], "password": os.environ["P"]}))' \
+    # The sites in the entry's name ("github.com/me", "work/github.com"): the page has to be one of them.
+    if U="$user" P="$(password <<<"$entry")" E="$2" python3 -c \
+        'import json, os, re; s = [p for p in os.environ["E"].split("/") if re.fullmatch(r"[a-z0-9-]+(\.[a-z0-9-]+)+", p.lower())]
+print(json.dumps({"user": os.environ["U"], "password": os.environ["P"], "sites": [p.lower() for p in s]}))' \
         | "$(dirname "$0")/pass-host.py" fill; then
         exit 0
     fi
@@ -134,13 +156,13 @@ fill-fields)
     entry=$(decrypt "$2") || exit $?
     sleep 0.35
     python3 -c '
-import json, sys
+import json, re, sys
 d = {}
 for line in sys.stdin.read().splitlines()[1:]:
     k, sep, v = line.partition(":")
     if sep and v.strip():
         d[k.strip().lower()] = v.strip()
-print(json.dumps({"fields": d}))' <<<"$entry" | "$(dirname "$0")/pass-host.py" fill ;;
+print(json.dumps({"fields": d, "sites": [p.lower() for p in sys.argv[1].split("/") if re.fullmatch(r"[a-z0-9-]+(\.[a-z0-9-]+)+", p.lower())]}))' "$2" <<<"$entry" | "$(dirname "$0")/pass-host.py" fill ;;
 copy)
     entry=$(decrypt "$2") || exit $?
     if [ "$3" = login ]; then

@@ -1,4 +1,4 @@
-use crate::checks::{CACHE_KEEP, broken_links, failed_units, home, pacman_running};
+use crate::checks::{broken_links, clearable, failed_units, home, pacman_running};
 use crate::sys::{Sys, state_dir};
 use std::fs;
 use std::process::Command;
@@ -75,7 +75,7 @@ pub fn user_fix(sys: &dyn Sys, id: &str) -> Option<bool> {
         "app-caches" => {
             let base = home().join(".cache");
             for e in fs::read_dir(&base).into_iter().flatten().flatten() {
-                if CACHE_KEEP.contains(&e.file_name().to_string_lossy().as_ref()) {
+                if !clearable(&e.file_name().to_string_lossy()) {
                     continue;
                 }
                 let p = e.path();
