@@ -36,7 +36,8 @@ ShellRoot {
     readonly property bool userTaken: systemUsers.includes(user) || user.startsWith("systemd-")
     readonly property bool userOk: /^[a-z_][a-z0-9_-]{0,31}$/.test(user) && !userTaken
     readonly property bool hostOk: /^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$/.test(host)
-    readonly property bool passOk: pass.length > 0 && pass === pass2
+    // 4 characters at least, the same as Settings asks for
+    readonly property bool passOk: pass.length >= 4 && pass === pass2
     function canLeave(p) {
         if (p === 1) return online || preview || offlineReady;
         if (p === 4) return userOk && hostOk && passOk;
@@ -857,6 +858,7 @@ ShellRoot {
                                     spacing: Theme.space4
                                     Field { Layout.fillWidth: true; secret: true; canReveal: true; onTextChanged: root.pass2 = text }
                                     Label { visible: root.pass2 !== "" && root.pass !== root.pass2; color: Theme.error; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("The passwords don't match") }
+                                    Label { visible: root.pass !== "" && root.pass.length < 4; color: Theme.error; font.pixelSize: Theme.fontSizeSmall; text: Tr.t("4 characters at least") }
                                 }
                             }
                         }

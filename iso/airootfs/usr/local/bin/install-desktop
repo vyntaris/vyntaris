@@ -104,7 +104,7 @@ INSTALL_FULLNAME="$(printf '%s' "${INSTALL_FULLNAME:-}" | tr ':\n\r' '   ' | sed
 while [ -z "${INSTALL_PASSWORD:-}" ]; do
     read -rsp "   Password: " p1; echo
     read -rsp "   Again: " p2; echo
-    if [ -n "$p1" ] && [ "$p1" = "$p2" ]; then INSTALL_PASSWORD="$p1"; else note "they don't match (or it's empty), again"; fi
+    if [ "${#p1}" -ge 4 ] && [ "$p1" = "$p2" ]; then INSTALL_PASSWORD="$p1"; else note "they don't match (or it's shorter than 4 characters), again"; fi
 done
 # Kept in this script only: nothing it starts (pacman hooks, the AUR build, VS Code) gets it in its environment.
 password="$INSTALL_PASSWORD"
