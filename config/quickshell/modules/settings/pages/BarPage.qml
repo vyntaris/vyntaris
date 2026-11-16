@@ -1,3 +1,4 @@
+import Quickshell.Widgets
 import QtQuick
 import QtQuick.Layouts
 import qs.config
@@ -72,22 +73,27 @@ SettingsPage {
                     readonly property bool current: BarStyles.current(Config.bar) === modelData.id
                     readonly property var look: BarStyles.preview(modelData.id)
                     width: 92; height: 74; radius: 12
-                    clip: true
                     color: current ? Theme.tint(parent, Theme.text, 0.06) : styleArea.containsMouse ? Theme.hoverOn(parent) : Theme.tint(parent, Theme.text, 0.04)
                     border { width: current ? 2 : 1; color: current ? Theme.accent : Theme.rimOn(parent) }
                     Behavior on color { ColorAnim {} }
-                    BarShape {
-                        x: 1; y: 8
-                        width: parent.width - 2
-                        height: 40
-                        barHeight: 9
-                        corner: 0
-                        shoulder: styleTile.look.square ? 0 : 8
-                        radius: styleTile.look.radius
-                        square: styleTile.look.square
-                        notchCorner: styleTile.look.notchCorner
-                        style: styleTile.look.style
-                        drawers: styleTile.look.flat ? [] : [{ center: width / 2, width: 42, hang: 22 }]
+                    // The preview stays inside the edge and its round corners, as a screen in a frame.
+                    ClippingRectangle {
+                        anchors { fill: parent; margins: 2 }
+                        radius: parent.radius - 2
+                        color: "transparent"
+                        BarShape {
+                            y: 4
+                            width: parent.width
+                            height: 40
+                            barHeight: 9
+                            corner: 0
+                            shoulder: styleTile.look.square ? 0 : 8
+                            radius: styleTile.look.radius
+                            square: styleTile.look.square
+                            notchCorner: styleTile.look.notchCorner
+                            style: styleTile.look.style
+                            drawers: styleTile.look.flat ? [] : [{ center: width / 2, width: 42, hang: 22 }]
+                        }
                     }
                     Label {
                         anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space8 }
