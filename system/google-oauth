@@ -1,0 +1,5 @@
+# Vyntaris's Google OAuth client (a "Desktop app" one): used by Backup (Drive) and the Calendar.
+# Google treats a desktop app's secret as public, it's in every copy; sign-in is guarded by PKCE and the
+# browser. Your own client goes in ~/.config/vyntaris/google-oauth, in the same form.
+GOOGLE_CLIENT_ID=572258717153-ght72raljempmmv12cfgqh0vvspsvi6q.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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

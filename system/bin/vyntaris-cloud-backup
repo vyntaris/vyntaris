@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 set -uo pipefail
 remote=vyntaris-google
-client_id="572258717153-ght72raljempmmv12cfgqh0vvspsvi6q.apps.googleusercontent.com"
-client_secret="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"
+# The OAuth client: the user's own if there is one, else Vyntaris's (one file, the Calendar reads it too)
+oauth=/usr/share/vyntaris/google-oauth
+[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/vyntaris/google-oauth" ] && oauth="${XDG_CONFIG_HOME:-$HOME/.config}/vyntaris/google-oauth"
+client_id="$(sed -n 's/^GOOGLE_CLIENT_ID=//p' "$oauth" 2>/dev/null | head -1)"
+client_secret="$(sed -n 's/^GOOGLE_CLIENT_SECRET=//p' "$oauth" 2>/dev/null | head -1)"
 state="${XDG_STATE_HOME:-$HOME/.local/state}/vyntaris"
 settings="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/settings.json"
 run_dir="${XDG_RUNTIME_DIR:-/tmp}/vyntaris-cloud-backup"
