@@ -1,0 +1,70 @@
+{
+  "hooks": {
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/vyntaris/scripts/claude-hook.py\"; [ -f \"$f\" ] || f=/etc/xdg/quickshell/vyntaris/scripts/claude-hook.py; exec python3 -I \"$f\"",
+            "timeout": 600
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/vyntaris/scripts/claude-hook.py\"; [ -f \"$f\" ] || f=/etc/xdg/quickshell/vyntaris/scripts/claude-hook.py; exec python3 -I \"$f\"",
+            "timeout": 600
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/vyntaris/scripts/claude-hook.py\"; [ -f \"$f\" ] || f=/etc/xdg/quickshell/vyntaris/scripts/claude-hook.py; exec python3 -I \"$f\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/vyntaris/scripts/claude-hook.py\"; [ -f \"$f\" ] || f=/etc/xdg/quickshell/vyntaris/scripts/claude-hook.py; exec python3 -I \"$f\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/vyntaris/scripts/claude-hook.py\"; [ -f \"$f\" ] || f=/etc/xdg/quickshell/vyntaris/scripts/claude-hook.py; exec python3 -I \"$f\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=\"${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/vyntaris/scripts/claude-hook.py\"; [ -f \"$f\" ] || f=/etc/xdg/quickshell/vyntaris/scripts/claude-hook.py; exec python3 -I \"$f\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

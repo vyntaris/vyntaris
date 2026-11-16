@@ -113,6 +113,11 @@ Item {
                 .map(e => ({ kind: "emoji", char: e[0], name: e[1] }));
         }
 
+        if (raw.startsWith("@")) {
+            const ask = raw.slice(1).trim();
+            return [{ kind: "claude", query: ask }];
+        }
+
         if (raw.startsWith("?"))
             return ArchWiki.results.slice(0, 8).map(p => ({ kind: "wiki", page: p }));
         if (raw.startsWith("/")) {
@@ -230,6 +235,9 @@ Item {
         } else if (r.kind === "wiki") {
             ArchWiki.open(r.page);
             Panels.launcherOpen = false;
+        } else if (r.kind === "claude") {
+            Panels.claude(r.query);
+            return;
         } else if (r.kind === "wiki-search") {
             Panels.wiki(r.query);
         } else if (r.kind === "store") {
@@ -272,7 +280,7 @@ Item {
         interval: 350
         onTriggered: {
             const q = search.text.trim();
-            if (q.length < 3 || /^[>;:\/]/.test(q) || Search.command(q, SettingsIndex.pages, Tr.t, Tr.lang)
+            if (q.length < 3 || /^[>;:\/@]/.test(q) || Search.command(q, SettingsIndex.pages, Tr.t, Tr.lang)
                 || Search.calculate(q) !== null || Search.convert(q) !== null || Search.moneyQuery(q)) {
                 root.docResults = [];
                 return;
@@ -632,8 +640,8 @@ Item {
                         }
                         Icon {
                             anchors.centerIn: parent
-                            visible: entry.kind === "file" || entry.kind === "store" || entry.kind === "wiki" || entry.kind === "wiki-search"
-                            name: entry.kind === "store" ? "package" : entry.kind === "wiki" || entry.kind === "wiki-search" ? "info" : entry.modelData.dir ? "folder" : entry.modelData.inside ? "search" : "external"
+                            visible: entry.kind === "file" || entry.kind === "store" || entry.kind === "wiki" || entry.kind === "wiki-search" || entry.kind === "claude"
+                            name: entry.kind === "claude" ? "claude" : entry.kind === "store" ? "package" : entry.kind === "wiki" || entry.kind === "wiki-search" ? "info" : entry.modelData.dir ? "folder" : entry.modelData.inside ? "search" : "external"
                             size: 16
                             color: entry.selected ? Theme.textOnAccent : Theme.subtext0
                         }
@@ -669,6 +677,7 @@ Item {
                                 : entry.kind === "command" ? entry.modelData.title
                                 : entry.kind === "wiki" ? entry.modelData.page.title + (entry.modelData.page.section ? "  \u203a  " + entry.modelData.page.section : "")
                                 : entry.kind === "wiki-search" ? Tr.f("Search the Arch Wiki for \u201c{0}\u201d", entry.modelData.query)
+                                : entry.kind === "claude" ? (entry.modelData.query ? Tr.f("Ask Claude \u201c{0}\u201d", entry.modelData.query) : Tr.t("Chat with Claude"))
                                 : entry.kind === "store" ? Tr.f("Search the Store for \u201c{0}\u201d", entry.modelData.query)
                                 : entry.kind === "run" ? entry.modelData.command
                                 : entry.kind === "emoji" ? entry.modelData.name
@@ -691,6 +700,7 @@ Item {
                                 : entry.kind === "stopwatch" ? Tr.t("Start the stopwatch")
                                 : entry.kind === "wiki" ? (ArchWiki.plain(entry.modelData.page.snippet) || Tr.t("Arch Wiki, also without internet"))
                                 : entry.kind === "wiki-search" ? Tr.t("Arch Wiki, also without internet")
+                                : entry.kind === "claude" ? Tr.t("Claude Code, right in the island")
                                 : entry.kind === "store" ? Tr.t("Apps from Arch and the AUR, installed with a click")
                                 : entry.kind === "run" ? Tr.t("Shell command")
                                 : entry.kind === "emoji" ? ""

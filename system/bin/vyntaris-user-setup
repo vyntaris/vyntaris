@@ -118,6 +118,14 @@ for dir in "${folders[@]}"; do
     echo "file://$dir" >> "$pinned"
 done
 
+# Claude Code: Vyntaris's skills
+mkdir -p "$HOME/.claude/skills"
+for skill in "$SHARE"/claude/skills/*/; do
+    link="$HOME/.claude/skills/$(basename "$skill")"
+    [ -e "$link" ] && [ ! -L "$link" ] && continue
+    ln -sfn "${skill%/}" "$link"
+done
+
 mkdir -p "$(dirname "$stamp")"
 echo "$done_stamp" > "$stamp"
 say "Your part of Vyntaris $version is set up"
