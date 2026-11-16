@@ -117,11 +117,31 @@ Singleton {
             }
         }
     }
+    // Who has the camera open: fuser reads every process's files, so it runs only while a camera is open. The UVC
+    // driver counts its users (a file read, nothing started); a camera on another driver is looked at as before.
+    property int uvcUsers: -1
+    property int idleTicks: 0
+    function scan() { if (!devices.running) devices.running = true; }
+    FileView {
+        id: uvc
+        path: "/sys/module/uvcvideo/refcnt"
+        printErrors: false
+        blockLoading: true
+    }
     Timer {
         interval: 3000
         repeat: true
         running: root.enabled && Hardware.camera
         triggeredOnStart: true
-        onTriggered: if (!devices.running) devices.running = true
+        onTriggered: {
+            uvc.reload();
+            const n = parseInt(uvc.text());
+            if (isNaN(n)) { root.scan(); return; }
+            const changed = n !== root.uvcUsers;
+            root.uvcUsers = n;
+            if (n === 0) { root.deviceUsers = []; root.deviceProcs = []; return; }
+            root.idleTicks = changed ? 0 : root.idleTicks + 1;
+            if (changed || root.idleTicks % 5 === 0) root.scan();
+        }
     }
 }
