@@ -10,6 +10,7 @@ Singleton {
     property int fullscreenMode: 0
     property string activeClass: ""
     property string activeContentType: ""
+    property int activePid: 0
 
     function dispatch(expr) {
         Hyprland.dispatch(expr);
@@ -45,7 +46,9 @@ Singleton {
                     root.fullscreenMode = w.fullscreen ?? 0;
                     root.activeClass = w.class || w.initialClass || "";
                     root.activeContentType = w.contentType ?? "";
+                    root.activePid = w.pid ?? 0;
                 } catch (e) {
+                    root.activePid = 0;
                     root.fullscreenMode = 0;
                     root.activeClass = "";
                     root.activeContentType = "";

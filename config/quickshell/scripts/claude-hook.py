@@ -113,10 +113,23 @@ def doing(tool, inp):
     return {"verb": "tool", "what": tool}
 
 
+def ancestors():
+    # The processes this session runs under: the window it's in is one of them (kitty, VS Code).
+    out, pid = [], os.getppid()
+    while pid > 1 and len(out) < 32:
+        out.append(pid)
+        try:
+            with open(f"/proc/{pid}/stat") as f:
+                pid = int(f.read().rsplit(")", 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            break
+    return out
+
+
 def session(h, state):
     sid = safe(h.get("session_id"))
     s = read(f"session-{sid}.json", {}) or {}
-    s.update({"id": sid, "cwd": h.get("cwd", ""), "state": state, "at": time.time()})
+    s.update({"id": sid, "cwd": h.get("cwd", ""), "state": state, "at": time.time(), "pids": ancestors()})
     if h.get("hook_event_name") == "UserPromptSubmit":
         s["title"] = " ".join(h.get("prompt", "").split())[:120]
         s["doing"] = {}

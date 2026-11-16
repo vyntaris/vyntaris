@@ -53,6 +53,11 @@ Singleton {
             "sh", title, plain, chat ? "1" : "", Tr.t("Open")]);
     }
 
+    // You're in the window it runs in (its terminal, VS Code) and the screen isn't locked: no notification.
+    function lookingAt(s) {
+        return !LockState.locked && Compositor.activePid > 0 && (s.pids ?? []).includes(Compositor.activePid);
+    }
+
     function place(s) {
         const p = s.cwd.replace(Quickshell.env("HOME"), "~");
         return p.split("/").pop() || p;
@@ -73,7 +78,7 @@ Singleton {
                 }
                 asks.sort((a, b) => a.id < b.id ? -1 : 1);
                 for (const s of ses)
-                    if (Panels.claudeOpen) continue;
+                    if (Panels.claudeOpen || root.lookingAt(s)) continue;
                     else if (before[s.id] === "working" && s.state === "done")
                         root.notify(Tr.t("Claude is done"), s.title || root.place(s), false);
                     else if (before[s.id] !== "waiting" && s.state === "waiting")
