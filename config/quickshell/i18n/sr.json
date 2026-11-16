@@ -1136,5 +1136,12 @@
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Izaberi glavnu lozinku za svoje lozinke: traži se kad ih koristiš. Ako je zaboraviš, ne mogu da se pročitaju.",
  "The master password couldn't be set.": "Glavna lozinka nije mogla da se postavi.",
  "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris nije mogao da se pokrene posle njega, pa se vratio na stanje od {0}. Tvoji fajlovi nisu dirani. Iste verzije se neće ponovo instalirati, novije hoće.",
- "For everything twice the size, set the scale to 200% under Displays.": "Da sve bude duplo veće, podesi razmeru na 200% u delu Ekrani."
+ "For everything twice the size, set the scale to 200% under Displays.": "Da sve bude duplo veće, podesi razmeru na 200% u delu Ekrani.",
+ "WhatsApp wants to use %1.": "WhatsApp želi da koristi %1.",
+ "the camera": "kameru",
+ "the camera and the microphone": "kameru i mikrofon",
+ "the clipboard": "clipboard",
+ "the microphone": "mikrofon",
+ "where you are": "tvoju lokaciju",
+ "your screen": "tvoj ekran"
 }

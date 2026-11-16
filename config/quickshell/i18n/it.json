@@ -1136,5 +1136,12 @@
  "Pick a master password for your passwords: it's asked when you use them. If you forget it, they can't be read.": "Scegli una password principale per le tue password: viene chiesta quando le usi. Se la dimentichi, non potranno essere lette.",
  "The master password couldn't be set.": "Non è stato possibile impostare la password principale.",
  "Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.": "Vyntaris non è riuscito ad avviarsi dopo, quindi è tornato a com'era il {0}. I tuoi file non sono stati toccati. Le stesse versioni non verranno reinstallate, quelle più nuove sì.",
- "For everything twice the size, set the scale to 200% under Displays.": "Per vedere tutto al doppio, imposta la scala a 200% in Schermi."
+ "For everything twice the size, set the scale to 200% under Displays.": "Per vedere tutto al doppio, imposta la scala a 200% in Schermi.",
+ "WhatsApp wants to use %1.": "WhatsApp vuole usare %1.",
+ "the camera": "la fotocamera",
+ "the camera and the microphone": "fotocamera e microfono",
+ "the clipboard": "gli appunti",
+ "the microphone": "il microfono",
+ "where you are": "la tua posizione",
+ "your screen": "il tuo schermo"
 }
