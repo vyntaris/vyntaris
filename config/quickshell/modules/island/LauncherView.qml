@@ -278,7 +278,7 @@ Item {
                 return;
             }
             docSearch.running = false;
-            docSearch.command = [Quickshell.shellPath("scripts/find-files.sh"), q, "both", "4"];
+            docSearch.command = [Quickshell.shellPath("scripts/find-files.sh"), q, "indexed", "4"];
             docSearch.running = true;
         }
     }

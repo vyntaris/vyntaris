@@ -1,8 +1,15 @@
 #!/bin/sh
+# find-files.sh QUERY [names|contents|both|indexed] [LIMIT]
+#   indexed: only the document index (what the launcher looks at while typing: nothing goes through the disk)
+#   the others walk $HOME, each walk cut off after a few seconds so none outlives the search that asked for it
 q="$1" what="${2:-both}" limit="${3:-20}"
 [ -n "$q" ] || exit 0
+if [ "$what" = indexed ]; then
+    [ "${#q}" -ge 3 ] && /usr/lib/vyntaris/doc-index search "$q" "$limit" 2>/dev/null | cut -f1 | sed 's/^/c /'
+    exit 0
+fi
 if [ "$what" != contents ]; then
-    find "$HOME" -xdev -maxdepth 6 \( -name ".*" -o -name node_modules -o -name target \) -prune \
+    timeout 4 find "$HOME" -xdev -maxdepth 6 \( -name ".*" -o -name node_modules -o -name target \) -prune \
         -o -iname "*$q*" -printf "%y %p\n" 2>/dev/null | sed 's/^\([^d]\) /f /' | head -n "$limit"
 fi
 if [ "$what" != names ] && [ "${#q}" -ge 3 ]; then
