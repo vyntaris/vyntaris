@@ -112,8 +112,10 @@ fill)
     user=$(login "$2" <<<"$entry")
     # The island goes first, so the field has the focus again.
     sleep 0.35
-    if U="$user" P="$(password <<<"$entry")" python3 -c \
-        'import json, os; print(json.dumps({"user": os.environ["U"], "password": os.environ["P"]}))' \
+    # The sites in the entry's name ("github.com/me", "work/github.com"): the page has to be one of them.
+    if U="$user" P="$(password <<<"$entry")" E="$2" python3 -c \
+        'import json, os, re; s = [p for p in os.environ["E"].split("/") if re.fullmatch(r"[a-z0-9-]+(\.[a-z0-9-]+)+", p.lower())]
+print(json.dumps({"user": os.environ["U"], "password": os.environ["P"], "sites": [p.lower() for p in s]}))' \
         | "$(dirname "$0")/pass-host.py" fill; then
         exit 0
     fi
@@ -134,13 +136,13 @@ fill-fields)
     entry=$(decrypt "$2") || exit $?
     sleep 0.35
     python3 -c '
-import json, sys
+import json, re, sys
 d = {}
 for line in sys.stdin.read().splitlines()[1:]:
     k, sep, v = line.partition(":")
     if sep and v.strip():
         d[k.strip().lower()] = v.strip()
-print(json.dumps({"fields": d}))' <<<"$entry" | "$(dirname "$0")/pass-host.py" fill ;;
+print(json.dumps({"fields": d, "sites": [p.lower() for p in sys.argv[1].split("/") if re.fullmatch(r"[a-z0-9-]+(\.[a-z0-9-]+)+", p.lower())]}))' "$2" <<<"$entry" | "$(dirname "$0")/pass-host.py" fill ;;
 copy)
     entry=$(decrypt "$2") || exit $?
     if [ "$3" = login ]; then

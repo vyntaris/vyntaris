@@ -58,6 +58,8 @@ def host():
                 fill = {"type": "fill", "id": n, "user": req.get("user", ""), "password": req.get("password", "")}
                 if isinstance(req.get("fields"), dict):
                     fill["fields"] = {str(k): str(v) for k, v in req["fields"].items()}
+                if isinstance(req.get("sites"), list):
+                    fill["sites"] = [str(s) for s in req["sites"]]
                 send(fill)
                 done.wait(1.5)
                 ok = waiting.pop(n, [None, False])[1]

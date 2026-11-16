@@ -325,8 +325,15 @@
         return filled > 0;
     }
 
+    // An entry named after a site ("github.com/me") goes only into that site or one under it.
+    function siteFits(sites) {
+        if (!Array.isArray(sites) || sites.length === 0) return true;
+        const host = location.hostname.toLowerCase().replace(/^www\./, "");
+        return sites.some(s => { s = s.replace(/^www\./, ""); return host === s || host.endsWith("." + s); });
+    }
+
     browser.runtime.onMessage.addListener(msg => {
-        if (msg.type !== "fill" || !document.hasFocus()) return;
+        if (msg.type !== "fill" || !document.hasFocus() || !siteFits(msg.sites)) return;
         if (msg.fields) return fillFields(msg.fields) ? Promise.resolve(true) : undefined;
         const active = document.activeElement;
         // The focused field's own form first, not a sign-up form elsewhere on the page.

@@ -8,7 +8,7 @@ function connect() {
         // The page with the focus, in whichever window has it.
         const tabs = await browser.tabs.query({ active: true });
         const answers = await Promise.all(tabs.map(t =>
-            browser.tabs.sendMessage(t.id, { type: "fill", user: msg.user, password: msg.password, fields: msg.fields }).catch(() => false)));
+            browser.tabs.sendMessage(t.id, { type: "fill", user: msg.user, password: msg.password, fields: msg.fields, sites: msg.sites }).catch(() => false)));
         port.postMessage({ type: "filled", id: msg.id, ok: answers.some(Boolean) });
     });
     port.onDisconnect.addListener(() => { port = null; setTimeout(connect, 5000); });
