@@ -67,7 +67,7 @@ Singleton {
         Quickshell.execDetached(["sh", "-c", 'mkdir -p "$(dirname "$1")" && printf %s "$2" > "$1"', "sh", seenFile, at]);
         Quickshell.execDetached(["notify-send", "-a", Tr.t("Safe updates"), "-i", "edit-undo", "-u", "critical",
             Tr.t("The last update was undone"),
-            Tr.t("Vyntaris couldn't start after it, so it went back to how it was on ") + when(rollback.snapshot.split("/")[2] ?? "")
-            + ". Your files weren't touched. The update will be offered again once newer versions are out."]);
+            Tr.f("Vyntaris couldn't start after it, so it went back to how it was on {0}. Your files weren't touched. The same versions won't be installed again, newer ones will.",
+                 when(rollback.snapshot.split("/")[2] ?? ""))]);
     }
 }

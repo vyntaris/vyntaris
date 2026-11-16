@@ -16,11 +16,13 @@ snapshots, the Vyntaris package repository. Runs as root; running it again is ha
 USAGE
 }
 
-SHARE=/usr/share/vyntaris
+# VYNTARIS_SETUP_ROOT: the system it works on, VYNTARIS_SETUP_LIB=1: only its functions (tools/test-setup.sh)
+R="${VYNTARIS_SETUP_ROOT:-}"
+SHARE="$R/usr/share/vyntaris"
 LIB=/usr/lib/vyntaris
 REPO_URL="https://pkg.vyntarisos.com"
 REPO_OLD="https://vyntaris.github.io/vyntaris-packages"
-SIGNING_KEY="$(cut -d: -f1 /usr/share/pacman/keyrings/vyntaris-trusted)"
+SIGNING_KEY="$(cut -d: -f1 "$R/usr/share/pacman/keyrings/vyntaris-trusted" 2>/dev/null || true)"
 GREETER=/etc/greetd/greeter
 
 user=""; autologin=0; boot=1; aur=1; mode=full
@@ -49,10 +51,20 @@ in_chroot=0
 systemd-detect-virt -q --chroot 2>/dev/null && in_chroot=1
 step() { printf '\n\033[1;35m::\033[0m \033[1m%s\033[0m\n' "$*"; }
 note() { printf '   %s\n' "$*"; }
+# Like a .pacnew: the firewall follows the package only while nobody changed it; a changed one stays, and the new
+# one is put next to it.
 firewall() {
-    cmp -s "$SHARE/nftables.conf" /etc/nftables.conf && return 0
-    install -m644 "$SHARE/nftables.conf" /etc/nftables.conf
-    [ "$in_chroot" = 1 ] || nft -f /etc/nftables.conf 2>/dev/null || true
+    local shipped="$R/var/lib/vyntaris/nftables.conf.shipped" conf="$R/etc/nftables.conf"
+    cmp -s "$SHARE/nftables.conf" "$conf" && { install -Dm644 "$SHARE/nftables.conf" "$shipped"; return 0; }
+    if [ -e "$conf" ] && [ -e "$shipped" ] && ! cmp -s "$shipped" "$conf"; then
+        install -m644 "$SHARE/nftables.conf" "$conf.vyntaris-new"
+        note "/etc/nftables.conf has your changes: Vyntaris's new one is /etc/nftables.conf.vyntaris-new"
+        return 0
+    fi
+    install -Dm644 "$SHARE/nftables.conf" "$conf"
+    install -Dm644 "$SHARE/nftables.conf" "$shipped"
+    rm -f "$conf.vyntaris-new"
+    [ "$in_chroot" = 1 ] || nft -f "$conf" 2>/dev/null || true
 }
 
 memory_reserve() {
@@ -94,12 +106,17 @@ upkeep_timers() {
     return 0
 }
 
+# A unit is turned on once: after that it's the user's, and one they turned off stays off through updates.
+enabled_list="$R/var/lib/vyntaris/enabled-units"
 enable() {
     local u
+    install -d "$R/var/lib/vyntaris"
     for u in "$@"; do
         systemctl cat "$u" >/dev/null 2>&1 || [ -e "/usr/lib/systemd/system/$u" ] || continue
+        if [ "$mode" = refresh ] && grep -qxF "$u" "$enabled_list" 2>/dev/null; then continue; fi
         if [ "$in_chroot" = 1 ]; then systemctl enable "$u" 2>/dev/null || true
         else systemctl enable --now "$u" 2>/dev/null || true; fi
+        grep -qxF "$u" "$enabled_list" 2>/dev/null || echo "$u" >> "$enabled_list"
     done
 }
 repo_servers() {
@@ -312,9 +329,20 @@ signed_only() {
     sed -i '/^\[vyntaris\]/,/^\[/ s/^SigLevel *=.*/SigLevel = Required DatabaseOptional/' /etc/pacman.conf
 }
 
+# root's GTK theme was the user's folders, linked; now it's a copy of the safe part (greeter-sync)
+root_theme_links() {
+    local owner
+    [ -L "$R/root/.config/gtk-3.0" ] || return 0
+    owner="$(stat -c %U "$(readlink -f "$R/root/.config/gtk-3.0")" 2>/dev/null || true)"
+    if [ -n "$owner" ] && [ "$owner" != root ]; then "$LIB/greeter-sync.sh" "$owner" || true; fi
+    rm -f "$R/root/.config/gtk-3.0" "$R/root/.config/gtk-4.0" "$R/root/.config/dconf" 2>/dev/null || true
+}
+
 keyring_follows_password() {
     grep -qs pam_gnome_keyring /etc/pam.d/passwd || printf 'password\toptional\tpam_gnome_keyring.so\n' >> /etc/pam.d/passwd
 }
+
+[ "${VYNTARIS_SETUP_LIB:-}" = 1 ] && return 0
 
 if [ "$mode" = refresh ]; then
     install -m644 "$SHARE/os-release" /etc/os-release
@@ -331,6 +359,7 @@ if [ "$mode" = refresh ]; then
         fi
         greetd_config
     fi
+    root_theme_links
     [ -f /etc/kernel/cmdline ] && boot_menu
     shutdown_quick
     "$LIB/snapshots" >/dev/null 2>&1 || true
@@ -422,13 +451,7 @@ if [ -n "$user" ]; then
             "$SHARE/timeshift.json" > /etc/timeshift/timeshift.json
     fi
     step "Apps run as administrator (Timeshift) in $user's theme"
-    install -d -m700 /root/.config
-    for v in gtk-3.0 gtk-4.0 dconf; do
-        install -d -o "$user" -g "$user" "$home/.config/$v"
-        dst="/root/.config/$v"
-        [ -e "$dst" ] && [ ! -L "$dst" ] && mv "$dst" "$dst.bak"
-        ln -sfn "$home/.config/$v" "$dst"
-    done
+    "$LIB/greeter-sync.sh" "$user" || true
 fi
 
 if [ "$autologin" = 1 ] && [ -n "$user" ]; then autologin_tty; else login_screen; fi

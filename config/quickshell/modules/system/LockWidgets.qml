@@ -32,7 +32,7 @@ RowLayout {
             Icon { name: Notifications.dnd ? "bell-off" : "bell"; size: 16; color: Theme.accentInk }
             Label {
                 font.weight: Font.DemiBold
-                text: Notifications.unread + " " + (Notifications.unread === 1 ? "notification" : "notifications")
+                text: Notifications.unread === 1 ? Tr.t("1 notification") : Tr.f("{0} notifications", Notifications.unread)
             }
         }
     }

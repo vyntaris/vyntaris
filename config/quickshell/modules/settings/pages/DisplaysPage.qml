@@ -25,7 +25,7 @@ SettingsPage {
     SettingsRow {
         title: Tr.t("Default scale")
         Choice {
-            options: [{ value: "auto", label: Tr.t("Auto") }, { value: 1, label: "100%" }, { value: 1.5, label: "150%" }]
+            options: [{ value: "auto", label: Tr.t("Auto") }, { value: 1, label: "100%" }, { value: 1.5, label: "150%" }, { value: 2, label: "200%" }]
             current: Config.display.scale
             onPicked: v => { Config.display.scale = v; Config.saveSoon(); }
         }
@@ -129,7 +129,7 @@ SettingsPage {
             SettingsRow {
                 title: Tr.t("Scale")
                 Choice {
-                    options: [{ value: "auto", label: Tr.t("Auto") }, { value: 1, label: "100%" }, { value: 1.5, label: "150%" }]
+                    options: [{ value: "auto", label: Tr.t("Auto") }, { value: 1, label: "100%" }, { value: 1.5, label: "150%" }, { value: 2, label: "200%" }]
                     current: page.monitorValue(mon.modelData.name, "scale", Config.display.scale)
                     onPicked: v => page.setMonitor(mon.modelData.name, "scale", v)
                 }

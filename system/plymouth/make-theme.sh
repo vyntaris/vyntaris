@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-out="$1"; flavor="${2:-mocha}"; accent="${3:-blue}"
+out="$1"; flavor="${2:-mocha}"; accent="${3:-mauve}"
 mkdir -p "$out"
 
 L=176

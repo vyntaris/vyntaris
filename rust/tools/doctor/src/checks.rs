@@ -968,15 +968,19 @@ pub fn dead_links(_: &dyn Sys) -> Vec<Value> {
     )]
 }
 
-pub const CACHE_KEEP: &[&str] = &[
-    "vyntaris",
-    "quickshell",
-    "thumbnails",
-    "mesa_shader_cache",
-    "nvidia",
-    "fontconfig",
-    "mozilla",
+// Only what's known to be a cache an app makes again by itself. Everything else in ~/.cache stays: apps keep things
+// there that aren't caches at all (clipboard history, files received over Bluetooth, downloaded models, offline mail).
+pub const CACHE_CLEAR: &[&str] = &[
+    "pip", "uv", "yarn", "pnpm", "go-build", "typescript", "node-gyp", "deno", "bun", "composer",
+    "yay", "paru", "ImageMagick", "gstreamer-1.0", "fastfetch", "kitty", "mpv", "lollypop", "QtProject",
+    "gnome-calculator", "radv_builtin_shaders", "chromium", "BraveSoftware", "vivaldi", "spotify", "electron",
+    "JetBrains", "Code", "vscode-cpptools",
 ];
+const CACHE_CLEAR_PREFIX: &[&str] = &["google-chrome", "event-sound-cache."];
+
+pub fn clearable(name: &str) -> bool {
+    CACHE_CLEAR.contains(&name) || CACHE_CLEAR_PREFIX.iter().any(|p| name.starts_with(p))
+}
 
 pub fn app_caches(_: &dyn Sys) -> Vec<Value> {
     let base = home().join(".cache");
@@ -985,7 +989,7 @@ pub fn app_caches(_: &dyn Sys) -> Vec<Value> {
     };
     let mut n = 0.0;
     for e in entries.flatten() {
-        if CACHE_KEEP.contains(&e.file_name().to_string_lossy().as_ref()) {
+        if !clearable(&e.file_name().to_string_lossy()) {
             continue;
         }
         let Ok(meta) = fs::symlink_metadata(e.path()) else {
@@ -1273,4 +1277,19 @@ pub fn scrub(sys: &dyn Sys) -> Vec<Value> {
         admin(&tr("Check it every month")),
         vec![],
     )]
+}
+
+#[cfg(test)]
+mod cache_tests {
+    use super::clearable;
+
+    #[test]
+    fn only_known_caches_are_cleared() {
+        for keep in ["cliphist", "obexd", "huggingface", "torch", "evolution", "vyntaris", "mozilla", "thumbnails"] {
+            assert!(!clearable(keep), "{keep} must stay");
+        }
+        for gone in ["pip", "yay", "google-chrome-for-testing-headless", "event-sound-cache.tdb.x86_64"] {
+            assert!(clearable(gone), "{gone} is a cache");
+        }
+    }
 }

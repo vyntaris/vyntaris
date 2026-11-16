@@ -258,7 +258,10 @@ impl Desktop {
             return;
         }
         loop {
-            let child = Command::new("wl-paste").args(["--type", "text", "--watch", "sh", "-c", "base64 -w0; echo"])
+            // A password copied as sensitive (wl-copy --sensitive) stays on this computer: an empty line is skipped.
+            let child = Command::new("wl-paste")
+                .args(["--type", "text", "--watch", "sh", "-c",
+                       r#"if [ "$CLIPBOARD_STATE" = sensitive ]; then cat >/dev/null; echo; else base64 -w0; echo; fi"#])
                 .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::null()).kill_on_drop(true).spawn();
             if let Ok(mut child) = child {
                 if let Some(out) = child.stdout.take() {

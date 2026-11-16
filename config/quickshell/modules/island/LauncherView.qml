@@ -209,7 +209,7 @@ Item {
         const r = results[i];
         if (!r) return;
         if (r.kind === "app") {
-            if (r.app.runInTerminal) Config.runInTerminal(r.app.command.join(" "));
+            if (r.app.runInTerminal) Config.runInTerminal(Config.quote(r.app.command));
             else if (!Games.launch(r.app)) Config.openEntry(r.app);
             countLaunch(r.app.id);
         } else if (r.kind === "action") {
@@ -286,7 +286,7 @@ Item {
                 return;
             }
             docSearch.running = false;
-            docSearch.command = [Quickshell.shellPath("scripts/find-files.sh"), q, "both", "4"];
+            docSearch.command = [Quickshell.shellPath("scripts/find-files.sh"), q, "indexed", "4"];
             docSearch.running = true;
         }
     }

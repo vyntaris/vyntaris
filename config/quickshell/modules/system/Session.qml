@@ -8,6 +8,10 @@ Scope {
     id: root
 
     readonly property bool nightLight: NightLight.active
+    // up from the start, so what they were doing comes back right away
+    readonly property bool keepAwake: KeepAwake.active
+    readonly property bool gameMode: GameMode.active
+    readonly property bool timer: Chrono.timerActive
     readonly property var displays: Displays.waiting
     readonly property var rollback: UpdateGuard.rollback
     readonly property var drivers: Drivers.missing
@@ -33,7 +37,7 @@ Scope {
             if (a.command) { Config.launch(["sh", "-c", a.command]); continue; }
             const e = DesktopEntries.byId(a.id);
             if (!e) continue;
-            if (e.runInTerminal) Config.runInTerminal(e.command.join(" "));
+            if (e.runInTerminal) Config.runInTerminal(Config.quote(e.command));
             else if (!Games.launch(e)) Config.openEntry(e);
         }
     }
@@ -65,6 +69,8 @@ Scope {
             + "general {\n"
             + "    lock_cmd = qs -c vyntaris ipc call lock lock\n"
             + "    before_sleep_cmd = loginctl lock-session\n"
+            // sleep waits until the lock screen is really up (ext-session-lock), so nothing shows for a moment on waking
+            + "    inhibit_sleep = 3\n"
             // Only a screen that is off gets turned on: on one that's on it's a modeset the wake-up has to wait for.
             + `    after_sleep_cmd = hyprctl monitors | grep -q 'dpmsStatus: 0' && ${dpms("on")}; qs -c vyntaris ipc call lock woke\n`
             + "}\n"

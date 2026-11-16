@@ -8,9 +8,20 @@ _keyring() {
 
 post_install() {
     _keyring
-    systemctl --global enable $_units >/dev/null 2>&1
+    _global_once
     echo ":: Set the system up once (login screen, boot splash, services, drivers):"
     echo "     sudo vyntaris-setup --user <your user name>"
+}
+
+# Units turned on for everyone once; one an admin turned off later stays off.
+_global_once() {
+    local list=/var/lib/vyntaris/global-units u
+    install -d /var/lib/vyntaris
+    for u in $_units; do
+        grep -qxF "$u" "$list" 2>/dev/null && continue
+        systemctl --global enable "$u" >/dev/null 2>&1
+        echo "$u" >> "$list"
+    done
 }
 
 post_upgrade() {
@@ -19,7 +30,7 @@ post_upgrade() {
     if grep -qxE 'command = "(start-hyprland -- --config /etc/greetd/hyprland.lua|sh -c '"'"'exec start-hyprland -- --config /etc/greetd/hyprland.lua >/dev/null 2>&1'"'"')"' /etc/greetd/config.toml 2>/dev/null; then
         install -m644 /usr/share/vyntaris/greetd/config.toml /etc/greetd/config.toml
     fi
-    systemctl --global enable $_units >/dev/null 2>&1
+    _global_once
     rm -f /etc/systemd/user/graphical-session.target.wants/vyntaris-hyprbars.service
     rm -f /etc/systemd/user/graphical-session.target.wants/vyntaris-obex-agent.service
     rm -f /etc/udev/rules.d/80-vyntaris-nvidia-pm.rules

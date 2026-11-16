@@ -77,7 +77,7 @@ Item {
 
     function start(app) {
         if (!app) return;
-        if (app.runInTerminal) Config.runInTerminal(app.command.join(" "));
+        if (app.runInTerminal) Config.runInTerminal(Config.quote(app.command));
         else if (!Games.launch(app)) Config.openEntry(app);
         Panels.appsOpen = false;
     }

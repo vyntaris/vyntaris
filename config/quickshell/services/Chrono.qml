@@ -56,6 +56,32 @@ Singleton {
         }
     }
 
+    property bool restored: false
+    function save() {
+        if (restored) SessionState.set("chrono", { timerTotal, timerEnd, timerPausedLeft, swStart, swAccum, swRunning });
+    }
+    onTimerTotalChanged: save()
+    onTimerEndChanged: save()
+    onTimerPausedLeftChanged: save()
+    onSwStartChanged: save()
+    onSwAccumChanged: save()
+    onSwRunningChanged: save()
+    Component.onCompleted: {
+        const s = SessionState.get("chrono");
+        if (s) {
+            // a timer that ran out while the shell was down is just gone
+            if (s.timerTotal > 0 && (s.timerPausedLeft >= 0 || s.timerEnd > Date.now())) {
+                timerEnd = s.timerEnd;
+                timerPausedLeft = s.timerPausedLeft;
+                timerTotal = s.timerTotal;
+            }
+            swStart = s.swStart ?? 0;
+            swAccum = s.swAccum ?? 0;
+            swRunning = !!s.swRunning;
+        }
+        restored = true;
+    }
+
     property real swStart: 0
     property real swAccum: 0
     property bool swRunning: false

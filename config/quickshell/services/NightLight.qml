@@ -27,9 +27,29 @@ Singleton {
 
     onScheduledChanged: override = false
 
+    // Restored once settings are in, and only while the schedule is where it was.
+    property bool restored: false
+    function save() {
+        if (restored) SessionState.set("nightLight", { override, overrideValue, scheduled });
+    }
+    onOverrideChanged: save()
+    onOverrideValueChanged: save()
+
     onActiveChanged: apply()
     Component.onCompleted: startDelay.start()
-    Timer { id: startDelay; interval: 1500; onTriggered: root.apply() }
+    Timer {
+        id: startDelay
+        interval: 1500
+        onTriggered: {
+            const s = SessionState.get("nightLight");
+            if (s?.override && s.scheduled === root.scheduled) {
+                root.overrideValue = !!s.overrideValue;
+                root.override = true;
+            }
+            root.restored = true;
+            root.apply();
+        }
+    }
 
     function apply() {
         const cmd = active

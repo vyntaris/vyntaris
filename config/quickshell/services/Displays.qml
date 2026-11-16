@@ -65,7 +65,7 @@ Singleton {
     }
     Process {
         id: ask
-        command: ["notify-send", "-a", "Displays", "-i", "video-display", "-A", "logout=Log out",
+        command: ["notify-send", "-a", Tr.t("Displays"), "-i", "video-display", "-A", "logout=" + Tr.t("Log out"),
             Tr.t("Log out to use ") + root.waiting.join(", "),
             Tr.t("That port is on the NVIDIA card, off to save battery until the next login.")]
         stdout: StdioCollector {

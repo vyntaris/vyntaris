@@ -1515,6 +1515,7 @@ dependencies = [
 name = "vyntaris-portal"
 version = "0.2.0"
 dependencies = [
+ "nix",
  "tokio",
  "vyntaris-core",
  "zbus",

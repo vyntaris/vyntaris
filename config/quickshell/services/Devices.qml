@@ -62,6 +62,7 @@ Singleton {
             const label = p.ID_FS_LABEL || p.ID_MODEL || p.DEVNAME;
             if (p.ACTION === "add") arrive(p.DEVNAME, label.replace(/_/g, " "), p.ID_PATH ? p.DEVNAME.replace(/\d+$/, "") : p.DEVNAME);
             else if (p.ACTION === "remove") {
+                waiting = waiting.filter(d => d.dev !== p.DEVNAME);
                 Quickshell.execDetached(["notify-send", "-a", Tr.t("Devices"), "-i", "drive-removable-media", Tr.t("Removed"), label.replace(/_/g, " ")]);
                 later.restart();
             }
@@ -73,8 +74,25 @@ Singleton {
         }
     }
 
+    // A drive put in while the screen is locked waits for the unlock: nothing is mounted for whoever is at the computer.
+    property var waiting: []
+    Connections {
+        target: LockState
+        function onLockedChanged() {
+            if (LockState.locked || root.waiting.length === 0) return;
+            const all = root.waiting;
+            root.waiting = [];
+            for (const d of all) root.arrive(d.dev, d.label, d.parent);
+        }
+    }
+
     function arrive(dev, label, parent) {
+        if (LockState.locked) {
+            waiting = waiting.filter(d => d.dev !== dev).concat([{ dev, label, parent }]);
+            return;
+        }
         Quickshell.execDetached(["sh", "-c",
+            '[ -b "$1" ] || exit 0; ' +
             'mp=$(udisksctl mount -b "$1" --no-user-interaction 2>/dev/null | sed -n "s/.* at //p" | sed "s/\\.$//"); ' +
             '[ -n "$mp" ] || mp=$(findmnt -no TARGET "$1"); ' +
             'a=$(notify-send -a Devices -i drive-removable-media -A "open=$4" -A "eject=$5" "$6" "$2"); ' +

@@ -15,6 +15,8 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QMenu>
+#include <QMessageBox>
+#include <QSaveFile>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QShortcut>
@@ -136,12 +138,9 @@ static void setAtLogin(bool on) {
     if (on) apps.append(QJsonObject{{"name", NAME}, {"command", AT_LOGIN}});
     startup["apps"] = apps;
     s["startup"] = startup;
-    QFile f(settingsPath() + ".tmp");
-    if (f.open(QIODevice::WriteOnly) && f.write(QJsonDocument(s).toJson()) > 0) {
-        f.close();
-        QFile::remove(settingsPath());
-        f.rename(settingsPath());
-    }
+    // Written beside it and put in its place in one step: the shell never finds it missing or half written.
+    QSaveFile f(settingsPath());
+    if (f.open(QIODevice::WriteOnly) && f.write(QJsonDocument(s).toJson()) > 0) f.commit();
 }
 
 static QString freeName(const QString &dir, QString name) {
@@ -199,7 +198,27 @@ public:
             auto m = QRegularExpression("^\\((\\d+)\\)").match(t);
             setWindowTitle(m.hasMatch() ? QString("%1 (%2)").arg(NAME, m.captured(1)) : NAME);
         });
-        connect(page(), &QWebEnginePage::permissionRequested, this, [](QWebEnginePermission p) { p.grant(); });
+        // Notifications are what it's for; the camera, the microphone, the screen or where you are are asked about
+        // (once: the answer is kept), and only for WhatsApp itself.
+        connect(page(), &QWebEnginePage::permissionRequested, this, [this](QWebEnginePermission p) {
+            using K = QWebEnginePermission::PermissionType;
+            if (p.origin().host() != HOME.host()) { p.deny(); return; }
+            if (p.permissionType() == K::Notifications) { p.grant(); return; }
+            QString what;
+            switch (p.permissionType()) {
+            case K::MediaAudioCapture: what = T("the microphone"); break;
+            case K::MediaVideoCapture: what = T("the camera"); break;
+            case K::MediaAudioVideoCapture: what = T("the camera and the microphone"); break;
+            case K::DesktopVideoCapture:
+            case K::DesktopAudioVideoCapture: what = T("your screen"); break;
+            case K::Geolocation: what = T("where you are"); break;
+            case K::ClipboardReadWrite: what = T("the clipboard"); break;
+            default: p.deny(); return;
+            }
+            auto answer = QMessageBox::question(this, NAME, T("WhatsApp wants to use %1.").arg(what),
+                                                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (answer == QMessageBox::Yes) p.grant(); else p.deny();
+        });
         new QShortcut(QKeySequence("Ctrl+R"), this, [this] { reload(); });
         new QShortcut(QKeySequence("F5"), this, [this] { reload(); });
         new QShortcut(QKeySequence("Ctrl+W"), this, [this] { hide(); });

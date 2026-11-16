@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
-T() { /usr/lib/vyntaris/json tr "$@" 2>/dev/null || printf '%s' "$1"; }
+T() { "${VYNTARIS_JSON:-/usr/lib/vyntaris/json}" tr "$@" 2>/dev/null || printf '%s' "$1"; }
+# HIBERNATE_ROOT: where the files are, for tools/test-hibernate.sh; fstab and the kernel's line name the real path
+R="${HIBERNATE_ROOT:-}"
+fstab="$R/etc/fstab" cmdline_file="$R/etc/kernel/cmdline"
 swap=/swapfile
 [ "$(findmnt -no FSTYPE /)" = btrfs ] && swap=/swap/swapfile
 
 if [ "${1:-}" = off ]; then
-    sudo swapoff "$swap" 2>/dev/null || true
-    sudo sed -i "\\|^$swap |d" /etc/fstab
-    sudo sed -i -E 's/ ?resume=[^ ]+//; s/ ?resume_offset=[^ ]+//' /etc/kernel/cmdline
-    sudo rm -f "$swap"
+    sudo swapoff "$R$swap" 2>/dev/null || true
+    sudo sed -i "\\|^$swap |d" "$fstab"
+    sudo sed -i -E 's/ ?resume=[^ ]+//; s/ ?resume_offset=[^ ]+//' "$cmdline_file"
+    sudo rm -f "$R$swap"
     sudo mkinitcpio -P
     T "Hibernation is off."
     exit 0
 fi
 
-ram_kb=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+ram_kb=$(awk '/MemTotal/ {print $2}' "$R/proc/meminfo")
 size_mb=$(( ram_kb / 1024 / 2 )); [ "$size_mb" -gt 8192 ] && size_mb=8192
 free_mb=$(df -m --output=avail / | tail -n1 | tr -d ' ')
 if [ "$free_mb" -lt $(( size_mb + 4096 )) ]; then
@@ -22,27 +25,27 @@ if [ "$free_mb" -lt $(( size_mb + 4096 )) ]; then
     exit 1
 fi
 
-if [ ! -f "$swap" ]; then
+if [ ! -f "$R$swap" ]; then
     T "Creating a {0} MB swap file at {1}…" "$size_mb" "$swap"
     if [ "$(findmnt -no FSTYPE /)" = btrfs ]; then
-        sudo btrfs subvolume create /swap 2>/dev/null || true
-        sudo btrfs filesystem mkswapfile --size "${size_mb}m" "$swap"
+        sudo btrfs subvolume create "$R/swap" 2>/dev/null || true
+        sudo btrfs filesystem mkswapfile --size "${size_mb}m" "$R$swap"
     else
-        sudo dd if=/dev/zero of="$swap" bs=1M count="$size_mb" status=progress
-        sudo chmod 600 "$swap"
-        sudo mkswap "$swap" >/dev/null
+        sudo dd if=/dev/zero of="$R$swap" bs=1M count="$size_mb" status=progress
+        sudo chmod 600 "$R$swap"
+        sudo mkswap "$R$swap" >/dev/null
     fi
 fi
-grep -q "^$swap " /etc/fstab || echo "$swap none swap defaults,pri=1 0 0" | sudo tee -a /etc/fstab >/dev/null
-sudo swapon -p 1 "$swap" 2>/dev/null || true
+grep -q "^$swap " "$fstab" || echo "$swap none swap defaults,pri=1 0 0" | sudo tee -a "$fstab" >/dev/null
+sudo swapon -p 1 "$R$swap" 2>/dev/null || true
 
-uuid=$(findmnt -no UUID -T "$swap")
+uuid=$(findmnt -no UUID -T "$R$swap")
 if [ "$(findmnt -no FSTYPE /)" = btrfs ]; then
-    offset=$(sudo btrfs inspect-internal map-swapfile -r "$swap")
+    offset=$(sudo btrfs inspect-internal map-swapfile -r "$R$swap")
 else
-    offset=$(sudo filefrag -v "$swap" | awk '$1 == "0:" {gsub(/\./, "", $4); print $4; exit}')
+    offset=$(sudo filefrag -v "$R$swap" | awk '$1 == "0:" {gsub(/\./, "", $4); print $4; exit}')
 fi
-cmdline="$(tr -s ' \n' ' ' < /etc/kernel/cmdline | sed -E 's/ ?resume=[^ ]+//; s/ ?resume_offset=[^ ]+//; s/ *$//')"
-echo "$cmdline resume=UUID=$uuid resume_offset=$offset" | sudo tee /etc/kernel/cmdline >/dev/null
+cmdline="$(tr -s ' \n' ' ' < "$cmdline_file" | sed -E 's/ ?resume=[^ ]+//; s/ ?resume_offset=[^ ]+//; s/ *$//')"
+echo "$cmdline resume=UUID=$uuid resume_offset=$offset" | sudo tee "$cmdline_file" >/dev/null
 sudo mkinitcpio -P
 T "Hibernation is ready (after a reboot): the power menu has Hibernate."

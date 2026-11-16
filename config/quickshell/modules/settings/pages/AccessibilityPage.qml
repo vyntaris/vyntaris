@@ -23,7 +23,7 @@ SettingsPage {
         wrapMode: Text.Wrap
         font.pixelSize: Theme.fontSizeSmall
         color: Theme.overlay1
-        text: Tr.t("For everything twice the size, set the scale to 2 under Displays.")
+        text: Tr.t("For everything twice the size, set the scale to 200% under Displays.")
     }
     SettingsRow {
         title: Tr.t("Animations")

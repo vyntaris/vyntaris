@@ -53,7 +53,6 @@ Item {
             Layout.fillWidth: true
             spacing: Theme.space6
             Button {
-                visible: !root.offer?.update
                 text: Tr.t("Never for this site")
                 onClicked: Passwords.never()
             }

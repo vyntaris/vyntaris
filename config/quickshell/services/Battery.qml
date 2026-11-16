@@ -82,8 +82,9 @@ Singleton {
         const file = limitKind === "types" ? "charge_types" : "charge_control_end_threshold";
         const value = limitKind === "types" ? (on ? "Long_Life" : "Standard") : (on ? "80" : "100");
         chargeLimit = on;
-        Quickshell.execDetached(["sh", "-c", 'printf %s "$2" > "$1" || notify-send -a Battery "Charge limit" "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)"',
-            "sh", path + "/" + file, value]);
+        Quickshell.execDetached(["sh", "-c", 'printf %s "$2" > "$1" || notify-send -a "$3" "$4" "$5"',
+            "sh", path + "/" + file, value, Tr.t("Battery"), Tr.t("Charge limit"),
+            Tr.t("Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)")]);
         later.restart();
     }
     Timer { id: later; interval: 800; onTriggered: root.refresh() }

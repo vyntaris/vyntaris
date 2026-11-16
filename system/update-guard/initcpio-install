@@ -2,7 +2,7 @@
 
 build() {
     local b
-    for b in bash btrfs tail tr sed date mv mkdir rm sync mount umount; do
+    for b in bash btrfs tail tr sed date mv mkdir rmdir rm sync mount umount; do
         add_binary "$b"
     done
     add_file /usr/lib/vyntaris/initrd-rollback /usr/lib/vyntaris/initrd-rollback 755

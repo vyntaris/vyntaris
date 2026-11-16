@@ -51,6 +51,22 @@ if ! btrfs subvolume snapshot "$TOP/$snap" "$TOP/$sub" >/dev/null; then
     mv "$TOP/$broken" "$TOP/$sub"
     done_ 1
 fi
+# Subvolumes inside the system (/swap for hibernation, /var/lib/machines) aren't in a snapshot: it has empty folders
+# where they were. They go over from the system set aside, the outermost ones (the rest come with them).
+nested=()
+while read -r line; do
+    p="${line##* path }"
+    [ "${p#"$broken"/}" != "$p" ] && nested+=("${p#"$broken"/}")
+done < <(btrfs subvolume list -o "$TOP/$broken" 2>/dev/null)
+for rel in "${nested[@]}"; do
+    inner=0
+    for other in "${nested[@]}"; do [ "$other" != "$rel" ] && [ "${rel#"$other"/}" != "$rel" ] && inner=1; done
+    [ "$inner" = 1 ] && continue
+    target="$TOP/$sub/$rel"
+    if [ -d "$target" ] && ! rmdir "$target" 2>/dev/null; then log "$rel isn't empty in the snapshot: left in $broken"; continue; fi
+    mkdir -p "${target%/*}"
+    mv "$TOP/$broken/$rel" "$target" || log "couldn't carry $rel over"
+done
 mkdir -p "$TOP/$sub/var/lib/vyntaris"
 printf 'at=%s\nsnapshot=%s\nbroken=%s\n' "$stamp" "$snap" "$broken" > "$TOP/$sub/var/lib/vyntaris/rolled-back"
 rm -f "$point"
