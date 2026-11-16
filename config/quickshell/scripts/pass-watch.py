@@ -110,7 +110,9 @@ try:
     ctypes.CDLL("libc.so.6").prctl(1, signal.SIGTERM)  # PR_SET_PDEATHSIG
 except OSError:
     pass
-signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+# No Python handler for it: the GLib loop below never returns to Python, so one would never run. Left as it is,
+# SIGTERM simply ends the process.
+signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
 turn_on()
 listener = Atspi.EventListener.new(focused)
