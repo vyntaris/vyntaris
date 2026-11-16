@@ -1143,5 +1143,18 @@
  "where you are": "tvoju lokaciju",
  "your screen": "tvoj ekran",
  "Review the AUR's changes": "Pregledaj izmene sa AUR-a",
- "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "Sistem je ažuriran. Aplikacije sa AUR-a čekaju da pogledaš njihove izmene, u Ažuriranjima."
+ "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "Sistem je ažuriran. Aplikacije sa AUR-a čekaju da pogledaš njihove izmene, u Ažuriranjima.",
+ "1 notification": "1 obaveštenje",
+ "Boot loader": "Pokretač sistema",
+ "Finishing": "Završava",
+ "First snapshot": "Prvi snimak",
+ "Graphical boot": "Grafičko pokretanje",
+ "Login screen": "Ekran za prijavu",
+ "Partitions": "Particije",
+ "Preparing": "Priprema",
+ "auto": "automatski",
+ "install": "instalacija",
+ "manual": "ručno",
+ "upgrade": "ažuriranje",
+ "{0} notifications": "Obaveštenja: {0}"
 }

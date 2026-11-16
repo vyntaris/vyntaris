@@ -120,9 +120,9 @@ SettingsPage {
             Label { mono: true; font.pixelSize: Theme.fontSizeLabel; text: modelData.date }
             Label { Layout.fillWidth: true; color: Theme.subtext0; elide: Text.ElideRight; text: modelData.comment }
             Caption {
-                text: modelData.comment === "before upgrade" ? "upgrade"
-                    : modelData.comment === "installed" ? "install"
-                    : /O|ondemand/i.test(modelData.tags) ? "manual" : "auto"
+                text: modelData.comment === "before upgrade" ? Tr.t("upgrade")
+                    : modelData.comment === "installed" ? Tr.t("install")
+                    : /O|ondemand/i.test(modelData.tags) ? Tr.t("manual") : Tr.t("auto")
             }
         }
     }

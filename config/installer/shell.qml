@@ -283,13 +283,13 @@ ShellRoot {
     ListModel { id: log }
     property int result: -1
     readonly property var marks: [
-        ["Partitions", 0.02, "Partitions"], ["Base system", 0.04, "Packages"], ["Settings", 0.70, "Settings"],
-        ["User", 0.71, "Settings"], ["Boot loader", 0.72, "Boot loader"], ["Vyntaris", 0.75, "Desktop"],
-        ["Services", 0.77, "Desktop"], ["Firewall", 0.79, "Desktop"], ["Hyprland", 0.80, "Desktop"],
-        ["Graphics", 0.81, "Drivers"], ["NVIDIA", 0.83, "Drivers"], ["Timeshift", 0.85, "Desktop"],
-        ["Apps run", 0.86, "Desktop"], ["Login screen", 0.87, "Login screen"], ["AUR helper", 0.88, "Desktop"],
-        ["Quiet boot", 0.91, "Graphical boot"], ["Boot splash", 0.92, "Graphical boot"], ["Boot images", 0.94, "Graphical boot"],
-        ["First Timeshift", 0.97, "First snapshot"], ["Cleaning up", 0.98, "Finishing"]
+        ["Partitions", 0.02, Tr.t("Partitions")], ["Base system", 0.04, Tr.t("Packages")], ["Settings", 0.70, Tr.t("Settings")],
+        ["User", 0.71, Tr.t("Settings")], ["Boot loader", 0.72, Tr.t("Boot loader")], ["Vyntaris", 0.75, Tr.t("Desktop")],
+        ["Services", 0.77, Tr.t("Desktop")], ["Firewall", 0.79, Tr.t("Desktop")], ["Hyprland", 0.80, Tr.t("Desktop")],
+        ["Graphics", 0.81, Tr.t("Drivers")], ["NVIDIA", 0.83, Tr.t("Drivers")], ["Timeshift", 0.85, Tr.t("Desktop")],
+        ["Apps run", 0.86, Tr.t("Desktop")], ["Login screen", 0.87, Tr.t("Login screen")], ["AUR helper", 0.88, Tr.t("Desktop")],
+        ["Quiet boot", 0.91, Tr.t("Graphical boot")], ["Boot splash", 0.92, Tr.t("Graphical boot")], ["Boot images", 0.94, Tr.t("Graphical boot")],
+        ["First Timeshift", 0.97, Tr.t("First snapshot")], ["Cleaning up", 0.98, Tr.t("Finishing")]
     ]
     property int markIndex: -1
     property string liveLine: ""
@@ -387,7 +387,7 @@ ShellRoot {
     }
 
     function install() {
-        page = 7; progress = 0.01; stepName = "Preparing"; log.clear(); liveLine = ""; markIndex = -1; result = -1;
+        page = 7; progress = 0.01; stepName = Tr.t("Preparing"); log.clear(); liveLine = ""; markIndex = -1; result = -1;
         installer.running = true;
     }
     Process {
@@ -404,7 +404,7 @@ ShellRoot {
         stdout: SplitParser { onRead: line => root.onLine(line) }
         onExited: code => {
             root.result = code;
-            if (code === 0) { root.progress = 1; root.stepName = "Done"; }
+            if (code === 0) { root.progress = 1; root.stepName = Tr.t("Done"); }
         }
     }
 

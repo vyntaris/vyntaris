@@ -1143,5 +1143,18 @@
  "where you are": "votre position",
  "your screen": "votre écran",
  "Review the AUR's changes": "Voir les changements de l'AUR",
- "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "Le système est à jour. Les apps de l'AUR attendent que vous regardiez leurs changements, dans Mises à jour."
+ "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "Le système est à jour. Les apps de l'AUR attendent que vous regardiez leurs changements, dans Mises à jour.",
+ "1 notification": "1 notification",
+ "Boot loader": "Chargeur de démarrage",
+ "Finishing": "Finalisation",
+ "First snapshot": "Premier instantané",
+ "Graphical boot": "Démarrage graphique",
+ "Login screen": "Écran de connexion",
+ "Partitions": "Partitions",
+ "Preparing": "Préparation",
+ "auto": "auto",
+ "install": "installation",
+ "manual": "manuel",
+ "upgrade": "mise à jour",
+ "{0} notifications": "{0} notifications"
 }

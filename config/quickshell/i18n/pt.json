@@ -1143,5 +1143,18 @@
  "where you are": "sua localização",
  "your screen": "sua tela",
  "Review the AUR's changes": "Revisar as mudanças do AUR",
- "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "O sistema está atualizado. Os apps do AUR esperam você revisar as mudanças, em Atualizações."
+ "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.": "O sistema está atualizado. Os apps do AUR esperam você revisar as mudanças, em Atualizações.",
+ "1 notification": "1 notificação",
+ "Boot loader": "Carregador de inicialização",
+ "Finishing": "Finalizando",
+ "First snapshot": "Primeiro snapshot",
+ "Graphical boot": "Inicialização gráfica",
+ "Login screen": "Tela de login",
+ "Partitions": "Partições",
+ "Preparing": "Preparando",
+ "auto": "automático",
+ "install": "instalação",
+ "manual": "manual",
+ "upgrade": "atualização",
+ "{0} notifications": "{0} notificações"
 }
