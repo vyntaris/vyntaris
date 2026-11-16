@@ -16,11 +16,13 @@ snapshots, the Vyntaris package repository. Runs as root; running it again is ha
 USAGE
 }
 
-SHARE=/usr/share/vyntaris
+# VYNTARIS_SETUP_ROOT: the system it works on, VYNTARIS_SETUP_LIB=1: only its functions (tools/test-setup.sh)
+R="${VYNTARIS_SETUP_ROOT:-}"
+SHARE="$R/usr/share/vyntaris"
 LIB=/usr/lib/vyntaris
 REPO_URL="https://pkg.vyntarisos.com"
 REPO_OLD="https://vyntaris.github.io/vyntaris-packages"
-SIGNING_KEY="$(cut -d: -f1 /usr/share/pacman/keyrings/vyntaris-trusted)"
+SIGNING_KEY="$(cut -d: -f1 "$R/usr/share/pacman/keyrings/vyntaris-trusted" 2>/dev/null || true)"
 GREETER=/etc/greetd/greeter
 
 user=""; autologin=0; boot=1; aur=1; mode=full
@@ -52,17 +54,17 @@ note() { printf '   %s\n' "$*"; }
 # Like a .pacnew: the firewall follows the package only while nobody changed it; a changed one stays, and the new
 # one is put next to it.
 firewall() {
-    local shipped=/var/lib/vyntaris/nftables.conf.shipped
-    cmp -s "$SHARE/nftables.conf" /etc/nftables.conf && { install -Dm644 "$SHARE/nftables.conf" "$shipped"; return 0; }
-    if [ -e /etc/nftables.conf ] && [ -e "$shipped" ] && ! cmp -s "$shipped" /etc/nftables.conf; then
-        install -m644 "$SHARE/nftables.conf" /etc/nftables.conf.vyntaris-new
+    local shipped="$R/var/lib/vyntaris/nftables.conf.shipped" conf="$R/etc/nftables.conf"
+    cmp -s "$SHARE/nftables.conf" "$conf" && { install -Dm644 "$SHARE/nftables.conf" "$shipped"; return 0; }
+    if [ -e "$conf" ] && [ -e "$shipped" ] && ! cmp -s "$shipped" "$conf"; then
+        install -m644 "$SHARE/nftables.conf" "$conf.vyntaris-new"
         note "/etc/nftables.conf has your changes: Vyntaris's new one is /etc/nftables.conf.vyntaris-new"
         return 0
     fi
-    install -m644 "$SHARE/nftables.conf" /etc/nftables.conf
+    install -Dm644 "$SHARE/nftables.conf" "$conf"
     install -Dm644 "$SHARE/nftables.conf" "$shipped"
-    rm -f /etc/nftables.conf.vyntaris-new
-    [ "$in_chroot" = 1 ] || nft -f /etc/nftables.conf 2>/dev/null || true
+    rm -f "$conf.vyntaris-new"
+    [ "$in_chroot" = 1 ] || nft -f "$conf" 2>/dev/null || true
 }
 
 memory_reserve() {
@@ -105,10 +107,10 @@ upkeep_timers() {
 }
 
 # A unit is turned on once: after that it's the user's, and one they turned off stays off through updates.
-enabled_list=/var/lib/vyntaris/enabled-units
+enabled_list="$R/var/lib/vyntaris/enabled-units"
 enable() {
     local u
-    install -d /var/lib/vyntaris
+    install -d "$R/var/lib/vyntaris"
     for u in "$@"; do
         systemctl cat "$u" >/dev/null 2>&1 || [ -e "/usr/lib/systemd/system/$u" ] || continue
         if [ "$mode" = refresh ] && grep -qxF "$u" "$enabled_list" 2>/dev/null; then continue; fi
@@ -327,9 +329,20 @@ signed_only() {
     sed -i '/^\[vyntaris\]/,/^\[/ s/^SigLevel *=.*/SigLevel = Required DatabaseOptional/' /etc/pacman.conf
 }
 
+# root's GTK theme was the user's folders, linked; now it's a copy of the safe part (greeter-sync)
+root_theme_links() {
+    local owner
+    [ -L "$R/root/.config/gtk-3.0" ] || return 0
+    owner="$(stat -c %U "$(readlink -f "$R/root/.config/gtk-3.0")" 2>/dev/null || true)"
+    if [ -n "$owner" ] && [ "$owner" != root ]; then "$LIB/greeter-sync.sh" "$owner" || true; fi
+    rm -f "$R/root/.config/gtk-3.0" "$R/root/.config/gtk-4.0" "$R/root/.config/dconf" 2>/dev/null || true
+}
+
 keyring_follows_password() {
     grep -qs pam_gnome_keyring /etc/pam.d/passwd || printf 'password\toptional\tpam_gnome_keyring.so\n' >> /etc/pam.d/passwd
 }
+
+[ "${VYNTARIS_SETUP_LIB:-}" = 1 ] && return 0
 
 if [ "$mode" = refresh ]; then
     install -m644 "$SHARE/os-release" /etc/os-release
@@ -346,12 +359,7 @@ if [ "$mode" = refresh ]; then
         fi
         greetd_config
     fi
-    # root's GTK theme was the user's folders, linked; now it's a copy of the safe part (greeter-sync)
-    if [ -L /root/.config/gtk-3.0 ]; then
-        owner="$(stat -c %U "$(readlink -f /root/.config/gtk-3.0)" 2>/dev/null || true)"
-        if [ -n "$owner" ] && [ "$owner" != root ]; then "$LIB/greeter-sync.sh" "$owner" || true; fi
-        rm -f /root/.config/gtk-3.0 /root/.config/gtk-4.0 /root/.config/dconf 2>/dev/null || true
-    fi
+    root_theme_links
     [ -f /etc/kernel/cmdline ] && boot_menu
     shutdown_quick
     "$LIB/snapshots" >/dev/null 2>&1 || true

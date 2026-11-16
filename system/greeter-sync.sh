@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# GREETER_SYNC_ROOT and VYNTARIS_JSON: where it works and the helper it uses, for tools/test-greeter-sync.sh
+R="${GREETER_SYNC_ROOT:-}"
+JSON="${VYNTARIS_JSON:-/usr/lib/vyntaris/json}"
 user="$1"
 home="$(getent passwd "$user" | cut -d: -f6)"
 [ -n "$home" ] || exit 1
@@ -9,9 +12,9 @@ settings="$home/.config/quickshell/settings.json"
 # root. Not the user's own folders: GTK reads modules from settings.ini, which would run the user's code as root.
 root_theme() {
     local v d
-    install -d -m700 /root/.config
+    install -d -m700 "$R/root/.config"
     for v in gtk-3.0 gtk-4.0; do
-        d="/root/.config/$v"
+        d="$R/root/.config/$v"
         [ -L "$d" ] && rm -f "$d"
         install -d -m755 "$d"
         { runuser -u "$user" -- cat -- "$home/.config/$v/settings.ini" 2>/dev/null || true; } |
@@ -21,20 +24,20 @@ root_theme() {
         { runuser -u "$user" -- cat -- "$home/.config/$v/gtk.css" 2>/dev/null || true; } | grep -v '@import' > "$d/gtk.css.new" || true
         mv -f "$d/gtk.css.new" "$d/gtk.css"
     done
-    [ -L /root/.config/dconf ] && rm -f /root/.config/dconf
+    [ -L "$R/root/.config/dconf" ] && rm -f "$R/root/.config/dconf"
     return 0
 }
 root_theme
 
-g=/etc/greetd/greeter
+g="$R/etc/greetd/greeter"
 [ -d "$g" ] || exit 0
 
-wp="$(runuser -u "$user" -- /usr/lib/vyntaris/json get "$settings" wallpaper.path "" 2>/dev/null || true)"
+wp="$(runuser -u "$user" -- "$JSON" get "$settings" wallpaper.path "" 2>/dev/null || true)"
 raw="$wp"
 case "$wp" in
     ""|vyntaris:*|/usr/share/backgrounds/vyntaris/default.*)
         wp="$home/.cache/vyntaris/accent-wallpaper/current.jpg"
-        runuser -u "$user" -- test -r "$wp" || wp="/usr/share/backgrounds/vyntaris/default.jpg" ;;
+        runuser -u "$user" -- test -r "$wp" || wp="$R/usr/share/backgrounds/vyntaris/default.jpg" ;;
     heic:*) wp="${wp#heic:}" ;;
     times:*)
         have="${wp#times:}"; have="${have%%:*}"; wp="${wp#times:"$have":}"
@@ -70,7 +73,7 @@ case "$raw" in
         src="$(user_path "${raw#heic:}")"
         work="$(mktemp -d)"
         chown "$user" "$work"
-        if runuser -u "$user" -- /usr/lib/vyntaris/json heic-schedule "$src" > "$work/schedule.json" 2>/dev/null &&
+        if runuser -u "$user" -- "$JSON" heic-schedule "$src" > "$work/schedule.json" 2>/dev/null &&
            runuser -u "$user" -- nice -n 19 magick "$src" -quality 90 "$work/frame-%d.jpg" 2>/dev/null; then
             mkdir -p "$dyn"
             for f in "$work"/frame-*.jpg; do
@@ -106,13 +109,13 @@ else
 fi
 full="$(getent passwd "$user" | cut -d: -f5 | cut -d, -f1)"
 
-runuser -u "$user" -- cat -- "$settings" 2>/dev/null | /usr/lib/vyntaris/json greeter "$user" "$dest" "$face" "$full" > "$g/greeter.json.new"
+runuser -u "$user" -- cat -- "$settings" 2>/dev/null | "$JSON" greeter "$user" "$dest" "$face" "$full" > "$g/greeter.json.new"
 mv "$g/greeter.json.new" "$g/greeter.json"
 chmod 644 "$g/greeter.json"
 
-splash=/usr/share/plymouth/themes/island
+splash="$R/usr/share/plymouth/themes/island"
 if [ "$(plymouth-set-default-theme 2>/dev/null)" = island ]; then
-    want="$(/usr/lib/vyntaris/json splash "$g/greeter.json" 2>/dev/null || true)"
+    want="$("$JSON" splash "$g/greeter.json" 2>/dev/null || true)"
     if [ -n "$want" ] && [ "$want" != "$(cat "$splash/colours" 2>/dev/null)" ]; then
         systemctl stop 'vyntaris-splash-colours-*.timer' 2>/dev/null || true
         if [ -z "$(systemctl list-units --state=active --no-legend 'vyntaris-splash-colours-*.service')" ]; then

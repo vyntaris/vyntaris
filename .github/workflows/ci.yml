@@ -50,6 +50,14 @@ jobs:
         run: tools/test-hypr-config.sh
       - name: Passwords (a store and key of their own): saved, checked, filled only into their site, copied as sensitive
         run: tools/test-pass.sh
+      - name: The hotspot on a stand-in NetworkManager, and the firewall letting its devices through
+        run: tools/test-hotspot.sh
+      - name: The login screen and root's theme kept in step with the user (greeter-sync)
+        run: tools/test-greeter-sync.sh
+      - name: Hibernation on and off (swap file, fstab, the kernel's line), Btrfs and ext4
+        run: tools/test-hibernate.sh
+      - name: What an update may change (vyntaris-setup): the user's firewall and services stay theirs
+        run: tools/test-setup.sh
       - name: Updates and AUR apps without a terminal (the password asked in the shell, how each ends)
         run: tools/test-upgrade.sh
       - name: The accent is fitted alike in JavaScript, Lua and Python
