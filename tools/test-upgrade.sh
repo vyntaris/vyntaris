@@ -45,9 +45,9 @@ check "the password dialog closed: cancelled"      test "$(up PKEXEC=126)" = can
 check "… and nothing said"                         bash -c "! grep -q '^notify' '$CALLS'"
 check "pacman fails: failed"                       test "$(up SYU=1)" = failed
 check "… said, with pacman's reason"               grep -q '^notify .*conflicting files' "$CALLS"
-check "AUR updates: the build tools first"         test "$(up AURUP=foo)" = ok -a -n "$(grep '^pacman -S --needed --noconfirm base-devel' "$CALLS")"
-check "… then built, installing through pkexec"    grep -q '^yay -Sua .*--sudo pkexec' "$CALLS"
-check "an AUR build that fails: failed"            test "$(up AURUP=foo BUILD=1)" = failed
+check "AUR updates: the system still ok"         test "$(up AURUP=foo)" = ok
+check "… the AUR not built here (changes reviewed in a terminal)" bash -c "! grep -q '^yay -Sua' '$CALLS'"
+check "… and said so"                               grep -q '^notify .*look at their changes' "$CALLS"
 
 aur() { : > "$CALLS"; printf 'base\n%s' "${PRE:-}" > "$INSTALLED"; env "$@" sh "$SCRIPTS/aur-install.sh" yay "$PKG"; cat "$T/run/vyntaris-aur/$PKG" 2>/dev/null; }
 echo ":: an app from the AUR"

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# The island's passwords (scripts/pass.sh) against a store and a key of their own: nothing of the user's is touched.
+set -uo pipefail
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+T="$(mktemp -d)"
+trap 'gpgconf --homedir "$T/gnupg" --kill gpg-agent 2>/dev/null; rm -rf "$T"' EXIT
+fails=0
+ok() { echo "   ok    $*"; }
+no() { echo "   FAIL  $*"; fails=$((fails + 1)); }
+check() { local what="$1"; shift; if "$@" >/dev/null 2>&1; then ok "$what"; else no "$what"; fi; }
+
+mkdir -p "$T/home" "$T/bin" "$T/scripts" && chmod 700 "$T"
+export HOME="$T/home" GNUPGHOME="$T/gnupg" PASSWORD_STORE_DIR="$T/store" PATH="$T/bin:$PATH"
+mkdir -m700 "$GNUPGHOME"
+cp "$REPO/config/quickshell/scripts/pass.sh" "$T/scripts/"
+# What leaves pass.sh: Firefox's side, the clipboard, the keyring (none here)
+printf '#!/bin/sh\ncat > "%s/filled"\n' "$T" > "$T/scripts/pass-host.py"
+printf '#!/bin/sh\necho "$*" > "%s/copied-args"; cat > "%s/copied"\n' "$T" "$T" > "$T/bin/wl-copy"
+printf '#!/bin/sh\nexit 1\n' > "$T/bin/secret-tool"
+printf '#!/bin/sh\nexit 0\n' > "$T/bin/wl-paste"
+printf '#!/bin/sh\nexit 0\n' > "$T/bin/wtype"
+chmod 755 "$T"/scripts/* "$T"/bin/*
+P="$T/scripts/pass.sh"
+
+gpg --batch --quiet --passphrase '' --quick-gen-key "test@vyntaris.invalid" default default never 2>/dev/null
+pass init "test@vyntaris.invalid" >/dev/null || { echo "pass: no store"; exit 1; }
+
+echo ":: saving and checking logins"
+printf 's3cret\nlogin: me\n' | "$P" save github.com/me
+check "an entry is saved"                     test -f "$T/store/github.com/me.gpg"
+check "the same login: same"                  test "$(printf 'me\ns3cret\n' | "$P" check github.com)" = same
+check "another password: changed, which one"  test "$(printf 'me\nother\n' | "$P" check github.com)" = "changed github.com/me"
+check "www. is the same site"                 test "$(printf 'me\ns3cret\n' | "$P" check www.github.com)" = same
+check "a site not saved: new, named for it"   test "$(printf 'bob\npw\n' | "$P" check example.org)" = "new example.org/bob"
+check "a subdomain is that site's"            test "$(printf 'me\ns3cret\n' | "$P" check gist.github.com)" = same
+
+echo ":: filling: only into the entry's site"
+"$P" fill github.com/me page >/dev/null 2>&1
+check "the password goes to Firefox"          grep -q '"password": "s3cret"' "$T/filled"
+check "… with the site it belongs to"         grep -q '"sites": \["github.com"\]' "$T/filled"
+printf 'pw\n' | "$P" save work/notes >/dev/null
+"$P" fill work/notes page >/dev/null 2>&1
+check "an entry named for no site: none"      grep -q '"sites": \[\]' "$T/filled"
+printf 'card\nnumber: 4111\n' | "$P" save shop.example.com/card >/dev/null
+"$P" fill-fields shop.example.com/card >/dev/null 2>&1
+check "form fields go with their site too"    grep -q '"sites": \["shop.example.com"\]' "$T/filled"
+check "… and the fields"                      grep -q '"number": "4111"' "$T/filled"
+
+echo ":: copying"
+"$P" copy github.com/me >/dev/null 2>&1
+check "the password to the clipboard"         test "$(cat "$T/copied")" = s3cret
+check "… marked sensitive (kept off the phone and the history)" grep -q -- --sensitive "$T/copied-args"
+"$P" copy github.com/me login >/dev/null 2>&1
+check "the username"                          test "$(cat "$T/copied")" = me
+
+echo
+[ "$fails" = 0 ] && echo "pass: all checks passed" || echo "pass: $fails failed"
+exit $((fails > 0))

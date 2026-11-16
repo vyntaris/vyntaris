@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Tools
         run: |
-          sudo apt-get update && sudo apt-get install -y lua5.4 python3 python3-venv
+          sudo apt-get update && sudo apt-get install -y lua5.4 python3 python3-venv gnupg pass
           python3 -m venv /tmp/lint && /tmp/lint/bin/pip install -q shellcheck-py pyflakes
           echo /tmp/lint/bin >> "$GITHUB_PATH"
       - name: Scripts parse, and shellcheck (warnings too) and pyflakes find nothing
@@ -48,6 +48,8 @@ jobs:
         run: tools/test-session.sh
       - name: Hyprland's config comes up whole whatever settings.json and user.lua hold
         run: tools/test-hypr-config.sh
+      - name: Passwords (a store and key of their own): saved, checked, filled only into their site, copied as sensitive
+        run: tools/test-pass.sh
       - name: Updates and AUR apps without a terminal (the password asked in the shell, how each ends)
         run: tools/test-upgrade.sh
       - name: The accent is fitted alike in JavaScript, Lua and Python
