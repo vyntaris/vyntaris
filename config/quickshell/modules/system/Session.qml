@@ -65,6 +65,8 @@ Scope {
             + "general {\n"
             + "    lock_cmd = qs -c vyntaris ipc call lock lock\n"
             + "    before_sleep_cmd = loginctl lock-session\n"
+            // sleep waits until the lock screen is really up (ext-session-lock), so nothing shows for a moment on waking
+            + "    inhibit_sleep = 3\n"
             // Only a screen that is off gets turned on: on one that's on it's a modeset the wake-up has to wait for.
             + `    after_sleep_cmd = hyprctl monitors | grep -q 'dpmsStatus: 0' && ${dpms("on")}; qs -c vyntaris ipc call lock woke\n`
             + "}\n"
