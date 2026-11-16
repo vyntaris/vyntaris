@@ -25,10 +25,20 @@ Item {
         return DesktopEntries.heuristicLookup(entry.appName || "")?.icon ?? "";
     }
     readonly property string iconPath: !iconName ? "" : iconName.startsWith("/") ? "file://" + iconName : Quickshell.iconPath(iconName, true)
+    // Only a picture on this computer or sent with the notification itself, never one from the network.
     readonly property string picture: {
         const m = image.match(/^image:\/\/icon\/(\/.+)$/);
         if (m) return "file://" + m[1];
-        return image.startsWith("image://icon/") ? "" : image;
+        if (image.startsWith("image://icon/")) return "";
+        if (image.startsWith("/")) return "file://" + image;
+        return /^(file|image):\/\//.test(image) ? image : "";
+    }
+    // The markup notifications may carry (b, i, u, links); anything else is shown as text.
+    function markup(body) {
+        const esc = String(body ?? "").replace(/&(?![a-z]+;|#\d+;)/gi, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return esc.replace(/&lt;(\/?)(b|i|u)&gt;/gi, "<$1$2>")
+            .replace(/&lt;a href=(?:"|&quot;)(https?:\/\/[^"<>\s]+)(?:"|&quot;)&gt;/gi, '<a href="$1">')
+            .replace(/&lt;\/a&gt;/gi, "</a>");
     }
 
     implicitHeight: card.height + stacked * 6
@@ -175,7 +185,7 @@ Item {
                     linkColor: Theme.accent
                     color: Theme.subtext0
                     font.pixelSize: Theme.fontSizeSmall
-                    text: root.entry.body
+                    text: root.markup(root.entry.body)
                 }
             }
 
