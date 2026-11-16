@@ -25,6 +25,7 @@ Item {
         // During an update, open Updates like the bar icon does.
         else if (kind === "packages") { if (Updates.busy) Panels.updatesOpen = true; else Panels.packagesOpen = true; }
         else if (kind === "backup") Panels.cloudOpen = true;
+        else if (kind === "claude") Panels.claudeOpen = true;
         else Panels.controlOpen = true;
     }
 
@@ -94,7 +95,14 @@ Item {
                 value: Math.max(0, root.activity?.progress ?? 0)
                 thickness: 2
             }
+            Spinner {
+                visible: root.activity?.kind === "claude"
+                x: 2
+                y: activityMark.markTop + 2
+                size: 12
+            }
             Icon {
+                visible: root.activity?.kind !== "claude"
                 x: Math.round((16 - size) / 2)
                 y: activityMark.markTop + Math.round((16 - size) / 2)
                 name: root.activity?.icon ?? ""
@@ -107,9 +115,9 @@ Item {
             id: activityText
             visible: root.activity !== null
             Layout.leftMargin: Theme.space4
-            Layout.maximumWidth: 120
+            Layout.maximumWidth: root.activity?.kind === "claude" ? 280 : 120
             elide: Text.ElideRight
-            mono: true
+            mono: root.activity?.kind !== "claude"
             font.weight: Font.DemiBold
             color: root.activity?.paused ? Theme.overlay1 : (root.activity?.color ? Theme.ink(root.activity.color) : Theme.text)
             text: root.activity?.text ?? ""

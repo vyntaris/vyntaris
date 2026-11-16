@@ -37,6 +37,7 @@ Singleton {
     property alias audio: adapter.audio
     property alias weather: adapter.weather
     property alias life: adapter.life
+    property alias claude: adapter.claude
 
     property bool leader: true
 
@@ -263,6 +264,11 @@ Singleton {
                 property int maxVisible: 8
             }
 
+            property JsonObject claude: JsonObject {
+                property string workdir: ""
+                property int askTimeout: 60
+                property bool snapshotBeforeSystem: true
+            }
             property JsonObject passwords: JsonObject {
                 property bool autoOpen: true
                 property var never: []

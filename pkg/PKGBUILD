@@ -146,6 +146,10 @@ package() {
     install -Dm644 "$r/system/udev/90-laptop-switches.rules" "$d/usr/lib/udev/rules.d/90-vyntaris-laptop-switches.rules"
     install -Dm644 "$r/system/udev/80-nvidia-pm.rules" "$d/usr/lib/udev/rules.d/80-vyntaris-nvidia-pm.rules"
     install -Dm644 "$r/system/polkit/50-vyntaris-fwupd.rules" "$d/usr/share/polkit-1/rules.d/50-vyntaris-fwupd.rules"
+    install -Dm644 "$r/system/polkit/50-vyntaris-claude-snapshot.rules" "$d/usr/share/polkit-1/rules.d/50-vyntaris-claude-snapshot.rules"
+    install -Dm644 "$r/config/claude/managed-settings.json" "$d/etc/claude-code/managed-settings.d/50-vyntaris.json"
+    install -d "$d/usr/share/vyntaris/claude"
+    cp -r "$r/config/claude/skills" "$d/usr/share/vyntaris/claude/"
 
     install -Dm644 -t "$d/usr/share/libalpm/hooks" "$r"/system/hooks/*.hook
 
