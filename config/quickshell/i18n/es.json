@@ -1156,5 +1156,9 @@
  "install": "instalación",
  "manual": "manual",
  "upgrade": "actualización",
- "{0} notifications": "{0} notificaciones"
+ "{0} notifications": "{0} notificaciones",
+ "Charge limit": "Límite de carga",
+ "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Aún no está permitido: reinicia una vez después de configurar Vyntaris (eso permite cambiarlo)",
+ "The defaults are in use. What the file held is kept in": "Se usan los valores predeterminados. Lo que tenía el archivo se guarda en",
+ "Your settings couldn't be read": "No se pudieron leer tus ajustes"
 }
