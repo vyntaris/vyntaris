@@ -8,6 +8,10 @@ Scope {
     id: root
 
     readonly property bool nightLight: NightLight.active
+    // up from the start, so what they were doing comes back right away
+    readonly property bool keepAwake: KeepAwake.active
+    readonly property bool gameMode: GameMode.active
+    readonly property bool timer: Chrono.timerActive
     readonly property var displays: Displays.waiting
     readonly property var rollback: UpdateGuard.rollback
     readonly property var drivers: Drivers.missing

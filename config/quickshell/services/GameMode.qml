@@ -22,6 +22,27 @@ Singleton {
     property bool dndBefore: false
     property int profileBefore: -1
 
+    // After a restart game mode picks up where it was; what it turned off is still off.
+    property bool restored: false
+    function save() {
+        if (restored) SessionState.set("gameMode", { manual, active, dndBefore, profileBefore });
+    }
+    onManualChanged: save()
+    onActiveChanged: save()
+    onDndBeforeChanged: save()
+    onProfileBeforeChanged: save()
+    Component.onCompleted: {
+        const s = SessionState.get("gameMode");
+        if (s?.active) {
+            dndBefore = !!s.dndBefore;
+            profileBefore = s.profileBefore ?? -1;
+            active = true;
+            manual = !!s.manual;
+            if (!manual) exitDelay.restart();
+        }
+        restored = true;
+    }
+
     function enter() {
         if (active) return;
         active = true;
