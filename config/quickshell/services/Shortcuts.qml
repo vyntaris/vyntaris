@@ -121,7 +121,18 @@ Singleton {
         recording = on;
         Hyprland.dispatch(on ? 'hl.dsp.submap("vyntaris-record")' : 'hl.dsp.submap("reset")');
         if (on) giveUp.restart(); else giveUp.stop();
+        // A watch of its own: should this process die while recording (a crash, killed), the shortcuts come back
+        // all the same, as soon as it's gone or after 20 s.
+        if (on) {
+            self.reload();
+            const pid = parseInt(self.text()) || 0;
+            Quickshell.execDetached(["sh", "-c",
+                'i=0; while [ "$i" -lt 40 ] && kill -0 "$1" 2>/dev/null; do sleep 0.5; i=$((i + 1)); done; '
+                + '[ "$(hyprctl submap 2>/dev/null)" = vyntaris-record ] && hyprctl dispatch \'hl.dsp.submap("reset")\' >/dev/null',
+                "sh", String(pid)]);
+        }
     }
+    FileView { id: self; path: "/proc/self/stat"; blockLoading: true; printErrors: false }
     // Should nothing come (or the window lose its keys), the shortcuts don't stay off.
     Timer { id: giveUp; interval: 15000; onTriggered: root.record(false) }
     Component.onDestruction: if (recording) Hyprland.dispatch('hl.dsp.submap("reset")')
