@@ -1209,5 +1209,7 @@
  "Working in {0}. You can follow it here.": "Radi ({0}). Ovde možeš da pratiš.",
  "a terminal": "terminal",
  "another app": "druga aplikacija",
- "working": "radi"
+ "working": "radi",
+ "{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.": "{0} je u Archovom 32-bitnom repozitorijumu (multilib), koji je isključen. Ukucaj „set up games“ u pokretaču da ga uključiš.",
+ "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} je u Archovom repozitorijumu „{1}“, koji je isključen u /etc/pacman.conf."
 }

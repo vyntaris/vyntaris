@@ -31,6 +31,8 @@ post_upgrade() {
         install -m644 /usr/share/vyntaris/greetd/config.toml /etc/greetd/config.toml
     fi
     _global_once
+    # Steam and Wine from the Store; the package lists come with the next update
+    /usr/lib/vyntaris/multilib.sh /etc/pacman.conf || true
     rm -f /etc/systemd/user/graphical-session.target.wants/vyntaris-hyprbars.service
     rm -f /etc/systemd/user/graphical-session.target.wants/vyntaris-obex-agent.service
     rm -f /etc/udev/rules.d/80-vyntaris-nvidia-pm.rules

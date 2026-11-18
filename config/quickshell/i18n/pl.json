@@ -1209,5 +1209,7 @@
  "Working in {0}. You can follow it here.": "Pracuje ({0}). Możesz śledzić tutaj.",
  "a terminal": "terminal",
  "another app": "inna aplikacja",
- "working": "pracuje"
+ "working": "pracuje",
+ "{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.": "{0} jest w 32-bitowym repozytorium Archa (multilib), które jest wyłączone. Wpisz „set up games” w programie uruchamiającym, aby je włączyć.",
+ "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} jest w repozytorium Archa „{1}”, które jest wyłączone w /etc/pacman.conf."
 }

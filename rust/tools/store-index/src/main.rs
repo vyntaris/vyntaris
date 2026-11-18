@@ -130,7 +130,7 @@ fn main() {
             let id = children(c, "id").next().and_then(|e| e.text()).filter(|t| !t.is_empty()).map(str::to_string).unwrap_or_else(|| pkg.clone());
             apps.push(json!({
                 "id": id, "name": name, "summary": text(c, "summary"), "desc": description(c), "source": "arch",
-                "installed": pac.contains(&pkg), "pkg": pkg, "icon": icon, "group": group(c),
+                "installed": pac.contains(&pkg), "pkg": pkg, "icon": icon, "group": group(c), "repo": repo,
             }));
         }
     }
