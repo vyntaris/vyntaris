@@ -90,7 +90,7 @@ nvidia_on_demand() {
         card="${conn##*/}"; card="${card%%-*}"
         [ "$(cat "/sys/class/drm/$card/device/vendor" 2>/dev/null)" = 0x10de ] && { : > "$f"; return 0; }
     done
-    printf 'blacklist nvidia\n' > "$f"
+    printf 'blacklist nvidia\nblacklist nvidia_drm\n' > "$f"
 }
 
 own_sessions() {

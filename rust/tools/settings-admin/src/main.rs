@@ -206,8 +206,11 @@ pub fn ocr_data(language: &str) -> Vec<&'static str> {
     }
 }
 
+// nvidia_drm answers to the card's PCI id as well (since 595), and loads nvidia with it.
+pub const NVIDIA_ON_DEMAND: &str = "blacklist nvidia\nblacklist nvidia_drm\n";
+
 pub fn nvidia_start(sys: &mut dyn System, at_boot: bool) -> Result<(), Refused> {
-    sys.write(File::NvidiaStart, if at_boot { "" } else { "blacklist nvidia\n" })
+    sys.write(File::NvidiaStart, if at_boot { "" } else { NVIDIA_ON_DEMAND })
 }
 
 pub fn dispatch(sys: &mut dyn System, a: &[&str]) -> Result<(), Option<Refused>> {
@@ -444,7 +447,7 @@ mod tests {
     fn nvidia_at_start_or_on_demand() {
         let mut f = Fake::default();
         dispatch(&mut f, &["nvidia-start", "demand"]).unwrap();
-        assert_eq!(f.nvidia, "blacklist nvidia\n");
+        assert_eq!(f.nvidia, "blacklist nvidia\nblacklist nvidia_drm\n");
         dispatch(&mut f, &["nvidia-start", "boot"]).unwrap();
         assert_eq!(f.nvidia, "");
         assert_eq!(dispatch(&mut f, &["nvidia-start", "never"]), Err(None));

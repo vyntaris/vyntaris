@@ -790,7 +790,8 @@ the firewall follow the new version (the firewall loaded again at once with `nft
   `prime-run` or any Vulkan app loads it by itself (`nvidia-modprobe`), and the card sleeps without it too.
   The cost is a monitor on the card's own ports (HDMI on most laptops), which needs the driver from the
   start: Settings → Drivers → *Start its driver with the system* (`/etc/modprobe.d/vyntaris-nvidia-on-demand.conf`,
-  `blacklist nvidia` or empty, written by `settings-admin nvidia-start`). `vyntaris-setup` turns it off on a
+  `blacklist nvidia` and `nvidia_drm`, which answers to the card's id too, or empty, written by
+  `settings-admin nvidia-start`). `vyntaris-setup` turns it off on a
   hybrid laptop, unless a screen is on the NVIDIA card already. The desktop leaves it out:
   its GL is Mesa's, and GTK 4 apps draw with GL rather than Vulkan (`GSK_RENDERER=gl`), whose loader
   woke NVIDIA for every app, some 2 s more to open one. Vulkan still sees it, for games.
