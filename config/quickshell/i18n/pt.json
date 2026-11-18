@@ -1149,5 +1149,6 @@
  "Charge limit": "Limite de carga",
  "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Ainda não permitido: reinicie uma vez depois de configurar o Vyntaris (isso permite mudar)",
  "The defaults are in use. What the file held is kept in": "Os padrões estão em uso. O que o arquivo tinha está guardado em",
- "Your settings couldn't be read": "Não foi possível ler suas configurações"
+ "Your settings couldn't be read": "Não foi possível ler suas configurações",
+ "Rotation": "Rotação"
 }

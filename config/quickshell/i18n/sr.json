@@ -1149,5 +1149,6 @@
  "Charge limit": "Ograničenje punjenja",
  "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Još nije dozvoljeno: restartuj jednom posle podešavanja Vyntarisa (to omogućava da ovo menjaš)",
  "The defaults are in use. What the file held is kept in": "Koriste se podrazumevana podešavanja. Ono što je fajl sadržao čuva se u",
- "Your settings couldn't be read": "Tvoja podešavanja nisu mogla da se pročitaju"
+ "Your settings couldn't be read": "Tvoja podešavanja nisu mogla da se pročitaju",
+ "Rotation": "Rotacija"
 }
