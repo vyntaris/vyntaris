@@ -1151,5 +1151,6 @@
  "The defaults are in use. What the file held is kept in": "Koriste se podrazumevana podešavanja. Ono što je fajl sadržao čuva se u",
  "Your settings couldn't be read": "Tvoja podešavanja nisu mogla da se pročitaju",
  "{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.": "{0} je u Archovom 32-bitnom repozitorijumu (multilib), koji je isključen. Ukucaj „set up games“ u pokretaču da ga uključiš.",
- "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} je u Archovom repozitorijumu „{1}“, koji je isključen u /etc/pacman.conf."
+ "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} je u Archovom repozitorijumu „{1}“, koji je isključen u /etc/pacman.conf.",
+ "Rotation": "Rotacija"
 }
