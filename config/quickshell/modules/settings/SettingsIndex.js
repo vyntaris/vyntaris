@@ -108,6 +108,7 @@ var rows = [
     { page: "displays", title: "Default scale" },
     { page: "displays", title: "Mode" },
     { page: "displays", title: "Scale" },
+    { page: "displays", title: "Rotation" },
     { page: "displays", title: "Refresh rate" },
     { page: "displays", title: "Position" },
     { page: "power", title: "Dim" },

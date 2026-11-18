@@ -43,8 +43,9 @@ SettingsPage {
 
         readonly property var mons: Hyprland.monitors.values.map(m => {
             const o = m.lastIpcObject ?? {};
-            const sc = o.scale || 1;
-            return { name: m.name, x: o.x ?? 0, y: o.y ?? 0, w: (o.width ?? 1920) / sc, h: (o.height ?? 1080) / sc };
+            const sc = o.scale || 1, turned = (o.transform ?? 0) % 2 === 1;
+            const w = (o.width ?? 1920) / sc, h = (o.height ?? 1080) / sc;
+            return { name: m.name, x: o.x ?? 0, y: o.y ?? 0, w: turned ? h : w, h: turned ? w : h };
         })
         readonly property real minX: Math.min(...mons.map(m => m.x))
         readonly property real minY: Math.min(...mons.map(m => m.y))
@@ -132,6 +133,14 @@ SettingsPage {
                     options: [{ value: "auto", label: Tr.t("Auto") }, { value: 1, label: "100%" }, { value: 1.5, label: "150%" }, { value: 2, label: "200%" }]
                     current: page.monitorValue(mon.modelData.name, "scale", Config.display.scale)
                     onPicked: v => page.setMonitor(mon.modelData.name, "scale", v)
+                }
+            }
+            SettingsRow {
+                title: Tr.t("Rotation")
+                Choice {
+                    options: [{ value: 0, label: "0°" }, { value: 1, label: "90°" }, { value: 2, label: "180°" }, { value: 3, label: "270°" }]
+                    current: page.monitorValue(mon.modelData.name, "transform", (mon.ipc.transform ?? 0) % 4)
+                    onPicked: v => page.setMonitor(mon.modelData.name, "transform", v)
                 }
             }
             SettingsRow {

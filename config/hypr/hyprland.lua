@@ -49,6 +49,7 @@ for _, m in ipairs(settings.display.monitors or {}) do
             mode     = m.mode or "preferred",
             position = m.position or "auto",
             scale    = m.scale or settings.display.scale,
+            transform = m.transform or 0,
         })
     end
 end

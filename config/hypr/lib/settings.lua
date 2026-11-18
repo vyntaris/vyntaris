@@ -59,6 +59,8 @@ local function tidy(s)
                 position = type(m.position) == "string" and m.position ~= "" and m.position or nil,
                 scale = m.scale == "auto" and "auto"
                     or type(m.scale) == "number" and m.scale == m.scale and clamp(m.scale, 0.5, 4) or nil,
+                -- 0, 90, 180 or 270 degrees
+                transform = (m.transform == 1 or m.transform == 2 or m.transform == 3) and m.transform or nil,
             }
         end
     end

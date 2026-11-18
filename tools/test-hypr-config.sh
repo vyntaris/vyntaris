@@ -29,6 +29,7 @@ kinds() {
         end
         assert(s.display.scale == 'auto' or (type(s.display.scale) == 'number' and s.display.scale >= 0.5 and s.display.scale <= 4), 'scale')
         for _, m in ipairs(s.display.monitors) do assert(m.scale == nil or m.scale == 'auto' or type(m.scale) == 'number', 'monitor scale') end
+        for _, m in ipairs(s.display.monitors) do assert(m.transform == nil or m.transform == 1 or m.transform == 2 or m.transform == 3, 'monitor rotation') end
         assert(s.theme.animationSpeed > 0, 'speed')
         assert(s.apps.terminal:match('%S'), 'terminal')
         for _, m in ipairs(s.display.monitors) do assert(type(m.name) == 'string' and m.name ~= '', 'monitor') end"
@@ -57,9 +58,12 @@ null
 {"display":{"monitors":{"name":"DP-1"}}}
 {"display":{"scale":"auto","monitors":[{"name":"DP-1","scale":"auto"}]}}
 {"display":{"scale":"huge","monitors":[{"name":"DP-1","scale":"big"}]}}
+{"display":{"monitors":[{"name":"DP-1","transform":"x"},{"name":"DP-2","transform":9},{"name":"DP-3","transform":1.5}]}}
 CASES
 config '{"display":{"scale":"auto","monitors":[{"name":"DP-1","scale":"auto"}]}}'
 check "Auto scale: Hyprland is asked for auto" eval '"$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path" -e "" >/dev/null; HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); assert(s.display.scale == [[auto]] and s.display.monitors[1].scale == [[auto]])"'
+config '{"display":{"monitors":[{"name":"DP-1","transform":1},{"name":"DP-2","transform":7}]}}'
+check "Rotation: 90 degrees kept, anything else dropped" eval 'HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); assert(s.display.monitors[1].transform == 1 and s.display.monitors[2].transform == nil)"'
 echo ":: shortcuts"
 config '{"shortcuts":{"SUPER + E":"SUPER + SHIFT + F"}}'
 check "other keys: bound to them"            bound "SUPER + SHIFT + F"
