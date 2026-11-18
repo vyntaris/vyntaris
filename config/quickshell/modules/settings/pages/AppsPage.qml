@@ -104,39 +104,4 @@ SettingsPage {
         text: Tr.t("The AUR holds recipes anyone can upload, and Arch doesn't check them: one could install something harmful. The Store shows each one's votes and when it last changed, and asks before it builds one.")
     }
 
-    SettingsSection { text: "Claude" }
-    SettingsRow {
-        title: Tr.t("Account")
-        RowLayout {
-            spacing: Theme.space10
-            Label {
-                color: Theme.subtext0
-                text: Claude.loggedIn ? Claude.account + (Claude.plan ? "  ·  " + Claude.plan : "") : Tr.t("Not signed in")
-            }
-            Button {
-                icon: Claude.loggedIn ? "logout" : "users"
-                text: Claude.loggedIn ? Tr.t("Sign out") : Tr.t("Sign in")
-                onClicked: { if (Claude.loggedIn) Claude.logout(); else Panels.inShell("claude", "open"); }
-            }
-        }
-    }
-    SettingsRow {
-        title: Tr.t("Snapshot before Claude changes the system")
-        Switch { checked: Config.claude.snapshotBeforeSystem; onToggled: on => { Config.claude.snapshotBeforeSystem = on; Config.saveSoon(); } }
-    }
-    SettingsRow {
-        title: Tr.t("Time to answer Claude")
-        Choice {
-            options: [{ value: 30, label: "30 s" }, { value: 60, label: "1 min" }, { value: 300, label: "5 min" }]
-            current: Config.claude.askTimeout
-            onPicked: v => { Config.claude.askTimeout = v; Config.saveSoon(); }
-        }
-    }
-    Label {
-        Layout.fillWidth: true
-        wrapMode: Text.Wrap
-        color: Theme.subtext0
-        font.pixelSize: Theme.fontSizeLabel
-        text: Tr.t("Every Claude Code session asks in the island before it changes a file or runs a command. Unanswered, a chat in the island is refused and a terminal asks as usual.")
-    }
 }

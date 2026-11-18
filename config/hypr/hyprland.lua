@@ -294,7 +294,6 @@ bind(mainMod .. " + C",         run(settings.apps.editor), { description = "Code
 bind("CTRL + SHIFT + Escape",   run("vyntaris-monitor"), { description = "Task manager" })
 bind(mainMod .. " + H",         run("vyntaris-monitor"), { description = "Task manager" })
 bind(mainMod .. " + SHIFT + H", qs("wiki toggle"), { description = "Arch Wiki" })
-bind(mainMod .. " + J",         qs("claude toggle"), { description = "Claude" })
 bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -a"), { description = "Pick a color from the screen" })
 
 bind("SUPER + Super_L",          shell("control"), { release = true, description = "Start: control center, type to search apps (tap SUPER)" })

@@ -158,20 +158,6 @@ Scope {
     }
 
     IpcHandler {
-        target: "claude"
-        function open(): void { Panels.claudeOpen = true }
-        function toggle(): void { Panels.claudeOpen = !Panels.claudeOpen }
-        function send(text: string): void { Panels.claude(text) }
-        function sessions(): void { Panels.claudeOpen = true; Claude.browseWanted() }
-        function watch(id: string): void { Claude.watch(id); Panels.claudeOpen = true }
-        function draft(text: string): void { Panels.claudeOpen = true; Claude.draftWanted(text) }
-        // from scripts/claude-hook.py
-        function event(id: string): void { Claude.refresh() }
-        function ask(id: string): void { Claude.refresh() }
-        function snapshot(id: string): void { Activities.banner("history", Tr.t("Snapshot before Claude changes the system"), Tr.t("Restore it from Settings → Backups if anything goes wrong."), -1, Theme.accent, 5000) }
-    }
-
-    IpcHandler {
         target: "vpn"
         function toggle(): void { Panels.vpnOpen = !Panels.vpnOpen }
     }

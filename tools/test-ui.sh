@@ -182,40 +182,6 @@ case_wikinone() {
     ipc wiki open; sleep 1.5; shot wiki-not-installed
 }
 
-case_claudelogin() {
-    sleep 11
-    ipc claude open; sleep 2; shot claude-login
-}
-
-# A stand-in `claude` answers in the island; a session from "a terminal" asks through the hook's files.
-case_claude() {
-    sleep 11
-    ipc claude send "hello"; sleep 0.6; shot claude-busy; sleep 2.5; shot claude-chat
-    ipc island close; ipc claude send "and now?"; sleep 0.3; ipc island close; sleep 2.5; shot claude-notified
-    ipc claude open; sleep 1.5; shot claude-chat2; ipc island close; sleep 1
-    local live="$XDG_RUNTIME_DIR/vyntaris-claude/session-live-1.json"
-    printf '{"id":"live-1","cwd":"%s","state":"working","title":"fix the failing tests","doing":{"verb":"run","what":"npm test"}}' "$HOME/Projects/site" > "$live"
-    ipc claude event live-1; sleep 1
-    ipc claude sessions; sleep 2; shot claude-sessions; ipc island close; sleep 1
-    ipc claude watch live-1; sleep 2.5; shot claude-watch
-    printf '{"id":"live-1","cwd":"%s","state":"done","title":"fix the failing tests"}' "$HOME/Projects/site" > "$live"
-    ipc claude event live-1; sleep 2; shot claude-watch-done; ipc island close; sleep 1
-    rm -f "$live"; ipc claude event live-1
-    ipc claude draft "/co"; sleep 1.5; shot claude-commands
-    ipc claude draft ""; ipc claude send "/model sonnet"; sleep 1.5; shot claude-model; ipc island close; sleep 1
-    local run="$XDG_RUNTIME_DIR/vyntaris-claude" id="uitest-$$"
-    mkdir -p "$run"
-    printf '{"id":"%s","cwd":"%s","state":"working","title":"fix the tests","doing":{"verb":"edit","what":"ClaudeView.qml"}}' "$id" "$HOME" > "$run/session-$id.json"
-    printf '{"id":"%s-1","session":"%s","cwd":"%s","tool":"Bash","island":false,"icon":"terminal","what":"sudo pacman -S cowsay","detail":"Install cowsay"}' \
-        "$id" "$id" "$HOME" > "$run/ask-$id-1.json"
-    ipc claude ask "$id-1"; sleep 2; shot claude-ask
-    ipc island close; sleep 1
-    rm -f "$run/ask-$id-1.json"; ipc claude event "$id"; sleep 2; shot claude-working
-    printf '{"id":"%s","cwd":"%s","state":"done","title":"fix the tests"}' "$id" "$HOME" > "$run/session-$id.json"
-    ipc claude event "$id"; sleep 1; shot claude-done
-    rm -f "$run/session-$id.json" "$run/answer-$id-1"
-}
-
 if [ "${1:-}" = "--inside" ]; then
     S="$2"; Q="$S/q"; H="$S/home"; PID_AWWW=""
     awww-daemon > "$S/awww.log" 2>&1 &
@@ -255,36 +221,6 @@ run() {
     [ "$1" = wikinone ] && sed -i 's|^root=.*|root=/nonexistent|' "$Q/scripts/wiki.sh"
     touch "$H/.local/state/quickshell/by-shell/vyntaris/welcome-done"
     mkdir -p "$S/bin"
-    cat > "$S/bin/claude" <<'STUB'
-#!/bin/sh
-if [ "$1" = auth ]; then
-    case "$2" in
-        status) [ -e "$HOME/stub-in" ] || { echo '{"loggedIn":false}'; exit 1; }
-                echo '{"loggedIn":true,"email":"you@example.com","subscriptionType":"max","authMethod":"claude.ai"}' ;;
-        login) echo "Opening browser to sign in…"; echo "If the browser didn't open, visit: https://claude.com/x"; sleep 60 ;;
-    esac
-    exit 0
-fi
-case "$*" in *"-p /usage"*)
-    echo '{"type":"system","subtype":"init","session_id":"u","slash_commands":["compact","context","code-review","commit","config","usage"]}'
-    echo '{"type":"result","subtype":"success","is_error":false,"result":"Current session: 29% used · resets Nov 16, 3:19pm (Europe/Belgrade)\nCurrent week (all models): 86% used · resets Nov 20, 3:59pm (Europe/Belgrade)"}'
-    exit 0 ;;
-esac
-sleep 1
-echo '{"type":"system","subtype":"init","session_id":"stub-1","model":"claude-opus-5-5"}'
-echo '{"type":"rate_limit_event","rate_limit_info":{"unifiedWindows":{"five_hour":{"utilization":0.24},"seven_day":{"utilization":0.56}}}}'
-echo '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash","input":{"command":"df -h /"}}]}}'
-echo '{"type":"assistant","message":{"content":[{"type":"text","text":"You have **120 GB** free on `/`."}]}}'
-echo '{"type":"result","subtype":"success","is_error":false,"result":"ok","session_id":"stub-1","total_cost_usd":0.0123}'
-STUB
-    chmod +x "$S/bin/claude"
-    [ "$1" = claude ] && touch "$H/stub-in"
-    if [ "$1" = claude ]; then
-        mkdir -p "$H/.claude/projects/-p-site" "$H/.claude/projects/-p-notes" "$H/Projects/site" "$H/Projects/notes"
-        printf '{"type":"user","cwd":"%s","message":{"content":"make the landing page faster"}}\n{"type":"ai-title","aiTitle":"Faster landing page"}\n{"type":"assistant","message":{"content":[{"type":"text","text":"Done: images are lazy now."}]}}\n' "$H/Projects/site" > "$H/.claude/projects/-p-site/s1.jsonl"
-        printf '{"type":"user","cwd":"%s","message":{"content":"sort my notes by date"}}\n' "$H/Projects/notes" > "$H/.claude/projects/-p-notes/s2.jsonl"
-        printf '{"type":"user","cwd":"%s","entrypoint":"claude-vscode","message":{"content":"fix the failing tests"}}\n{"type":"assistant","entrypoint":"claude-vscode","message":{"content":[{"type":"text","text":"Looking at the tests first."},{"type":"tool_use","name":"Bash","input":{"command":"npm test"}}]}}\n' "$H/Projects/site" > "$H/.claude/projects/-p-site/live-1.jsonl"
-    fi
     ln -s "$HOME/.local/share/applications" "$H/.local/share/applications"
     ln -s "$HOME/.local/share/icons" "$H/.local/share/icons"
     printf '[Appearance]\nicon_theme=Vyntaris-Qt\nstyle=Fusion\n' > "$H/.config/qt6ct/qt6ct.conf"
@@ -332,8 +268,6 @@ for c in $which; do
         keyboard) run keyboard 70 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         wake) run wake 40 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         osd) run osd 30 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
-        claude) run claude 50 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
-        claudelogin) run claudelogin 35 "{\"theme\":{$BASE,\"flavor\":\"latte\",\"accent\":\"blue\"},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         wikinone) run wikinone 40 "{\"theme\":{$BASE},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
         startup) run startup 60 "{\"theme\":{$BASE,\"accent\":\"green\"},\"bar\":{\"notchStyle\":\"slant\"}}" ;;
     esac
