@@ -44,18 +44,16 @@ Singleton {
     property bool calendarOpen: false
     property bool passwordsOpen: false
     property bool hotspotOpen: false
-    property bool claudeOpen: false
 
     readonly property var islandPanels: [
         "launcher", "system", "battery", "wallpaper", "control", "media", "updates", "packages", "cloud", "night", "game", "sound", "overview",
-        "awake", "apps", "wiki", "wifi", "vpn", "keyboard", "bluetooth", "phone", "capture", "power", "privacy", "gpu", "timer", "passwords", "hotspot", "claude",
+        "awake", "apps", "wiki", "wifi", "vpn", "keyboard", "bluetooth", "phone", "capture", "power", "privacy", "gpu", "timer", "passwords", "hotspot",
     ]
 
     function only(name) {
         for (const p of islandPanels)
             if (p !== name && root[p + "Open"]) root[p + "Open"] = false;
     }
-    function claude(text) { claudeOpen = true; if (text) Claude.send(text); }
     function wiki(query) { wikiQuery = query ?? ""; wikiOpen = true; }
     function closeAll() { only(""); }
 
@@ -87,7 +85,6 @@ Singleton {
     onGpuOpenChanged: if (gpuOpen) only("gpu")
     onPasswordsOpenChanged: if (passwordsOpen) only("passwords")
     onHotspotOpenChanged: if (hotspotOpen) only("hotspot")
-    onClaudeOpenChanged: if (claudeOpen) only("claude")
 
     property string app: ""
     readonly property var appFlags: ({ settings: "settings", store: "store", help: "help", doctor: "health", backup: "backup", calendar: "calendar" })

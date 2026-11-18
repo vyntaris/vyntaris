@@ -118,12 +118,9 @@ for dir in "${folders[@]}"; do
     echo "file://$dir" >> "$pinned"
 done
 
-# Claude Code: Vyntaris's skills
-mkdir -p "$HOME/.claude/skills"
-for skill in "$SHARE"/claude/skills/*/; do
-    link="$HOME/.claude/skills/$(basename "$skill")"
-    [ -e "$link" ] && [ ! -L "$link" ] && continue
-    ln -sfn "${skill%/}" "$link"
+# Links Vyntaris once put in Claude Code's skills
+for link in "$HOME"/.claude/skills/*; do
+    [ -L "$link" ] && case "$(readlink "$link")" in "$SHARE"/claude/*) rm -f "$link" ;; esac
 done
 
 mkdir -p "$(dirname "$stamp")"
