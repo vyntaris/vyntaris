@@ -1,6 +1,0 @@
-// Claude Code sessions take a snapshot before changing the system, without asking for the password.
-polkit.addRule(function (action, subject) {
-    if (action.id === "org.freedesktop.policykit.exec" && subject.local && subject.active
-        && action.lookup("program") === "/usr/bin/vyntaris-claude-snapshot")
-        return polkit.Result.YES;
-});

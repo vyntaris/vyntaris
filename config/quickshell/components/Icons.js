@@ -102,7 +102,6 @@ var material = {
     "send": "mobile_share",
     "image": "image",
     "windows": "select_window",
-    "claude": "code",
     "terminal": "terminal",
     "palette": "palette",
     "bar": "toolbar",

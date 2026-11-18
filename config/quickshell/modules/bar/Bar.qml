@@ -124,7 +124,6 @@ PanelWindow {
         : Recorder.counting ? "countdown"
         : Screenshot.shown ? "screenshot"
         : Passwords.offer ? "passoffer"
-        : Claude.ask ? "claudeask"
         : Panels.launcherOpen ? "launcher"
         : Panels.overviewOpen ? "overview"
         : Panels.powerOpen ? "power"
@@ -139,7 +138,6 @@ PanelWindow {
         : Panels.vpnOpen ? "vpn"
         : Panels.hotspotOpen ? "hotspot"
         : Panels.wikiOpen ? "wiki"
-        : Panels.claudeOpen ? "claude"
         : Panels.passwordsOpen ? "passwords"
         : Panels.keyboardOpen ? "keyboard"
         : Panels.bluetoothOpen ? "bluetooth"
@@ -162,7 +160,7 @@ PanelWindow {
     readonly property var views: ({
         clock: clockView.item, launcher: launcherView.item, overview: overviewView.item, power: powerView.item,
         wallpaper: wallpaperView.item, control: controlView.item, media: mediaView.item,
-        screenshot: screenshotView.item, updates: updatesView.item, packages: packagesView.item, cloud: cloudView.item, night: nightView.item, gamepanel: gameModeView.item, sound: soundView.item, awake: awakeView.item, apps: appsView.item, wifi: wifiPanel.item, vpn: vpnPanel.item, hotspot: hotspotView.item, wiki: wikiView.item, claude: claudeView.item, claudeask: claudeAskView.item, passwords: passwordsView.item, passoffer: passOfferView.item, keyboard: keyboardView.item, bluetooth: bluetoothView.item, phone: phoneView.item, capture: captureView.item, system: systemView.item, battery: batteryView.item, osd: osdView.item, notification: notificationView.item, privacy: privacyView.item, gpu: gpuView.item, timer: timerView.item,
+        screenshot: screenshotView.item, updates: updatesView.item, packages: packagesView.item, cloud: cloudView.item, night: nightView.item, gamepanel: gameModeView.item, sound: soundView.item, awake: awakeView.item, apps: appsView.item, wifi: wifiPanel.item, vpn: vpnPanel.item, hotspot: hotspotView.item, wiki: wikiView.item, passwords: passwordsView.item, passoffer: passOfferView.item, keyboard: keyboardView.item, bluetooth: bluetoothView.item, phone: phoneView.item, capture: captureView.item, system: systemView.item, battery: batteryView.item, osd: osdView.item, notification: notificationView.item, privacy: privacyView.item, gpu: gpuView.item, timer: timerView.item,
         activity: activityView.item, countdown: countdownView.item, game: gameView.item,
     })
     readonly property Item activeView: views[mode] ?? clockView.item
@@ -340,8 +338,6 @@ PanelWindow {
             View { id: wifiPanel; name: "wifi"; WifiPanel {} }
             View { id: vpnPanel; name: "vpn"; VpnPanel {} }
             View { id: wikiView; name: "wiki"; WikiView {} }
-            View { id: claudeAskView; name: "claudeask"; ClaudeAskView {} }
-            View { id: claudeView; name: "claude"; kept: true; ClaudeView {} }
             View { id: passwordsView; name: "passwords"; PasswordsView {} }
             View { id: hotspotView; name: "hotspot"; HotspotView {} }
             View { id: passOfferView; name: "passoffer"; PasswordOfferView {} }
