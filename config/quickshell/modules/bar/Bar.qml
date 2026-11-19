@@ -613,7 +613,7 @@ PanelWindow {
 
                 BatteryGlyph {
                     percent: Battery.percent
-                    charging: Battery.charging && !Battery.full
+                    charging: Battery.charging && !Battery.plugged
                     size: 22
                     color: batteryModule.tint
                 }
