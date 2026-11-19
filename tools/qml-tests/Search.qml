@@ -85,6 +85,12 @@ QtObject {
         isIn("pl", "wyłącz bluetooth", "bluetooth", false);
         isIn("pl", "głośność 40", "volume", 0.4);
         isIn("pl", "zablokuj ekran", "lock");
+        isIn("ru", "выключи bluetooth", "bluetooth", false);
+        isIn("ru", "громкость 40", "volume", 0.4);
+        isIn("ru", "яркость на 70", "brightness", 0.7);
+        isIn("ru", "заблокировать экран", "lock");
+        isIn("ru", "включи тёмный режим", "dark", true);
+        isIn("ru", "настроить игры", "games-setup");
         check("an unknown language is English only", Search.command("isključi bluetooth", Index.pages, null, "xx") === null);
         console.log(":: apps listed");
         check("an app is listed", Search.listed({ id: "firefox", noDisplay: false }));
