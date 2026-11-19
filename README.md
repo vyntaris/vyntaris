@@ -251,7 +251,7 @@ takes the keys again whenever the screen's window comes back, after a suspend or
 ### Languages
 
 The shell speaks the system's language (Settings → Date, time & language, from the next login): English,
-Serbian (Latin), German, French, Spanish, Italian, Portuguese and Polish. Every text is written in English in
+Serbian (Latin), German, French, Spanish, Italian, Portuguese, Polish and Russian. Every text is written in English in
 the code through `Tr.t()` (`config/Tr.qml`) and found in `i18n/LANG.json`; one not translated yet stays
 English. Dates are the language's own. The installer changes language as soon as one is picked, and
 Vyntaris's own apps (Dr. Help and its findings, the Store, Backup, the share picker) read the same translations

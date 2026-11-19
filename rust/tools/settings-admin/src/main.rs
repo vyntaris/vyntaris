@@ -202,6 +202,7 @@ pub fn ocr_data(language: &str) -> Vec<&'static str> {
         "pt" => vec!["tesseract-data-por"],
         "es" => vec!["tesseract-data-spa"],
         "pl" => vec!["tesseract-data-pol"],
+        "ru" => vec!["tesseract-data-rus"],
         _ => vec![],
     }
 }
