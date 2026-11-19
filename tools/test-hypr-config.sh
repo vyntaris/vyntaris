@@ -59,11 +59,14 @@ null
 {"display":{"scale":"auto","monitors":[{"name":"DP-1","scale":"auto"}]}}
 {"display":{"scale":"huge","monitors":[{"name":"DP-1","scale":"big"}]}}
 {"display":{"monitors":[{"name":"DP-1","transform":"x"},{"name":"DP-2","transform":9},{"name":"DP-3","transform":1.5}]}}
+{"display":{"monitors":[{"name":"DP-1","color":"neon","bitdepth":12,"sdrBrightness":"x","icc":"../a.txt"},{"name":"DP-2","color":7,"icc":5}]}}
 CASES
 config '{"display":{"scale":"auto","monitors":[{"name":"DP-1","scale":"auto"}]}}'
 check "Auto scale: Hyprland is asked for auto" eval '"$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path" -e "" >/dev/null; HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); assert(s.display.scale == [[auto]] and s.display.monitors[1].scale == [[auto]])"'
 config '{"display":{"monitors":[{"name":"DP-1","transform":1},{"name":"DP-2","transform":7}]}}'
 check "Rotation: 90 degrees kept, anything else dropped" eval 'HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); assert(s.display.monitors[1].transform == 1 and s.display.monitors[2].transform == nil)"'
+config '{"display":{"monitors":[{"name":"DP-1","color":"hdr","sdrBrightness":9,"icc":"/home/a/m.icc"},{"name":"DP-2","color":"neon","bitdepth":12,"icc":"m.icc"}]}}'
+check "Colors: HDR, brightness held to 3 and a full ICC path kept, the rest dropped" eval 'HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); local a, b = s.display.monitors[1], s.display.monitors[2]; assert(a.color == [[hdr]] and a.sdrBrightness == 3 and a.icc == [[/home/a/m.icc]] and b.color == nil and b.bitdepth == nil and b.icc == nil)"'
 echo ":: shortcuts"
 config '{"shortcuts":{"SUPER + E":"SUPER + SHIFT + F"}}'
 check "other keys: bound to them"            bound "SUPER + SHIFT + F"

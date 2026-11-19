@@ -1,4 +1,6 @@
+import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import QtQuick
 import QtQuick.Layouts
 import qs.config
@@ -21,6 +23,15 @@ SettingsPage {
     }
 
     pageId: "displays"
+
+    // A monitor's ICC profile comes from its maker or a calibration: kept in ~/.local/share/icc.
+    readonly property string iccDir: (Quickshell.env("XDG_DATA_HOME") || Quickshell.env("HOME") + "/.local/share") + "/icc"
+    property var profiles: []
+    Process {
+        running: true
+        command: ["find", page.iccDir, "-maxdepth", "1", "-type", "f", "(", "-iname", "*.icc", "-o", "-iname", "*.icm", ")"]
+        stdout: StdioCollector { onStreamFinished: page.profiles = text.split("\n").filter(l => l).sort() }
+    }
 
     SettingsRow {
         title: Tr.t("Default scale")
@@ -160,6 +171,49 @@ SettingsPage {
                 }
             }
             SettingsRow {
+                id: colorRow
+                title: Tr.t("Colors")
+                readonly property var hw: mon.ipc.hardwareDetails ?? {}
+                readonly property string picked: page.monitorValue(mon.modelData.name, "color", "auto")
+                Choice {
+                    options: [{ value: "auto", label: Tr.t("Auto") }, { value: "srgb", label: "sRGB" }]
+                        .concat(colorRow.hw.bt2020 || colorRow.picked === "wide" ? [{ value: "wide", label: Tr.t("Wide") }] : [])
+                        .concat([{ value: "edid", label: Tr.t("The monitor's own") }])
+                        .concat(colorRow.hw.hdr || colorRow.picked === "hdr" ? [{ value: "hdr", label: "HDR" }] : [])
+                    current: colorRow.picked
+                    onPicked: v => page.setMonitor(mon.modelData.name, "color", v === "auto" ? undefined : v)
+                }
+            }
+            SettingsRow {
+                visible: colorRow.picked === "hdr"
+                title: Tr.t("Brightness of SDR content")
+                Choice {
+                    options: [{ value: 0.8, label: "80%" }, { value: 1, label: "100%" }, { value: 1.25, label: "125%" }, { value: 1.5, label: "150%" }]
+                    current: page.monitorValue(mon.modelData.name, "sdrBrightness", 1)
+                    onPicked: v => page.setMonitor(mon.modelData.name, "sdrBrightness", v)
+                }
+            }
+            SettingsRow {
+                visible: colorRow.picked !== "hdr"
+                title: Tr.t("10-bit color")
+                Switch {
+                    checked: page.monitorValue(mon.modelData.name, "bitdepth", 8) === 10
+                    onToggled: on => page.setMonitor(mon.modelData.name, "bitdepth", on ? 10 : undefined)
+                }
+            }
+            SettingsRow {
+                id: iccRow
+                title: Tr.t("Color profile")
+                readonly property string icc: page.monitorValue(mon.modelData.name, "icc", "")
+                Choice {
+                    options: [{ value: "", label: Tr.t("None") }].concat(
+                        [...new Set(page.profiles.concat(iccRow.icc ? [iccRow.icc] : []))]
+                            .map(p => ({ value: p, label: p.split("/").pop().replace(/\.ic[cm]$/, "") })))
+                    current: iccRow.icc
+                    onPicked: v => page.setMonitor(mon.modelData.name, "icc", v || undefined)
+                }
+            }
+            SettingsRow {
                 visible: mon.index > 0
                 title: Tr.t("Position")
                 Choice {
@@ -169,5 +223,12 @@ SettingsPage {
                 }
             }
         }
+    }
+    Label {
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        color: Theme.subtext0
+        font.pixelSize: Theme.fontSizeLabel
+        text: Tr.f("HDR needs a monitor that has it; games and videos made for it then look as meant. A color profile from the monitor's maker or a calibration goes in {0}.", page.iccDir.replace(Quickshell.env("HOME"), "~"))
     }
 }

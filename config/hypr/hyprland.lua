@@ -50,6 +50,10 @@ for _, m in ipairs(settings.display.monitors or {}) do
             position = m.position or "auto",
             scale    = m.scale or settings.display.scale,
             transform = m.transform or 0,
+            cm       = m.color,
+            bitdepth = (m.bitdepth == 10 or m.color == "hdr") and 10 or nil,
+            sdrbrightness = m.color == "hdr" and m.sdrBrightness or nil,
+            icc      = m.icc,
         })
     end
 end
