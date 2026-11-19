@@ -126,38 +126,46 @@ SettingsPage {
           }
         }
     }
+    // Rolls out under the accents when the ring is clicked, and back in on the next click.
     SettingsRow {
-        visible: page.open === "accent" || page.customAccent
-        title: Tr.t("Custom color")
-        RowLayout {
-            spacing: Theme.space16
-            ColumnLayout {
-                spacing: Theme.space8
-                Layout.alignment: Qt.AlignVCenter
-                Field {
-                    id: hexField
-                    implicitWidth: 140
-                    mono: true
-                    placeholder: "#89b4fa"
-                    text: page.customAccent ? Theme.accentName : ""
-                    onCommitted: v => {
-                        const hex = page.hex(v);
-                        invalid = v !== "" && hex === "";
-                        if (hex) Config.setAccent(hex);
-                    }
-                    // Used as soon as it's a whole colour: nothing else to press.
-                    onTextChanged: {
-                        invalid = false;
-                        const hex = /^#?[0-9a-fA-F]{6}$/.test(text.trim()) ? page.hex(text) : "";
-                        if (hex && hex !== Theme.accentName) Config.setAccent(hex);
-                    }
-                }
+        id: customRow
+        readonly property bool shown: page.open === "accent"
+        reveal: shown ? 1 : 0
+        Behavior on reveal {
+            Anim {
+                duration: customRow.shown ? Theme.durationSlow : Theme.durationNormal
+                easing.bezierCurve: Theme.curveStandard
             }
+        }
+        title: Tr.t("Custom color")
+        ColumnLayout {
+            spacing: Theme.space10
             ColorRing {
+                Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: Theme.space8
-                Layout.bottomMargin: Theme.space8
+                size: 96
                 color: page.customAccent ? Theme.accentName : ""
                 onPicked: c => { Config.setAccent(c); hexField.text = c; }
+            }
+            Field {
+                id: hexField
+                Layout.alignment: Qt.AlignHCenter
+                Layout.bottomMargin: Theme.space8
+                implicitWidth: 120
+                mono: true
+                placeholder: "#89b4fa"
+                text: page.customAccent ? Theme.accentName : ""
+                onCommitted: v => {
+                    const hex = page.hex(v);
+                    invalid = v !== "" && hex === "";
+                    if (hex) Config.setAccent(hex);
+                }
+                // Used as soon as it's a whole colour: nothing else to press.
+                onTextChanged: {
+                    invalid = false;
+                    const hex = /^#?[0-9a-fA-F]{6}$/.test(text.trim()) ? page.hex(text) : "";
+                    if (hex && hex !== Theme.accentName) Config.setAccent(hex);
+                }
             }
         }
     }

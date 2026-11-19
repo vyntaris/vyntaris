@@ -8,6 +8,8 @@ import qs.components
 Item {
     id: r
     property string title
+    // 0 to 1: how far it has rolled out, for a row that comes and goes. Its content stays put under the top.
+    property real reveal: 1
     readonly property bool isOption: true
     readonly property bool isCardRow: true
     property real flash: 0
@@ -38,6 +40,9 @@ Item {
     // Cards touch: the page's spacing is taken back between rows of one card.
     Layout.topMargin: first ? Theme.space4 : -(parent?.spacing ?? 0)
     implicitHeight: Math.max(52, row.implicitHeight + 2 * Theme.space10)
+    Layout.preferredHeight: reveal < 1 ? implicitHeight * Math.max(0, reveal) : -1
+    visible: reveal > 0
+    clip: reveal < 1
     implicitWidth: row.implicitWidth + 2 * Theme.space16
 
     // The card is drawn beside the controls, not around them: they tint over it all the same.
@@ -62,7 +67,9 @@ Item {
 
     RowLayout {
         id: row
-        anchors { fill: parent; leftMargin: Theme.space16; rightMargin: Theme.space16 }
+        anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: Theme.space16; rightMargin: Theme.space16 }
+        height: Math.max(r.height, r.implicitHeight)
+        opacity: Math.min(1, r.reveal * 1.4)
         spacing: Theme.space16
         Label {
             Layout.fillWidth: true
