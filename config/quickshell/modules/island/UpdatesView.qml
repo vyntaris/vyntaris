@@ -8,7 +8,9 @@ import qs.services
 
 Item {
     id: root
-    readonly property real fullWidth: Updates.busy ? Math.max(460, Math.ceil(lines.averageCharacterWidth * 72) + 64) : 460
+    // As wide as its buttons need at the bottom, where a slanted island is narrowest.
+    readonly property real fullWidth: Math.max(Updates.busy ? Math.ceil(lines.averageCharacterWidth * 72) + 64 : 0,
+        460, Math.ceil(actions.implicitWidth) + 2 * Theme.panelInset + 2 * Theme.space16)
     readonly property real hang: Updates.busy ? console_.height + Theme.space4 + 20 : Math.min(list.contentHeight, 260)
         + (deskColumn.visible ? deskColumn.implicitHeight + 14 : 0)
         + (fwColumn.visible ? fwColumn.implicitHeight + 14 : 0)
@@ -205,6 +207,7 @@ Item {
     }
 
     RowLayout {
+        id: actions
         anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: Theme.space16 }
         spacing: Theme.space12
 
