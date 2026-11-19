@@ -50,6 +50,10 @@ fn catalogue() -> PathBuf {
     vyntaris_core::paths::cache_home().join("vyntaris").join("store.json")
 }
 
+fn flathub_icons() -> PathBuf {
+    vyntaris_core::paths::cache_home().join("vyntaris").join("flathub-icons")
+}
+
 fn indexer() -> String {
     std::env::var("VYNTARIS_STORE_INDEX").ok().filter(|t| !t.is_empty()).unwrap_or_else(|| "/usr/lib/vyntaris/store-index".into())
 }
@@ -107,7 +111,23 @@ struct Store {
     aur_box: gtk::Box,
     aur_list: gtk::ListBox,
     aur_offer: gtk::Box,
+    flatpak_on: Cell<bool>,
+    flatpak_ready: Cell<bool>,
+    getting_flatpak: Cell<bool>,
+    flathub_results: RefCell<Vec<Value>>,
+    flathub_asked: Cell<u64>,
+    flatpaks: RefCell<HashSet<String>>,
+    flathub_box: gtk::Box,
+    flathub_list: gtk::ListBox,
+    flathub_offer: gtk::Box,
     empty: gtk::Label,
+}
+
+static FLATPAK_ID: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"^[A-Za-z][A-Za-z0-9_-]*(\.[A-Za-z0-9_-]+)+$").unwrap());
+
+async fn flathub_there() -> bool {
+    let (out, _) = output(&["flatpak", "remotes", "--user", "--columns=name"]).await;
+    out.lines().any(|l| l.trim() == "flathub")
 }
 
 fn day(unix: i64) -> String {
@@ -153,7 +173,9 @@ impl Store {
             self.index(&[]);
         }
         self.list_foreign();
+        self.list_flatpaks();
         self.read_aur_setting();
+        self.read_flatpak_setting();
         self.search.grab_focus();
     }
 
@@ -196,8 +218,64 @@ impl Store {
     }
 
     fn helper_shown(&self) {
-        let on = !self.aur.borrow().is_empty() && self.aur_on.get();
-        self.title.set_subtitle(&if on { tr("Arch, AUR") } else { tr("Arch") });
+        let aur = !self.aur.borrow().is_empty() && self.aur_on.get();
+        let flathub = self.flatpak_ready.get() && self.flatpak_on.get();
+        self.title.set_subtitle(&match (aur, flathub) {
+            (true, true) => tr("Arch, AUR, Flathub"),
+            (true, false) => tr("Arch, AUR"),
+            (false, true) => tr("Arch, Flathub"),
+            (false, false) => tr("Arch"),
+        });
+    }
+
+    fn read_flatpak_setting(self: &Rc<Self>) {
+        let on = vyntaris_core::settings::Settings::load().bool("apps.flatpak", false);
+        if on != self.flatpak_on.get() {
+            self.flatpak_on.set(on);
+            self.helper_shown();
+            self.query_changed();
+            self.flatpak_if_missing();
+        }
+    }
+
+    // Flathub on but not set up yet: flatpak itself (asks for the password once), then Flathub for this user.
+    fn flatpak_if_missing(self: &Rc<Self>) {
+        if self.flatpak_ready.get() || !self.flatpak_on.get() || self.getting_flatpak.get() {
+            return;
+        }
+        self.getting_flatpak.set(true);
+        self.say(&tr("Setting up Flathub: Flatpak is installed once, then searches ask Flathub too."), false);
+        let script = vyntaris_core::paths::shell_dir().join("scripts/flatpak-setup.sh").display().to_string();
+        let st = self.clone();
+        glib::spawn_future_local(async move {
+            let (_, code) = output(&[&script]).await;
+            st.getting_flatpak.set(false);
+            st.flatpak_ready.set(code == 0 && flathub_there().await);
+            if st.flatpak_ready.get() {
+                st.say("", false);
+            } else {
+                st.say(&tr("Flathub couldn't be set up, so the Store doesn't show its apps. Is there internet?"), true);
+            }
+            st.helper_shown();
+            st.list_flatpaks();
+            st.query_changed();
+        });
+    }
+
+    fn list_flatpaks(self: &Rc<Self>) {
+        if !vyntaris_ui::which("flatpak") {
+            return;
+        }
+        let st = self.clone();
+        glib::spawn_future_local(async move {
+            let (out, _) = output(&["flatpak", "list", "--app", "--columns=application"]).await;
+            *st.flatpaks.borrow_mut() = out.lines().map(|l| l.trim().to_string()).filter(|l| !l.is_empty()).collect();
+            let have = st.flatpaks.borrow().clone();
+            for a in st.flathub_results.borrow_mut().iter_mut() {
+                a["installed"] = Value::Bool(have.contains(s(a, "pkg")));
+            }
+            st.update_rows();
+        });
     }
 
     fn index(self: &Rc<Self>, extra: &[&str]) {
@@ -260,12 +338,13 @@ impl Store {
         let searching = !self.query.borrow().trim().is_empty();
         let repo = self.shown();
         let aur = self.aur_shown(&repo);
+        let flathub = if searching { self.flathub_results.borrow().clone() } else { Vec::new() };
         self.heading.set_label(&if searching {
             tr("Search")
         } else {
             SECTIONS.iter().find(|(id, _, _)| *id == *self.section.borrow()).map_or(String::new(), |(_, l, _)| tr(l))
         });
-        let n = repo.len() + aur.len();
+        let n = repo.len() + aur.len() + flathub.len();
         self.count.set_label(&if self.indexing.get() && self.apps.borrow().is_empty() {
             String::new()
         } else {
@@ -273,15 +352,21 @@ impl Store {
         });
         self.list.remove_all();
         self.aur_list.remove_all();
+        self.flathub_list.remove_all();
         self.rows.borrow_mut().clear();
         for a in &repo {
             self.list.append(&self.row(a));
+        }
+        for a in &flathub {
+            self.flathub_list.append(&self.row(a));
         }
         for a in &aur {
             self.aur_list.append(&self.row(a));
         }
         self.list.set_visible(!repo.is_empty());
         self.aur_box.set_visible(!aur.is_empty());
+        self.flathub_box.set_visible(!flathub.is_empty());
+        self.flathub_offer.set_visible(searching && !self.flatpak_on.get());
         self.aur_offer.set_visible(searching && !self.aur.borrow().is_empty() && !self.aur_on.get());
         self.empty.set_visible(n == 0);
         let q = self.query.borrow().trim().to_string();
@@ -316,7 +401,8 @@ impl Store {
             .subtitle_lines(1).build();
         row.add_prefix(&Self::icon(a));
         let aur = s(a, "source") == "aur";
-        let badge = gtk::Label::builder().label(if aur { tr("AUR") } else { tr("Arch") }).valign(gtk::Align::Center)
+        let label = match s(a, "source") { "aur" => tr("AUR"), "flathub" => "Flathub".to_string(), _ => tr("Arch") };
+        let badge = gtk::Label::builder().label(label).valign(gtk::Align::Center)
             .css_classes(["vyntaris-badge"]).build();
         if aur {
             badge.add_css_class("warning");
@@ -364,9 +450,10 @@ impl Store {
         let what = self.busy_what.borrow().clone();
         let p = self.progress.get();
         let foreign = self.foreign.borrow();
+        let flatpaks = self.flatpaks.borrow();
         for (pkg, parts) in self.rows.borrow().iter() {
             let working = *pkg == busy;
-            let installed = parts.installed || foreign.contains(pkg);
+            let installed = parts.installed || foreign.contains(pkg) || flatpaks.contains(pkg);
             parts.working.set_visible(working);
             if !working {
                 parts.bar.set_fraction(0.0);
@@ -397,6 +484,8 @@ impl Store {
     fn query_changed(self: &Rc<Self>) {
         *self.query.borrow_mut() = self.search.text().to_string();
         self.aur_results.borrow_mut().clear();
+        self.flathub_results.borrow_mut().clear();
+        self.flathub_asked.set(self.flathub_asked.get() + 1);
         let q = self.query.borrow().trim().to_string();
         if q.is_empty() {
             let current = SECTIONS.iter().position(|(id, _, _)| *id == *self.section.borrow()).unwrap_or(0);
@@ -408,13 +497,20 @@ impl Store {
         if let Some(old) = self.aur_delay.borrow_mut().take() {
             old.remove();
         }
-        if self.aur.borrow().is_empty() || !self.aur_on.get() || q.chars().count() < 2 {
+        let aur = !self.aur.borrow().is_empty() && self.aur_on.get();
+        let flathub = self.flatpak_ready.get() && self.flatpak_on.get();
+        if !(aur || flathub) || q.chars().count() < 2 {
             return;
         }
         let st = self.clone();
         let id = glib::timeout_add_local_once(Duration::from_millis(350), move || {
             st.aur_delay.borrow_mut().take();
-            st.ask_aur(q);
+            if aur {
+                st.ask_aur(q.clone());
+            }
+            if flathub {
+                st.ask_flathub(q);
+            }
         });
         *self.aur_delay.borrow_mut() = Some(id);
     }
@@ -448,13 +544,82 @@ impl Store {
         });
     }
 
+    fn ask_flathub(self: &Rc<Self>, q: String) {
+        let asked = self.flathub_asked.get();
+        let st = self.clone();
+        glib::spawn_future_local(async move {
+            let body = serde_json::json!({ "query": q }).to_string();
+            let (out, _) = output(&["curl", "-fsS", "--max-time", "8", "-X", "POST", "-H", "Content-Type: application/json",
+                "--data", &body, "https://flathub.org/api/v2/search"]).await;
+            if st.flathub_asked.get() != asked {
+                return;
+            }
+            let hits = serde_json::from_str::<Value>(&out).ok().and_then(|v| v["hits"].as_array().cloned()).unwrap_or_default();
+            let have = st.flatpaks.borrow().clone();
+            let icons = flathub_icons();
+            let found: Vec<Value> = hits.iter().filter(|h| s(h, "type") == "desktop-application" && FLATPAK_ID.is_match(s(h, "app_id")))
+                .take(20).map(|h| {
+                    let id = s(h, "app_id");
+                    let verified = h["verification_verified"].as_bool() == Some(true);
+                    let maker = s(h, "developer_name");
+                    let desc = format!("{}{}", if verified { tr("Verified: it comes from its makers. ") } else { tr("Not verified: packed by someone other than its makers. ") },
+                        if maker.is_empty() { String::new() } else { trf!("By {0}.", maker) });
+                    serde_json::json!({"id": id, "name": s(h, "name"), "summary": s(h, "summary"), "desc": desc, "source": "flathub",
+                        "pkg": id, "icon": icons.join(format!("{id}.png")).display().to_string(), "icon_url": s(h, "icon"),
+                        "group": "", "installed": have.contains(id)})
+                }).collect();
+            *st.flathub_results.borrow_mut() = found.clone();
+            st.show();
+            // Icons come from Flathub once and are kept; the list is drawn again when they're in.
+            let _ = std::fs::create_dir_all(&icons);
+            let mut argv = vec!["curl", "-fsS", "--parallel", "--remove-on-error", "--max-time", "10"];
+            for a in &found {
+                let (path, url) = (s(a, "icon"), s(a, "icon_url"));
+                if !std::path::Path::new(path).exists() && url.starts_with("https://") {
+                    argv.extend(["-o", path, url]);
+                }
+            }
+            if argv.len() > 6 {
+                output(&argv).await;
+                if st.flathub_asked.get() == asked {
+                    st.show();
+                }
+            }
+        });
+    }
+
+    fn offer_flathub(self: &Rc<Self>) {
+        let dialog = adw::AlertDialog::new(Some(&tr("Search Flathub too?")), Some(&tr("Flathub has apps packed by their makers or the community, each in a sandbox of its own, and they update with the rest of the system. The first time, Flatpak itself is installed, which asks for your password. You can turn it off again in Settings → Apps.")));
+        dialog.add_responses(&[("cancel", &tr("Cancel")), ("on", &tr("Turn on Flathub"))]);
+        dialog.set_response_appearance("on", adw::ResponseAppearance::Suggested);
+        dialog.set_default_response(Some("cancel"));
+        dialog.set_close_response("cancel");
+        let st = self.clone();
+        dialog.connect_response(None, move |_, response| {
+            if response != "on" {
+                return;
+            }
+            let mut settings = vyntaris_core::settings::Settings::load();
+            settings.set("apps.flatpak", Value::Bool(true));
+            if let Err(e) = settings.save() {
+                st.say(&trf!("That didn't work: {0}", e), true);
+                return;
+            }
+            st.flatpak_on.set(true);
+            st.helper_shown();
+            st.flatpak_if_missing();
+            st.query_changed();
+        });
+        dialog.present(self.win.borrow().as_ref());
+    }
+
     fn run(self: &Rc<Self>, a: &Value, what: &str) {
         if !self.busy.borrow().is_empty() {
             return;
         }
         let pkg = s(a, "pkg").to_string();
         static NAME: LazyLock<regex::Regex> = LazyLock::new(|| regex::Regex::new(r"^[a-z0-9@._+-]+$").unwrap());
-        if !NAME.is_match(&pkg) {
+        if !(NAME.is_match(&pkg) || s(a, "source") == "flathub" && FLATPAK_ID.is_match(&pkg)) {
             return;
         }
         if s(a, "source") == "aur" && what == "install" {
@@ -543,7 +708,9 @@ impl Store {
             self.watch_aur(450);
             return;
         }
+        let flathub = s(a, "source") == "flathub";
         if what == "install"
+            && !flathub
             && let Some(why) = repo_off(a)
         {
             self.say(&why, true);
@@ -554,7 +721,11 @@ impl Store {
         self.progress.set(-1.0);
         self.say("", false);
         self.update_rows();
-        let argv: Vec<&str> = if what == "install" {
+        let argv: Vec<&str> = if flathub && what == "install" {
+            vec!["flatpak", "install", "--user", "-y", "--noninteractive", "flathub", &pkg]
+        } else if flathub {
+            vec!["flatpak", "uninstall", "--user", "-y", "--noninteractive", &pkg]
+        } else if what == "install" {
             vec!["pkexec", "pacman", "-S", "--noconfirm", "--needed", &pkg]
         } else {
             vec!["pkexec", "pacman", "-Rns", "--noconfirm", &pkg]
@@ -637,6 +808,15 @@ impl Store {
                 x["installed"] = Value::Bool(what == "install" && code == 0);
             }
         }
+        if s(a, "source") == "flathub" {
+            if code == 0 {
+                let mut have = self.flatpaks.borrow_mut();
+                if what == "install" { have.insert(s(a, "pkg").to_string()); } else { have.remove(s(a, "pkg")); }
+            }
+            self.update_rows();
+            self.list_flatpaks();
+            return;
+        }
         if code == 0 {
             for (_, parts) in self.rows.borrow_mut().iter_mut().filter(|(p, _)| p == s(a, "pkg")) {
                 parts.installed = what == "install";
@@ -684,6 +864,13 @@ impl Store {
     }
 
     fn open(&self, a: &Value) {
+        if s(a, "source") == "flathub" {
+            vyntaris_ui::launch(&["flatpak", "run", s(a, "pkg")]);
+            if let Some(w) = self.win.borrow().as_ref() {
+                w.close();
+            }
+            return;
+        }
         let id = s(a, "id");
         let id = if id.ends_with(".desktop") { id.to_string() } else { format!("{id}.desktop") };
         let name = s(a, "name").to_lowercase();
@@ -736,6 +923,15 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
         aur_box: gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build(),
         aur_list: gtk::ListBox::builder().selection_mode(gtk::SelectionMode::None).css_classes(["boxed-list"]).build(),
         aur_offer: gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(12).margin_top(12).visible(false).build(),
+        flatpak_on: Cell::new(vyntaris_core::settings::Settings::load().bool("apps.flatpak", false)),
+        flatpak_ready: Cell::new(false),
+        getting_flatpak: Cell::new(false),
+        flathub_results: RefCell::default(),
+        flathub_asked: Cell::new(0),
+        flatpaks: RefCell::default(),
+        flathub_box: gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).visible(false).build(),
+        flathub_list: gtk::ListBox::builder().selection_mode(gtk::SelectionMode::None).css_classes(["boxed-list"]).build(),
+        flathub_offer: gtk::Box::builder().orientation(gtk::Orientation::Horizontal).spacing(12).margin_top(12).visible(false).build(),
         empty: gtk::Label::builder().css_classes(["dim-label"]).margin_top(48).build(),
     });
     st.load();
@@ -783,9 +979,22 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
     offer.connect_clicked(move |_| s2.offer_aur());
     st.aur_offer.append(&offer_note);
     st.aur_offer.append(&offer);
+    let flathub_heading = gtk::Label::builder().label(tr("From Flathub")).xalign(0.0).css_classes(["heading"]).margin_top(12).build();
+    let flathub_note = gtk::Label::builder().label(tr("Apps in a sandbox of their own, installed for you only."))
+        .xalign(0.0).wrap(true).css_classes(["dim-label", "caption"]).build();
+    st.flathub_box.append(&flathub_heading);
+    st.flathub_box.append(&flathub_note);
+    st.flathub_box.append(&st.flathub_list);
+    let flathub_offer_note = gtk::Label::builder().label(tr("Not here? Flathub, apps packed by their makers, may have it."))
+        .xalign(0.0).wrap(true).hexpand(true).css_classes(["dim-label"]).build();
+    let flathub_offer = gtk::Button::builder().label(tr("Search Flathub too…")).valign(gtk::Align::Center).build();
+    let s2 = st.clone();
+    flathub_offer.connect_clicked(move |_| s2.offer_flathub());
+    st.flathub_offer.append(&flathub_offer_note);
+    st.flathub_offer.append(&flathub_offer);
     let page = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(12)
         .margin_top(18).margin_bottom(24).margin_start(18).margin_end(18).build();
-    for w in [top.upcast_ref::<gtk::Widget>(), st.message.upcast_ref(), st.list.upcast_ref(), st.aur_box.upcast_ref(), st.aur_offer.upcast_ref(), st.empty.upcast_ref()] {
+    for w in [top.upcast_ref::<gtk::Widget>(), st.message.upcast_ref(), st.list.upcast_ref(), st.flathub_box.upcast_ref(), st.flathub_offer.upcast_ref(), st.aur_box.upcast_ref(), st.aur_offer.upcast_ref(), st.empty.upcast_ref()] {
         page.append(w);
     }
     let scroll = gtk::ScrolledWindow::builder().hscrollbar_policy(gtk::PolicyType::Never).vexpand(true)
@@ -819,9 +1028,12 @@ fn build(app: &adw::Application) -> adw::ApplicationWindow {
     glib::spawn_future_local(async move {
         let helper = ["yay", "paru"].into_iter().find(|h| vyntaris_ui::which(h)).unwrap_or("");
         *s2.aur.borrow_mut() = helper.to_string();
+        s2.flatpak_ready.set(vyntaris_ui::which("flatpak") && flathub_there().await);
         s2.helper_shown();
         s2.show();
         s2.helper_if_missing();
+        s2.flatpak_if_missing();
+        s2.list_flatpaks();
     });
     st.show();
     STORE.with_borrow_mut(|s| *s = Some(st));

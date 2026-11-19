@@ -26,6 +26,11 @@ onscreen pkexec pacman -Syu --noconfirm
 code=$?; asked "$code"
 [ "$code" -eq 0 ] || end failed "$(plain | grep -m1 -iE '^error:' | sed 's/^error: *//')"
 
+# Apps from Flathub are this user's own: no password, and one that fails doesn't fail the rest.
+if command -v flatpak >/dev/null && flatpak remotes --user 2>/dev/null | grep -q '^flathub'; then
+    flatpak update --user -y --noninteractive >> "$log" 2>&1
+fi
+
 # Apps from the AUR aren't built from here: anyone can change a recipe there, so they're built in a terminal where the
 # changes are shown first (Updates: "Review the AUR's changes").
 if [ -n "$helper" ] && command -v "$helper" >/dev/null && [ -n "$("$helper" -Qua 2>/dev/null)" ]; then

@@ -103,5 +103,16 @@ SettingsPage {
         font.pixelSize: Theme.fontSizeLabel
         text: Tr.t("The AUR holds recipes anyone can upload, and Arch doesn't check them: one could install something harmful. The Store shows each one's votes and when it last changed, and asks before it builds one.")
     }
+    SettingsRow {
+        title: Tr.t("Apps from Flathub")
+        Switch { checked: Config.apps.flatpak; onToggled: on => { Config.apps.flatpak = on; Config.saveSoon(); } }
+    }
+    Label {
+        Layout.fillWidth: true
+        wrapMode: Text.Wrap
+        color: Theme.subtext0
+        font.pixelSize: Theme.fontSizeLabel
+        text: Tr.t("Flathub has apps packed by their makers or the community, each in a sandbox of its own, and they update with the rest of the system. The Store shows which are verified by their makers.")
+    }
 
 }

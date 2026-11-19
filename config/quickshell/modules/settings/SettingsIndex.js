@@ -90,6 +90,7 @@ var rows = [
     { page: "apps", title: "File manager" },
     { page: "apps", title: "Editor" },
     { page: "apps", title: "Apps from the AUR" },
+    { page: "apps", title: "Apps from Flathub" },
     { page: "startup", title: "An app" },
     { page: "startup", title: "Command" },
     { page: "input", title: "Keyboard layout" },
