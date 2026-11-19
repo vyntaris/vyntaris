@@ -49,7 +49,7 @@ Scope {
         title: Tr.t("Locked")
         layoutCode: Keyboard.multiple ? Keyboard.code : ""
         battery: Battery.available ? Battery.percent : -1
-        charging: Battery.charging && !Battery.full
+        charging: Battery.charging && !Battery.plugged
         onLayoutClicked: Keyboard.next()
     }
     component Widgets: LockWidgets {

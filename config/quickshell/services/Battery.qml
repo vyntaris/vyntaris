@@ -15,21 +15,27 @@ Singleton {
     readonly property int percent: device?.ready ? Math.round(device.percentage * 100) : 0
     readonly property string status: !device?.ready || device.state === UPowerDeviceState.Unknown ? ""
         : device.state === UPowerDeviceState.FullyCharged ? "Full"
-        : device.state === UPowerDeviceState.Charging ? "Charging" : "Discharging"
-    readonly property bool charging: status === "Charging" || status === "Full"
+        : device.state === UPowerDeviceState.Charging ? "Charging"
+        // on the charger but not charging (a charge limit reached)
+        : device.state === UPowerDeviceState.PendingCharge ? "Plugged" : "Discharging"
+    readonly property bool charging: status === "Charging" || status === "Full" || status === "Plugged"
     readonly property bool full: status === "Full"
+    readonly property bool plugged: status === "Full" || status === "Plugged"
 
     property real energyNow: 0
     property real energyFull: 0
     property real energyDesign: 0
-    property real power: 0
+    property real rawPower: 0
+    // some firmware (Dell) often reads 0 W: UPower's averaged rate then
+    readonly property real power: rawPower > 0.1 ? rawPower : Math.abs(device?.changeRate ?? 0)
     property int cycles: -1
     property string model: ""
 
     readonly property real health: energyDesign > 0 ? energyFull / energyDesign : -1
-    readonly property real hoursLeft: power <= 0.1 ? -1
-        : charging ? Math.max(0, energyFull - energyNow) / power
-        : energyNow / power
+    readonly property real upowerLeft: !device?.ready ? 0 : charging ? device.timeToFull : device.timeToEmpty
+    readonly property real hoursLeft: power > 0.1
+        ? (charging ? Math.max(0, energyFull - energyNow) / power : energyNow / power)
+        : upowerLeft > 0 ? upowerLeft / 3600 : -1
 
     Process {
         running: true
@@ -64,13 +70,15 @@ Singleton {
                     root.energyNow = num("energy_now") / 1e6;
                     root.energyFull = num("energy_full") / 1e6;
                     root.energyDesign = num("energy_full_design") / 1e6;
-                    root.power = Math.abs(num("power_now") || 0) / 1e6;
+                    root.rawPower = Math.abs(num("power_now") || 0) / 1e6;
                 } else if (v.charge_now !== undefined) {
                     root.energyNow = num("charge_now") / 1e6 * volts;
                     root.energyFull = num("charge_full") / 1e6 * volts;
                     root.energyDesign = num("charge_full_design") / 1e6 * volts;
-                    root.power = Math.abs(num("current_now") || 0) / 1e6 * volts;
+                    root.rawPower = Math.abs(num("current_now") || 0) / 1e6 * volts;
                 }
+                // firmware that doesn't count (Dell) says 0: a worn battery has cycled, so unknown
+                if (root.cycles === 0 && root.health >= 0 && root.health < 0.9) root.cycles = -1;
             }
         }
     }

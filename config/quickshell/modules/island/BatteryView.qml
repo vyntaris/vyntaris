@@ -30,7 +30,7 @@ Item {
 
     PanelHeader {
         icon: "battery"
-        title: root.b.full ? Tr.t("Full") : root.b.charging ? Tr.t("Charging") : Tr.t("Battery")
+        title: root.b.full ? Tr.t("Full") : root.b.plugged ? Tr.t("Plugged in") : root.b.charging ? Tr.t("Charging") : Tr.t("Battery")
     }
 
     PanelBody {
@@ -55,7 +55,7 @@ Item {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignRight
                     font.weight: Font.DemiBold
-                    text: root.b.full ? Tr.t("Plugged in")
+                    text: root.b.plugged ? Tr.t("Plugged in")
                         : root.b.hoursLeft < 0 ? Tr.t("Estimating…")
                         : root.duration(root.b.hoursLeft) + (root.b.charging ? Tr.t(" until full") : Tr.t(" remaining"))
                 }
