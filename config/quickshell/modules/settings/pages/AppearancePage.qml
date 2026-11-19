@@ -128,6 +128,7 @@ SettingsPage {
     }
     // Rolls out under the accents when the ring is clicked, and back in on the next click.
     SettingsRow {
+        title: Tr.t("Custom color")
         id: customRow
         readonly property bool shown: page.open === "accent"
         reveal: shown ? 1 : 0
@@ -137,7 +138,6 @@ SettingsPage {
                 easing.bezierCurve: Theme.curveStandard
             }
         }
-        title: Tr.t("Custom color")
         ColumnLayout {
             spacing: Theme.space10
             ColorRing {
