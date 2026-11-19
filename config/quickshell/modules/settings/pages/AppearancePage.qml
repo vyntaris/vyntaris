@@ -138,19 +138,11 @@ SettingsPage {
                 easing.bezierCurve: Theme.curveStandard
             }
         }
-        ColumnLayout {
-            spacing: Theme.space10
-            ColorRing {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.topMargin: Theme.space8
-                size: 96
-                color: page.customAccent ? Theme.accentName : ""
-                onPicked: c => { Config.setAccent(c); hexField.text = c; }
-            }
+        RowLayout {
+            spacing: Theme.space16
             Field {
                 id: hexField
-                Layout.alignment: Qt.AlignHCenter
-                Layout.bottomMargin: Theme.space8
+                Layout.alignment: Qt.AlignVCenter
                 implicitWidth: 120
                 mono: true
                 placeholder: "#89b4fa"
@@ -166,6 +158,13 @@ SettingsPage {
                     const hex = /^#?[0-9a-fA-F]{6}$/.test(text.trim()) ? page.hex(text) : "";
                     if (hex && hex !== Theme.accentName) Config.setAccent(hex);
                 }
+            }
+            ColorRing {
+                Layout.topMargin: Theme.space8
+                Layout.bottomMargin: Theme.space8
+                size: 96
+                color: page.customAccent ? Theme.accentName : ""
+                onPicked: c => { Config.setAccent(c); hexField.text = c; }
             }
         }
     }
