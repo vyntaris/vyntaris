@@ -113,12 +113,14 @@ Item {
                 font.pixelSize: Theme.fontSizeLabel
                 text: root.b.health >= 0 ? Math.round(root.b.health * 100) + "%" : "—"
             }
-            Rectangle { implicitWidth: 1; implicitHeight: 12; color: Theme.hairlineOn(parent) }
-            Label { overline: true; color: Theme.overlay1; text: Tr.t("Cycles") }
+            // hidden when the firmware doesn't count them (Dell)
+            Rectangle { visible: root.b.cycles >= 0; implicitWidth: 1; implicitHeight: 12; color: Theme.hairlineOn(parent) }
+            Label { visible: root.b.cycles >= 0; overline: true; color: Theme.overlay1; text: Tr.t("Cycles") }
             Label {
+                visible: root.b.cycles >= 0
                 mono: true
                 font.pixelSize: Theme.fontSizeLabel
-                text: root.b.cycles >= 0 ? root.b.cycles : "—"
+                text: root.b.cycles
             }
         }
 
