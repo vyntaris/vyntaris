@@ -1150,5 +1150,7 @@
  "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Pas encore permis : redémarrez une fois après avoir configuré Vyntaris (cela permet de le changer)",
  "The defaults are in use. What the file held is kept in": "Les valeurs par défaut sont utilisées. Le contenu du fichier est gardé dans",
  "Your settings couldn't be read": "Vos réglages n'ont pas pu être lus",
+ "{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.": "{0} se trouve dans le dépôt 32 bits d'Arch (multilib), qui est désactivé. Tapez « set up games » dans le lanceur pour l'activer.",
+ "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} se trouve dans le dépôt « {1} » d'Arch, qui est désactivé dans /etc/pacman.conf.",
  "Rotation": "Rotation"
 }

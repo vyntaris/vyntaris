@@ -115,6 +115,23 @@ fn day(unix: i64) -> String {
         .and_then(|d| d.format("%-d %b %Y").ok()).map(|d| d.to_string()).unwrap_or_default()
 }
 
+// An app from a repository pacman doesn't read (multilib, off by an admin): why it can't be installed.
+fn repo_off(a: &Value) -> Option<String> {
+    let repo = s(a, "repo");
+    if repo.is_empty() || s(a, "source") == "aur" {
+        return None;
+    }
+    let out = std::process::Command::new("pacman-conf").arg("--repo-list").output().ok().filter(|o| o.status.success())?;
+    if String::from_utf8_lossy(&out.stdout).split_whitespace().any(|r| r == repo) {
+        return None;
+    }
+    Some(if repo == "multilib" {
+        trf!("{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.", s(a, "name"))
+    } else {
+        trf!("{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.", s(a, "name"), repo)
+    })
+}
+
 fn now() -> i64 {
     glib::DateTime::now_local().map(|d| d.to_unix()).unwrap_or(0)
 }
@@ -129,7 +146,9 @@ impl Store {
 
     fn opened(self: &Rc<Self>) {
         let fresh = std::fs::metadata(catalogue()).and_then(|m| m.modified()).ok()
-            .and_then(|t| t.elapsed().ok()).is_some_and(|age| age < Duration::from_secs(86400));
+            .and_then(|t| t.elapsed().ok()).is_some_and(|age| age < Duration::from_secs(86400))
+            // made before it knew each app's repository
+            && self.apps.borrow().first().is_none_or(|a| a.get("repo").is_some());
         if !fresh && !self.indexing.get() {
             self.index(&[]);
         }
@@ -523,6 +542,12 @@ impl Store {
             self.watch_aur(450);
             return;
         }
+        if what == "install"
+            && let Some(why) = repo_off(a)
+        {
+            self.say(&why, true);
+            return;
+        }
         *self.busy.borrow_mut() = pkg.clone();
         *self.busy_what.borrow_mut() = what.to_string();
         self.progress.set(-1.0);
@@ -596,7 +621,7 @@ impl Store {
             self.say(&if what == "install" { trf!("{0} is installed.", name) } else { trf!("{0} is removed.", name) }, false);
         } else if code == 126 || code == 127 {
             self.say(&tr("Cancelled."), false);
-        } else if has("failed retrieving file|404|not found in sync db") {
+        } else if has("failed retrieving file|404|not found in sync db|target not found") {
             self.say(&tr("The package lists are out of date: update the system first (the update panel), then try again."), true);
         } else if has("breaks dependency|required by") {
             self.say(&trf!("{0} is needed by something else on the system, so it stays.", name), true);

@@ -1150,5 +1150,7 @@
  "Not allowed yet: restart once after setting Vyntaris up (that lets you switch this)": "Noch nicht erlaubt: starte nach der Einrichtung von Vyntaris einmal neu (dann lässt es sich umschalten)",
  "The defaults are in use. What the file held is kept in": "Es gelten die Standardwerte. Der Inhalt der Datei liegt in",
  "Your settings couldn't be read": "Deine Einstellungen konnten nicht gelesen werden",
+ "{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.": "{0} liegt in Archs 32-Bit-Repository (multilib), das ausgeschaltet ist. Tippe „set up games“ in den Starter, um es einzuschalten.",
+ "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} liegt in Archs Repository „{1}“, das in /etc/pacman.conf ausgeschaltet ist.",
  "Rotation": "Drehung"
 }

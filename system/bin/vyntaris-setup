@@ -399,6 +399,7 @@ fi
 step "Vyntaris"
 install -m644 "$SHARE/os-release" /etc/os-release
 "$LIB/pacman-candy.sh" /etc/pacman.conf
+"$LIB/multilib.sh" /etc/pacman.conf
 if ! grep -q '^\[vyntaris\]' /etc/pacman.conf; then
     printf '\n# Vyntaris: the desktop and its updates\n[vyntaris]\nSigLevel = Required DatabaseOptional\nServer = %s\n' "$REPO_URL" >> /etc/pacman.conf
     note "package repository added"

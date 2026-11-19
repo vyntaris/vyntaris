@@ -31,6 +31,8 @@ post_upgrade() {
         install -m644 /usr/share/vyntaris/greetd/config.toml /etc/greetd/config.toml
     fi
     _global_once
+    # Steam and Wine from the Store; the package lists come with the next update
+    /usr/lib/vyntaris/multilib.sh /etc/pacman.conf || true
     # nvidia_drm took the card's PCI id too, and loaded the driver at boot: the card never slept
     _f=/etc/modprobe.d/vyntaris-nvidia-on-demand.conf
     if [ "$(cat "$_f" 2>/dev/null)" = "blacklist nvidia" ]; then
