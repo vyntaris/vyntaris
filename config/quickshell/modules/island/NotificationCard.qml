@@ -73,8 +73,10 @@ Item {
         height: body.implicitHeight + 22
         radius: Theme.r(16)
         opacity: 1 - Math.min(1, Math.abs(offset) / width) * 0.9
-        readonly property color fill: hover.hovered ? Theme.tint(parent, Theme.text, 0.075) : Theme.tint(parent, Theme.text, 0.045)
-        readonly property color edge: root.critical ? Theme.tint(parent, Theme.error, 0.5) : hover.hovered ? Theme.tint(parent, Theme.accent, 0.3) : Theme.rimOn(parent)
+        // A critical one is reddish all over, with the same quiet edge as the rest.
+        readonly property color fill: root.critical ? Theme.tint(parent, Theme.error, hover.hovered ? 0.2 : 0.14)
+            : hover.hovered ? Theme.tint(parent, Theme.text, 0.075) : Theme.tint(parent, Theme.text, 0.045)
+        readonly property color edge: hover.hovered && !root.critical ? Theme.tint(parent, Theme.accent, 0.3) : Theme.rimOn(parent)
         color: cardSlant.on ? "transparent" : fill
         border { width: cardSlant.on ? 0 : 1; color: edge }
         Slanted { id: cardSlant; fill: card.fill; stroke: card.edge; radius: card.radius }
