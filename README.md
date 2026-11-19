@@ -513,6 +513,13 @@ built and installed without a terminal (`scripts/aur-install.sh`). The build too
 come only when the first AUR app needs them; builds make no `-debug` packages
 (`/etc/makepkg.conf.d/vyntaris.conf`), and yay takes out what it installed only to build.
 
+**Flathub is off until it's turned on too** (Settings → Apps → Apps from Flathub, `apps.flatpak`, or the Store's
+"Search Flathub too…"); the AUR and Flathub are each the user's choice. Turned on, Flatpak is installed once
+(`scripts/flatpak-setup.sh`, the only password it asks) with Flathub as this user's remote. A search then also asks
+Flathub's API, its results in a section of their own with their real icons (kept in `~/.cache/vyntaris/flathub-icons`)
+and whether their makers verified them. They install with `flatpak install --user`, without a password, and open
+with `flatpak run`.
+
 ### Calendar
 
 Calendar (`calendar.qml`, made by the shell like Settings) shows a week by the hour: a click on an empty hour adds an event there, a click
@@ -748,11 +755,12 @@ held. Without the list (no connection to it), nothing is held.
    restarts when Vyntaris itself updates, and pacman must not go with it halfway.
 2. `pkexec pacman -Syu --noconfirm` asks for the password in the shell's dialog. Closing the dialog
    cancels the update; it isn't counted as a failure.
-3. If AUR packages have updates, `base-devel` is installed first if it's missing, then yay builds
+3. Apps from Flathub update with `flatpak update --user`; one that fails doesn't fail the rest.
+4. If AUR packages have updates, `base-devel` is installed first if it's missing, then yay builds
    them as you and asks the same way to install.
-4. The output goes to `$XDG_RUNTIME_DIR/vyntaris-upgrade/log` and the outcome (ok, cancelled or
+5. The output goes to `$XDG_RUNTIME_DIR/vyntaris-upgrade/log` and the outcome (ok, cancelled or
    failed) to `…/result`.
-5. A notification says "Up to date". If it failed, it gives pacman's first `error:` line and offers to
+6. A notification says "Up to date". If it failed, it gives pacman's first `error:` line and offers to
    finish in a terminal, for whatever pacman wants answered (a conflict, a replacement).
 
 **While it runs**, the island shows pacman at work (`scripts/pacman-progress.sh`, read from

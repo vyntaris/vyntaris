@@ -217,6 +217,7 @@ Singleton {
                 property string browser: "firefox"
                 property string editor: "code"
                 property bool aur: false
+                property bool flatpak: false
             }
 
             property JsonObject input: JsonObject {
