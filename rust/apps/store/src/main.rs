@@ -297,13 +297,14 @@ impl Store {
 
     fn icon(a: &Value) -> gtk::Image {
         let icon = s(a, "icon");
+        let fallback = if s(a, "source") == "aur" { "package-x-generic" } else { "application-x-executable" };
         let image = if let Some(name) = icon.strip_prefix("theme:") {
             let theme = gtk::IconTheme::for_display(&gtk::gdk::Display::default().expect("a display"));
-            gtk::Image::from_icon_name(if theme.has_icon(name) { name } else { "application-x-executable" })
+            gtk::Image::from_icon_name(if theme.has_icon(name) { name } else { fallback })
         } else if !icon.is_empty() && std::path::Path::new(icon).exists() {
             gtk::Image::from_file(icon)
         } else {
-            gtk::Image::from_icon_name("application-x-executable")
+            gtk::Image::from_icon_name(fallback)
         };
         image.set_pixel_size(40);
         image.add_css_class("icon-dropshadow");
