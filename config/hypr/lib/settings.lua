@@ -61,6 +61,11 @@ local function tidy(s)
                     or type(m.scale) == "number" and m.scale == m.scale and clamp(m.scale, 0.5, 4) or nil,
                 -- 0, 90, 180 or 270 degrees
                 transform = (m.transform == 1 or m.transform == 2 or m.transform == 3) and m.transform or nil,
+                color = (m.color == "srgb" or m.color == "wide" or m.color == "edid" or m.color == "hdr") and m.color or nil,
+                bitdepth = m.bitdepth == 10 and 10 or nil,
+                sdrBrightness = type(m.sdrBrightness) == "number" and m.sdrBrightness == m.sdrBrightness
+                    and clamp(m.sdrBrightness, 0.5, 3) or nil,
+                icc = type(m.icc) == "string" and m.icc:match("^/.+%.ic[cm]$") and m.icc or nil,
             }
         end
     end
