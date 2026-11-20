@@ -20,4 +20,8 @@ SettingsPage {
             Switch { checked: Config.lock.widgets; onToggled: on => { Config.lock.widgets = on; Config.saveSoon(); } }
         }
     }
+    SettingsRow {
+        title: Tr.t("Unlock without Enter")
+        Switch { checked: Config.lock.autoUnlock; onToggled: on => { Config.lock.autoUnlock = on; Config.saveSoon(); } }
+    }
 }

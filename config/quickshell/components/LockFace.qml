@@ -21,6 +21,8 @@ Item {
     // The other people who can log in here ({ name, full }), to switch to; `userPicked` says who.
     property var others: []
     property bool active: true
+    // Sends by itself once this many are typed (0: only on Enter).
+    property int autoLength: 0
     property var tr: s => s
     property var dateOf: d => Tr.dates.toString(d, "dddd, d MMMM")
     readonly property string timeFormat: (Config.bar.clockFormat || "HH:mm").replace(":ss", "")
@@ -206,7 +208,10 @@ Item {
                     reveal: root.showPassword
                     enabled: !root.busy
                     focus: root.active
-                    onTextChanged: if (text && root.wrong) root.status = ""
+                    onTextChanged: {
+                        if (text && root.wrong) root.status = "";
+                        if (root.autoLength > 0 && text.length === root.autoLength) root.send();
+                    }
                     onSubmitted: root.send()
                 }
 

@@ -355,6 +355,7 @@ Singleton {
 
             property JsonObject lock: JsonObject {
                 property bool widgets: true
+                property bool autoUnlock: false
             }
 
             property JsonObject power: JsonObject {
