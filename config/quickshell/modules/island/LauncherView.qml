@@ -263,9 +263,17 @@ Item {
             fileSearch.running = true;
         }
     }
+    // Lines come in as they're found (names first, then what's inside), not after the whole walk.
     Process {
         id: fileSearch
-        stdout: StdioCollector { onStreamFinished: root.fileResults = root.parseFiles(text) }
+        property var lines: []
+        onStarted: lines = []
+        onExited: show()
+        function show() {
+            const found = root.parseFiles(lines.join("\n"));
+            root.fileResults = found.filter(f => !f.inside).concat(found.filter(f => f.inside));
+        }
+        stdout: SplitParser { onRead: line => { fileSearch.lines.push(line); fileSearch.show(); } }
     }
     Timer {
         id: docDebounce
@@ -358,6 +366,8 @@ Item {
     Component.onCompleted: if (active) activeChanged()
     onActiveChanged: {
         if (!active) return;
+        // What was saved since the last run is found by what's in it too.
+        Quickshell.execDetached(["systemctl", "--user", "start", "--no-block", "vyntaris-doc-index.service"]);
         categoryIndex = 0;
         applyQuery();
         list.currentIndex = 0;
@@ -530,6 +540,7 @@ Item {
         spacing: Theme.space2
         model: root.results
         keyNavigationWraps: true
+        onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
         boundsBehavior: Flickable.StopAtBounds
         highlightMoveDuration: Theme.durationFast
         highlightResizeDuration: 0
