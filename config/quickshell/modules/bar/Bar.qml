@@ -545,6 +545,13 @@ PanelWindow {
             }
 
             Module {
+                visible: Headphones.connected
+                active: Panels.soundOpen
+                onClicked: Panels.soundOpen = !Panels.soundOpen
+                Icon { name: "headphones"; color: Theme.accentInk }
+            }
+
+            Module {
                 id: btModule
                 visible: Bluetooth.defaultAdapter?.enabled ?? false
                 active: Panels.bluetoothOpen
