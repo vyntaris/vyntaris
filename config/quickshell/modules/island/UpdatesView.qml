@@ -212,7 +212,7 @@ Item {
         spacing: Theme.space12
 
         Button {
-            visible: Updates.packages.length > 0 && !Updates.busy
+            visible: Updates.repoWaiting && !Updates.busy
             primary: Updates.held.length === 0
             icon: "arrow-down"
             text: Updates.busy ? Tr.t("Updating…") : Updates.held.length > 0 ? Tr.t("Update anyway") : Tr.t("Update now")
@@ -221,12 +221,14 @@ Item {
         }
         Button {
             visible: Updates.aurWaiting && !Updates.busy
+            // Only the AUR's left: this is the update, in a terminal where its changes are seen first.
+            primary: !Updates.repoWaiting
             icon: "terminal"
             text: Tr.t("Review the AUR's changes")
             onClicked: { Panels.updatesOpen = false; Updates.reviewAur(); }
         }
         Button {
-            visible: Updates.lastResult === "failed" && !Updates.busy && Updates.packages.length > 0
+            visible: Updates.lastResult === "failed" && !Updates.busy && Updates.repoWaiting
             icon: "terminal"
             text: Tr.t("Finish in a terminal")
             onClicked: { Panels.updatesOpen = false; Updates.upgradeInTerminal(); }

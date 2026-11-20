@@ -44,10 +44,11 @@ Singleton {
     // The AUR's updates with their changes shown before anything is built (yay's diff, paru's review).
     function reviewAur() {
         if (!aurHelper) return;
-        const cmd = aurHelper === "paru" ? "paru -Sua --review" : "yay -Sua --diffmenu --answerdiff All";
+        const cmd = aurHelper === "paru" ? "paru -Syu --review" : "yay -Syu --diffmenu --answerdiff All";
         Config.runInTerminal(`${cmd}; ${Config.enterToClose(true)}`);
     }
     readonly property bool aurWaiting: packages.some(p => p.aur)
+    readonly property bool repoWaiting: packages.some(p => !p.aur)
 
     function upgradeInTerminal() {
         const cmd = aurHelper ? `${aurHelper} -Syu` : "sudo pacman -Syu";

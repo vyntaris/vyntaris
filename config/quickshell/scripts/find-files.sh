@@ -9,14 +9,14 @@ if [ "$what" = indexed ]; then
     exit 0
 fi
 if [ "$what" != contents ]; then
-    timeout 4 find "$HOME" -xdev -maxdepth 6 \( -name ".*" -o -name node_modules -o -name target \) -prune \
-        -o -iname "*$q*" -printf "%y %p\n" 2>/dev/null | sed 's/^\([^d]\) /f /' | head -n "$limit"
+    timeout 4 stdbuf -oL find "$HOME" -xdev -maxdepth 6 \( -name ".*" -o -name node_modules -o -name target \) -prune \
+        -o -iname "*$q*" -printf "%y %p\n" 2>/dev/null | sed -u 's/^\([^d]\) /f /' | head -n "$limit"
 fi
 if [ "$what" != names ] && [ "${#q}" -ge 3 ]; then
     /usr/lib/vyntaris/doc-index search "$q" "$limit" 2>/dev/null | cut -f1 | sed 's/^/c /'
     if command -v rg >/dev/null; then
-        timeout 3 rg -l -i -F --max-filesize 4M --max-depth 8 --max-count 1 -- "$q" "$HOME" 2>/dev/null
+        timeout 3 rg -l -i -F --line-buffered --max-filesize 4M --max-depth 8 --max-count 1 -- "$q" "$HOME" 2>/dev/null
     else
-        timeout 3 grep -rIl -i -F -m 1 --exclude-dir='.*' --exclude-dir=node_modules -- "$q" "$HOME" 2>/dev/null
-    fi | head -n "$limit" | sed 's/^/c /'
+        timeout 3 grep -rIl -i -F -m 1 --line-buffered --exclude-dir='.*' --exclude-dir=node_modules -- "$q" "$HOME" 2>/dev/null
+    fi | head -n "$limit" | sed -u 's/^/c /'
 fi
