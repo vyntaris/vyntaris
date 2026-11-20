@@ -118,6 +118,9 @@ package() {
     install -Dm755 "$srcdir/target/release/vyntaris-drivers" "$d/usr/lib/vyntaris/drivers"
     install -Dm644 -t "$d/usr/lib/systemd/system" "$r/system/drivers/vyntaris-drivers.service" \
         "$r/system/drivers/vyntaris-drivers.timer"
+    install -Dm755 "$r/system/nvidia-idle/nvidia-idle.sh" "$d/usr/lib/vyntaris/nvidia-idle"
+    install -Dm644 -t "$d/usr/lib/systemd/system" "$r/system/nvidia-idle/vyntaris-nvidia-idle.service" \
+        "$r/system/nvidia-idle/vyntaris-nvidia-idle.path"
     install -Dm644 "$r/system/drivers/90-vyntaris-drivers.rules" "$d/usr/lib/udev/rules.d/90-vyntaris-drivers.rules"
 
     install -Dm755 "$r/system/gaming/gaming.sh" "$d/usr/lib/vyntaris/gaming"

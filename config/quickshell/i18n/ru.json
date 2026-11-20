@@ -125,7 +125,7 @@
  "Authenticate": "Подтвердить",
  "Authentication required": "Требуется подтверждение",
  "Auto": "Авто",
- "Awake for a moment: an app checked it as it started. It sleeps again by itself.": "Ненадолго проснулась: приложение проверило её при запуске. Снова уснёт сама.",
+ "Awake: an app checked it as it started. No app uses it now, so it goes back to sleep in a few seconds.": "Активна: приложение проверило её при запуске. Сейчас её не использует ни одно приложение, поэтому она уснёт через несколько секунд.",
  "Away": "Нет на месте",
  "Back": "Назад",
  "Back to its own keys": "Вернуть свои клавиши",

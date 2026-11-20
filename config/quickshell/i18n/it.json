@@ -126,7 +126,7 @@
  "Authenticate": "Autentica",
  "Authentication required": "Autenticazione richiesta",
  "Auto": "Automatico",
- "Awake for a moment: an app checked it as it started. It sleeps again by itself.": "Sveglia per un attimo: un’app l’ha interrogata all’avvio. Torna a dormire da sola.",
+ "Awake: an app checked it as it started. No app uses it now, so it goes back to sleep in a few seconds.": "Attiva: un'app l'ha controllata all'avvio. Ora nessuna app la usa, quindi torna a dormire tra pochi secondi.",
  "Away": "Fuori portata",
  "Back": "Indietro",
  "Back to this month": "Torna a questo mese",
