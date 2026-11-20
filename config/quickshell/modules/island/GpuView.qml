@@ -25,7 +25,7 @@ Item {
             font.pixelSize: Theme.fontSizeSmall
             color: Theme.subtext0
             text: !Gpu.awake ? Tr.t("Asleep: it uses no power.")
-                : Tr.t("Awake: an app checked it as it started. No app uses it now, so it goes back to sleep within a minute.")
+                : Tr.t("Awake: an app checked it as it started. No app uses it now, so it goes back to sleep in a few seconds.")
         }
 
         Repeater {

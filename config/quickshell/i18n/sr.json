@@ -126,7 +126,7 @@
  "Authenticate": "Potvrdi",
  "Authentication required": "Potrebna je potvrda",
  "Auto": "Automatski",
- "Awake: an app checked it as it started. No app uses it now, so it goes back to sleep within a minute.": "Budna: neka aplikacija ju je proverila pri pokretanju. Sad je nijedna aplikacija ne koristi, pa ponovo zaspi u roku od minuta.",
+ "Awake: an app checked it as it started. No app uses it now, so it goes back to sleep in a few seconds.": "Budna: neka aplikacija ju je proverila pri pokretanju. Sad je nijedna aplikacija ne koristi, pa ponovo zaspi za nekoliko sekundi.",
  "Away": "Van dometa",
  "Back": "Nazad",
  "Back to this month": "Nazad na ovaj mesec",

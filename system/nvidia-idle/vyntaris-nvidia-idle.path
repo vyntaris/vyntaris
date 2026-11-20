@@ -1,0 +1,10 @@
+[Unit]
+Description=NVIDIA card back to sleep once no app uses it
+
+[Path]
+# an app closed it
+PathChanged=/dev/nvidiactl
+Unit=vyntaris-nvidia-idle.service
+
+[Install]
+WantedBy=paths.target
