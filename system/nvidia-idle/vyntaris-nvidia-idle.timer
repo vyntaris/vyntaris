@@ -1,0 +1,10 @@
+[Unit]
+Description=NVIDIA card back to sleep once no app uses it
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=30s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

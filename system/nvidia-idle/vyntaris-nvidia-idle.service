@@ -1,0 +1,6 @@
+[Unit]
+Description=NVIDIA card back to sleep once no app uses it
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/vyntaris/nvidia-idle

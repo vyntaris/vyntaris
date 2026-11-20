@@ -363,7 +363,7 @@ if [ "$mode" = refresh ]; then
     [ -f /etc/kernel/cmdline ] && boot_menu
     shutdown_quick
     "$LIB/snapshots" >/dev/null 2>&1 || true
-    enable vyntaris-drivers.timer paccache.timer
+    enable vyntaris-drivers.timer paccache.timer vyntaris-nvidia-idle.timer
     upkeep_timers
     memory_reserve
     nvidia_on_demand
@@ -418,7 +418,7 @@ fi
 step "Services"
 enable NetworkManager.service bluetooth.service power-profiles-daemon.service reflector.timer \
     nftables.service vyntaris-laptop-switches.service cups.socket avahi-daemon.service \
-    fwupd-refresh.timer paccache.timer systemd-oomd.service
+    fwupd-refresh.timer paccache.timer systemd-oomd.service vyntaris-nvidia-idle.timer
 upkeep_timers
 memory_reserve
 nvidia_on_demand
