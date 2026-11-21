@@ -26,10 +26,12 @@ Singleton {
         running: true
         command: ["sh", "-c", "pactl get-default-sink; pactl -f json list sinks"]
         stdout: StdioCollector {
+            // No sound server (or none yet) gives nothing to read: then there are no headphones.
             onStreamFinished: {
                 const nl = text.indexOf("\n");
-                try { root.update(text.slice(0, nl).trim(), JSON.parse(text.slice(nl + 1))); }
-                catch (e) { console.warn("headphones:", e); }
+                let sinks = [];
+                try { sinks = JSON.parse(text.slice(nl + 1)); } catch (e) {}
+                root.update(nl < 0 ? "" : text.slice(0, nl).trim(), Array.isArray(sinks) ? sinks : []);
             }
         }
     }
