@@ -29,11 +29,25 @@ Scope {
     readonly property bool open: (agent?.isActive ?? false) && flow !== null
     property bool showPassword: false
 
+    // Without Enter, as on the lock screen: when typing stops for a moment a hidden password is checked quietly, and
+    // a wrong one shows nothing. Each check is a try for the lockout, so not for a few letters or twice for the same.
+    readonly property bool checkWhenPaused: Config.lock.autoUnlock && !(flow?.responseVisible ?? false)
+    property bool quiet: false
+    property string checked: ""
+
     function submit() {
         if (!flow?.isResponseRequired || !field.text) return;
+        quiet = false;
         flow.submit(field.text);
         field.text = "";
     }
+    function submitQuietly() {
+        if (!checkWhenPaused || !flow?.isResponseRequired || field.text.length < 4 || field.text === checked) return;
+        checked = field.text;
+        quiet = true;
+        flow.submit(field.text);
+    }
+    Timer { id: pause; interval: 600; onTriggered: root.submitQuietly() }
     function cancel() {
         field.text = "";
         flow?.cancelAuthenticationRequest();
@@ -41,11 +55,14 @@ Scope {
 
     Connections {
         target: root.flow
-        function onAuthenticationFailed() { shake.restart(); }
-        function onIsResponseRequiredChanged() { if (root.flow?.isResponseRequired) focusTimer.restart(); }
+        function onAuthenticationFailed() { if (!root.quiet) shake.restart(); }
+        // Ready for another: typing went on during a quiet check, so check what's there now.
+        function onIsResponseRequiredChanged() { if (root.flow?.isResponseRequired) { focusTimer.restart(); if (root.quiet) pause.restart(); } }
     }
     onOpenChanged: {
         showPassword = false;
+        quiet = false;
+        checked = "";
         if (open) focusTimer.restart(); else field.text = "";
     }
 
@@ -91,7 +108,7 @@ Scope {
             width: 420
             height: body.implicitHeight + 48
             radius: Theme.r(20)
-            border { width: 1; color: root.flow?.failed ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
+            border { width: 1; color: root.flow?.failed && !root.quiet ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
             color: Theme.isDark ? Theme.crust : Theme.base
             transform: Translate { id: shakeShift }
             scale: root.open ? 1 : 0.94
@@ -152,11 +169,13 @@ Scope {
                     PasswordCells {
                         id: field
                         Layout.fillWidth: true
-                        wrong: (root.flow?.failed ?? false) && field.text === ""
+                        wrong: (root.flow?.failed ?? false) && field.text === "" && !root.quiet
                         reveal: root.showPassword || (root.flow?.responseVisible ?? false)
-                        enabled: root.flow?.isResponseRequired ?? false
+                        // Open to typing during a quiet check too.
+                        enabled: (root.flow?.isResponseRequired ?? false) || root.quiet
                         Keys.onEscapePressed: root.cancel()
                         onSubmitted: root.submit()
+                        onTextChanged: if (root.checkWhenPaused) pause.restart()
                     }
                     IconButton {
                         icon: root.showPassword ? "eye-off" : "eye"
@@ -171,8 +190,9 @@ Scope {
                     visible: text !== ""
                     wrapMode: Text.WordWrap
                     font.pixelSize: Theme.fontSizeSmall
-                    color: root.flow?.failed || root.flow?.supplementaryIsError ? Theme.error : Theme.subtext0
-                    text: root.flow?.failed ? Tr.t("Wrong password") : (root.flow?.supplementaryMessage ?? "")
+                    readonly property bool wrongShown: (root.flow?.failed ?? false) && !root.quiet
+                    color: wrongShown || root.flow?.supplementaryIsError ? Theme.error : Theme.subtext0
+                    text: wrongShown ? Tr.t("Wrong password") : (root.flow?.supplementaryMessage ?? "")
                 }
 
                 RowLayout {

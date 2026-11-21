@@ -21,13 +21,15 @@ Item {
     // The other people who can log in here ({ name, full }), to switch to; `userPicked` says who.
     property var others: []
     property bool active: true
-    // Sends by itself once this many are typed (0: only on Enter).
-    property int autoLength: 0
+    // Without Enter: when typing stops for a moment, what's there is checked quietly (quietSubmit); nothing shows
+    // if it's wrong. Nothing about the password is kept to know when.
+    property bool checkWhenPaused: false
     property var tr: s => s
     property var dateOf: d => Tr.dates.toString(d, "dddd, d MMMM")
     readonly property string timeFormat: (Config.bar.clockFormat || "HH:mm").replace(":ss", "")
 
     signal submit(string password)
+    signal quietSubmit(string password)
     signal layoutClicked()
     signal powerClicked(string action)
     signal userPicked(string name)
@@ -42,7 +44,18 @@ Item {
         if (busy || !input.text) return;
         const pw = input.text;
         input.text = "";
+        pause.stop();
         root.submit(pw);
+    }
+    // Each check counts as a try for the lockout, so not for a few letters, and never twice for the same.
+    property string checked: ""
+    Timer {
+        id: pause
+        interval: 600
+        onTriggered: if (root.checkWhenPaused && !root.busy && input.text.length >= 4 && input.text !== root.checked) {
+            root.checked = input.text;
+            root.quietSubmit(input.text);
+        }
     }
     onWrongChanged: if (wrong) shake.restart()
     onBusyChanged: if (!busy && !wrong) showPassword = false
@@ -210,7 +223,7 @@ Item {
                     focus: root.active
                     onTextChanged: {
                         if (text && root.wrong) root.status = "";
-                        if (root.autoLength > 0 && text.length === root.autoLength) root.send();
+                        if (root.checkWhenPaused) pause.restart();
                     }
                     onSubmitted: root.send()
                 }

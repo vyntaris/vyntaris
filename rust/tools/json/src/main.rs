@@ -29,7 +29,7 @@ fn greeter(args: &[String]) -> Value {
     let mut stdin = String::new();
     let _ = std::io::stdin().read_to_string(&mut stdin);
     let s: Value = serde_json::from_str(&stdin).ok().filter(Value::is_object).unwrap_or_else(|| json!({}));
-    let (t, b, a) = (section(&s, "theme"), section(&s, "bar"), section(&s, "accessibility"));
+    let (t, b, a, l) = (section(&s, "theme"), section(&s, "bar"), section(&s, "accessibility"), section(&s, "lock"));
     let arg = |i: usize| args.get(i).cloned().unwrap_or_default();
     let full = if arg(3).is_empty() { arg(0) } else { arg(3) };
     json!({
@@ -44,6 +44,7 @@ fn greeter(args: &[String]) -> Value {
         "inside": or(b, "inside", json!("rounded")),
         "clockFormat": or(b, "clockFormat", json!("HH:mm")),
         "wallpaperAccent": or(t, "wallpaperAccent", json!(false)),
+        "autoUnlock": or(l, "autoUnlock", json!(false)),
     })
 }
 
