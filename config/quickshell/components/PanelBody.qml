@@ -28,6 +28,8 @@ ColumnLayout {
 
     property var blocks: []
     property var kept: []
+    // Rows a Repeater makes anew in a nested column come without margins, and the column's height may stay put.
+    property var watched: []
     function blockOf(item) {
         for (let p = item; p && p !== root; p = p.parent)
             if (blocks.indexOf(p) >= 0) return p;
@@ -66,6 +68,7 @@ ColumnLayout {
             it.Layout.leftMargin = left;
             it.Layout.rightMargin = right;
             // Filling the width, a nested column will sit exactly between its margins; otherwise it's measured.
+            if (nested && watched.indexOf(it) < 0) { watched.push(it); it.childrenChanged.connect(root.refit); }
             if (nested) place(it, it.Layout.fillWidth ? { x: c.x + left, y: y, width: c.width - left - right } : undefined);
             else blocks.push(it);
         }
