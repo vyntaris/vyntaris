@@ -4,7 +4,7 @@ local M = {}
 
 local defaults = {
     theme   = { flavor = "mocha", accent = "mauve", accentLight = "mauve", animationSpeed = 1.5,
-                animationStyle = "snappy",
+                animationStyle = "calm", workspaceSlide = "vertical",
                 cursorTheme = "Bibata-Modern-Ice", cursorSize = 24 },
     apps    = { terminal = "kitty", terminalRun = "kitty", fileManager = "thunar", browser = "firefox", editor = "code" },
     input   = { kbLayout = "us", kbVariant = "", kbOptions = "",
@@ -38,7 +38,7 @@ end
 
 local function tidy(s)
     local t, w, d = s.theme, s.windows, s.display
-    t.animationSpeed = clamp(t.animationSpeed, 0.1, 4)
+    t.animationSpeed = clamp(t.animationSpeed, 0, 4) -- 0 is off
     t.cursorSize = math.floor(clamp(t.cursorSize, 8, 256))
     w.rounding = clamp(w.rounding, 0, 40)
     w.gapsIn = clamp(w.gapsIn, 0, 60)

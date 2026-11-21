@@ -14,6 +14,8 @@ hl = anything("hl")
 rawset(hl, "bind", function (keys, _, opts) binds = binds + 1; print("BIND=" .. tostring(keys)) end)
 rawset(hl, "notification", { create = function (t) notes[#notes + 1] = t.text end })
 rawset(hl, "get_config", function () return nil end)
+rawset(hl, "animation", function (a) print("ANIM=" .. tostring(a.leaf) .. ":" .. tostring(a.style)) end)
+rawset(hl, "config", function (c) if type(c) == "table" and type(c.animations) == "table" then print("ANIMATIONS=" .. tostring(c.animations.enabled)) end end)
 rawset(hl, "exec_cmd", function (cmd) if tostring(cmd):match("notify%-send") then notes[#notes + 1] = cmd end end)
 
 local ok, err = pcall(dofile, dir .. "/hyprland.lua")

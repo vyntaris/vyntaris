@@ -37,7 +37,7 @@ fn greeter(args: &[String]) -> Value {
         "flavor": or(t, "flavor", json!("mocha")), "accent": or(t, "accent", json!("mauve")), "accentLight": or(t, "accentLight", json!("mauve")),
         "font": or(t, "fontFamily", json!("Inter")), "monoFont": or(t, "monoFamily", json!("JetBrains Mono")),
         "fontSize": or(t, "fontSize", json!(13)), "animationSpeed": or(t, "animationSpeed", json!(1.5)),
-        "animationStyle": or(t, "animationStyle", json!("snappy")), "highContrast": or(a, "highContrast", json!(false)),
+        "animationStyle": or(t, "animationStyle", json!("calm")), "highContrast": or(a, "highContrast", json!(false)),
         "barHeight": or(b, "height", json!(28)), "endCurve": or(b, "endCurve", json!(16)),
         "corners": or(b, "corners", json!("round")), "notchStyle": or(b, "notchStyle", json!("slant")),
         "flatIsland": or(b, "flatIsland", json!(false)), "endCorners": or(b, "endCorners", json!(false)),

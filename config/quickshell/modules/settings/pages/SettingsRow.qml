@@ -40,8 +40,11 @@ Item {
     // Cards touch: the page's spacing is taken back between rows of one card.
     Layout.topMargin: first ? Theme.space4 : -(parent?.spacing ?? 0)
     implicitHeight: Math.max(52, row.implicitHeight + 2 * Theme.space10)
-    Layout.preferredHeight: reveal < 1 ? implicitHeight * Math.max(0, reveal) : -1
-    visible: reveal > 0
+    // Whole pixels: the rows under it move with it, and halves of one make them shimmer.
+    readonly property int revealHeight: Math.round(implicitHeight * Math.max(0, reveal))
+    Layout.preferredHeight: reveal < 1 ? revealHeight : -1
+    // Gone once it's under a pixel: a row of no height still splits the card in two.
+    visible: reveal >= 1 || revealHeight > 0
     clip: reveal < 1
     implicitWidth: row.implicitWidth + 2 * Theme.space16
 
@@ -63,6 +66,8 @@ Item {
         anchors { top: parent.top; left: parent.left; right: parent.right; leftMargin: Theme.space16; rightMargin: Theme.space16 }
         height: 1
         color: Theme.base
+        // Fades with a row rolling in or out, so a thin one isn't two lines close together.
+        opacity: Math.min(1, r.reveal)
     }
 
     RowLayout {

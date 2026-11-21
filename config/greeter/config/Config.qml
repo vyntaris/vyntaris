@@ -21,7 +21,7 @@ Singleton {
         readonly property string monoFamily: root.cfg.monoFont || "JetBrains Mono"
         readonly property int fontSize: root.cfg.fontSize || 13
         readonly property real animationSpeed: root.cfg.animationSpeed ?? 1.5
-        readonly property string animationStyle: root.cfg.animationStyle || "snappy"
+        readonly property string animationStyle: root.cfg.animationStyle || "calm"
     }
     readonly property QtObject bar: QtObject {
         readonly property int height: root.cfg.barHeight || 28
