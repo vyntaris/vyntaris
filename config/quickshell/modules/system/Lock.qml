@@ -14,14 +14,24 @@ Scope {
     property string status: ""
     property string pending: ""
     property string previewStatus: ""
-    property int tried: 0
-
+    // A check while typing stopped: shows nothing, and a wrong one changes nothing. `next` is one asked for meanwhile.
+    property bool quiet: false
+    property string next: ""
 
     function tryUnlock(pw) {
         if (status === "checking" || !pw) return;
+        if (pam.active) pam.abort();
+        quiet = false;
+        next = "";
         pending = pw;
-        tried = pw.length;
         status = "checking";
+        pam.start();
+    }
+    function tryQuietly(pw) {
+        if (status === "checking" || !pw) return;
+        if (pam.active) { next = pw; return; }
+        quiet = true;
+        pending = pw;
         pam.start();
     }
 
@@ -36,12 +46,16 @@ Scope {
         }
         onCompleted: result => {
             root.pending = "";
-            if (result === PamResult.Success) { root.status = ""; PasswordLength.remember(root.tried); LockState.unlocked(); return; }
-            PasswordLength.failed(root.tried);
+            if (result === PamResult.Success) { root.status = ""; root.next = ""; LockState.unlocked(); return; }
+            if (root.quiet) {
+                root.quiet = false;
+                if (root.next) { const pw = root.next; root.next = ""; root.tryQuietly(pw); }
+                return;
+            }
             // A message PAM gave (the account waits after too many tries) stays up instead of "wrong".
             if (root.status === "checking") root.status = "wrong";
         }
-        onError: error => { root.pending = ""; root.status = PamError.toString(error); }
+        onError: error => { root.pending = ""; root.quiet = false; root.status = PamError.toString(error); }
     }
 
     component Face: LockFace {
@@ -112,8 +126,9 @@ Scope {
                 visible: surface.primary
                 active: surface.primary
                 status: root.status
-                autoLength: Config.lock.autoUnlock ? PasswordLength.known : 0
+                checkWhenPaused: Config.lock.autoUnlock
                 onSubmit: pw => root.tryUnlock(pw)
+                onQuietSubmit: pw => root.tryQuietly(pw)
             }
             Item {
                 anchors.fill: parent

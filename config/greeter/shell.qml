@@ -35,12 +35,30 @@ ShellRoot {
     }
     property string status: Greetd.available ? "" : "Preview — not under greetd (Esc quits)"
     property string pending: ""
+    // A check while typing stopped (Unlock without Enter): shows nothing, and a wrong one changes nothing.
+    property bool quiet: false
+    property bool asking: false
+    property string next: ""
 
     function login(pw) {
         if (!Greetd.available) { status = "wrong"; return; }
         if (status === "checking" || !user) return;
+        if (asking) Greetd.cancelSession();
+        quiet = false;
+        next = "";
         pending = pw;
         status = "checking";
+        asking = true;
+        Greetd.createSession(user);
+    }
+    // The one asked for during a check, a moment after greetd has let the last session go.
+    Timer { id: later; interval: 200; onTriggered: { const pw = root.next; root.next = ""; root.loginQuietly(pw); } }
+    function loginQuietly(pw) {
+        if (!Greetd.available || status === "checking" || !user) return;
+        if (asking) { next = pw; return; }
+        quiet = true;
+        pending = pw;
+        asking = true;
         Greetd.createSession(user);
     }
 
@@ -51,14 +69,22 @@ ShellRoot {
             else if (error) root.status = message;
         }
         function onAuthFailure(message) {
-            root.status = "wrong";
+            root.asking = false;
             Greetd.cancelSession();
+            if (root.quiet) {
+                root.quiet = false;
+                if (root.next) later.restart();
+                return;
+            }
+            root.status = "wrong";
         }
         function onReadyToLaunch() {
+            root.asking = false;
+            root.quiet = false;
             root.status = "Starting…";
             Greetd.launch(root.session);
         }
-        function onError(error) { root.status = String(error); }
+        function onError(error) { root.asking = false; root.quiet = false; root.status = String(error); }
     }
 
     Variants {
@@ -90,6 +116,8 @@ ShellRoot {
                 title: "Welcome"
                 showPower: true
                 onSubmit: pw => root.login(pw)
+                checkWhenPaused: root.cfg.autoUnlock === true
+                onQuietSubmit: pw => root.loginQuietly(pw)
                 onPowerClicked: action => Quickshell.execDetached(["systemctl", action])
                 Keys.onEscapePressed: if (!Greetd.available) Qt.quit()
             }
