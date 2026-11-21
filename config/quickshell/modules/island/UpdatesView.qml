@@ -166,18 +166,24 @@ Item {
                 width: console_.width
                 height: lines.lineSpacing
                 y: index * lines.lineSpacing
+                readonly property real end: termRow.width - termRow.pad + termRow.lean
+                // A long line is cut short at the edge; one with a progress bar leaves the bar a third of the room.
+                readonly property bool hasBar: termRow.parts.right.length > 0
                 Text {
                     id: leftText
                     x: termRow.pad - termRow.lean
+                    width: Math.min(implicitWidth, (termRow.end - x) * (termRow.hasBar ? 2 / 3 : 1))
+                    elide: Text.ElideRight
                     font: lines.font
                     color: Theme.text
                     textFormat: Text.StyledText
                     text: Terminal.html(termRow.parts.left, console_.colours)
                 }
                 Text {
-                    readonly property real end: termRow.width - termRow.pad + termRow.lean
-                    readonly property int cells: Math.floor((end - leftText.x - leftText.implicitWidth) / lines.averageCharacterWidth) - 1
-                    x: end - implicitWidth
+                    readonly property int cells: Math.floor((termRow.end - leftText.x - leftText.width) / lines.averageCharacterWidth) - 1
+                    x: Math.max(leftText.x + leftText.width, termRow.end - implicitWidth)
+                    width: termRow.end - x
+                    clip: true
                     font: lines.font
                     color: Theme.text
                     textFormat: Text.StyledText
