@@ -16,15 +16,6 @@ Scope {
     property string previewStatus: ""
     property int tried: 0
 
-    // Unlock without Enter: only the password's length is kept, so it goes off once that many are typed.
-    readonly property string lengthFile: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/vyntaris/lock-length"
-    FileView { id: lengthStore; path: root.lengthFile; printErrors: false; blockLoading: true }
-    property int knownLength: parseInt(lengthStore.text()) || 0
-    function rememberLength(n) {
-        if (n === knownLength) return;
-        knownLength = n;
-        Quickshell.execDetached(["sh", "-c", 'umask 077; mkdir -p "$(dirname "$1")" && printf %s "$2" > "$1"', "sh", lengthFile, String(n)]);
-    }
 
     function tryUnlock(pw) {
         if (status === "checking" || !pw) return;
@@ -45,9 +36,8 @@ Scope {
         }
         onCompleted: result => {
             root.pending = "";
-            if (result === PamResult.Success) { root.status = ""; root.rememberLength(root.tried); LockState.unlocked(); return; }
-            // Went off at the old length (the password changed?): Enter again until it's learned anew.
-            if (root.tried === root.knownLength) root.rememberLength(0);
+            if (result === PamResult.Success) { root.status = ""; PasswordLength.remember(root.tried); LockState.unlocked(); return; }
+            PasswordLength.failed(root.tried);
             // A message PAM gave (the account waits after too many tries) stays up instead of "wrong".
             if (root.status === "checking") root.status = "wrong";
         }
@@ -122,7 +112,7 @@ Scope {
                 visible: surface.primary
                 active: surface.primary
                 status: root.status
-                autoLength: Config.lock.autoUnlock ? root.knownLength : 0
+                autoLength: Config.lock.autoUnlock ? PasswordLength.known : 0
                 onSubmit: pw => root.tryUnlock(pw)
             }
             Item {

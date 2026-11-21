@@ -29,8 +29,15 @@ Scope {
     readonly property bool open: (agent?.isActive ?? false) && flow !== null
     property bool showPassword: false
 
+    // Your own password, hidden as it's typed: then it goes once it's as long as the one you unlock with.
+    readonly property var identity: flow?.selectedIdentity ?? null
+    readonly property bool mine: !!identity && !identity.isGroup && identity.string === "unix-user:" + Quickshell.env("USER")
+    readonly property int autoLength: Config.lock.autoUnlock && mine && !(flow?.responseVisible ?? false) ? PasswordLength.known : 0
+    property int tried: 0
+
     function submit() {
         if (!flow?.isResponseRequired || !field.text) return;
+        tried = mine ? field.text.length : 0;
         flow.submit(field.text);
         field.text = "";
     }
@@ -41,7 +48,8 @@ Scope {
 
     Connections {
         target: root.flow
-        function onAuthenticationFailed() { shake.restart(); }
+        function onAuthenticationFailed() { shake.restart(); if (root.tried > 0) PasswordLength.failed(root.tried); root.tried = 0; }
+        function onAuthenticationSucceeded() { if (root.tried > 0) PasswordLength.remember(root.tried); root.tried = 0; }
         function onIsResponseRequiredChanged() { if (root.flow?.isResponseRequired) focusTimer.restart(); }
     }
     onOpenChanged: {
@@ -157,6 +165,7 @@ Scope {
                         enabled: root.flow?.isResponseRequired ?? false
                         Keys.onEscapePressed: root.cancel()
                         onSubmitted: root.submit()
+                        onTextChanged: if (root.autoLength > 0 && text.length === root.autoLength) root.submit()
                     }
                     IconButton {
                         icon: root.showPassword ? "eye-off" : "eye"
