@@ -19,7 +19,9 @@ Singleton {
         onExited: retry.restart()
     }
     Timer { id: retry; interval: 5000; onTriggered: events.running = true }
-    Timer { id: settle; interval: 300; onTriggered: if (!reader.running) reader.running = true }
+    // A change while it's reading is read again after: unplugging sends a few in a row, and the last one counts.
+    Timer { id: settle; interval: 300; onTriggered: { if (reader.running) root.again = true; else reader.running = true; } }
+    property bool again: false
 
     Process {
         id: reader
@@ -32,6 +34,7 @@ Singleton {
                 let sinks = [];
                 try { sinks = JSON.parse(text.slice(nl + 1)); } catch (e) {}
                 root.update(nl < 0 ? "" : text.slice(0, nl).trim(), Array.isArray(sinks) ? sinks : []);
+                if (root.again) { root.again = false; settle.restart(); }
             }
         }
     }
