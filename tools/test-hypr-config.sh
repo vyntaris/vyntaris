@@ -75,8 +75,10 @@ config '{"theme":{"animationStyle":"calm","workspaceSlide":"vertical"}}'
 check "Workspaces slide up and down when asked"    grep -qxF ANIM=workspaces:slidevert "$T/out"
 config '{"theme":{"animationStyle":"snappy","workspaceSlide":"horizontal"}}'
 check "… and sideways"                             grep -qxF ANIM=workspaces:slide "$T/out"
-config '{"theme":{"animationStyle":"lift"}}'
+config '{"theme":{"animationStyle":"lift","workspaceSlide":""}}'
 check "… else the style's own"                     grep -qxF ANIM=workspaces:slidevert "$T/out"
+config ""
+check "New install: up and down"                   grep -qxF ANIM=workspaces:slidevert "$T/out"
 echo ":: shortcuts"
 config '{"shortcuts":{"SUPER + E":"SUPER + SHIFT + F"}}'
 check "other keys: bound to them"            bound "SUPER + SHIFT + F"

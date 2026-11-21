@@ -11,7 +11,7 @@ Singleton {
         readonly property string monoFamily: "JetBrains Mono"
         readonly property int fontSize: 13
         readonly property real animationSpeed: 1
-        readonly property string animationStyle: "snappy"
+        readonly property string animationStyle: "calm"
     }
     readonly property QtObject bar: QtObject {
         readonly property int height: 32

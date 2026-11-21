@@ -518,7 +518,7 @@ Scope {
                                     OptionRow {
                                         icon: "sliders"; title: Tr.t("Motion")
                                         Choice {
-                                            options: [{ value: "bouncy", label: Tr.t("Bouncy") }, { value: "smooth", label: Tr.t("Smooth") }, { value: "snappy", label: Tr.t("Snappy") }]
+                                            options: [{ value: "calm", label: Tr.t("Calm") }, { value: "bouncy", label: Tr.t("Bouncy") }, { value: "smooth", label: Tr.t("Smooth") }, { value: "snappy", label: Tr.t("Snappy") }]
                                             current: Config.theme.animationStyle
                                             onPicked: v => { Config.theme.animationStyle = v; root.changed(); }
                                         }

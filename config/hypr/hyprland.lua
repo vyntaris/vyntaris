@@ -136,7 +136,7 @@ hl.config({
     },
 })
 
-local animStyle = settings.theme.animationStyle or "snappy"
+local animStyle = settings.theme.animationStyle or "calm"
 -- Beyond Vyntaris's own three, a style is one of Motion.js's presets: its own curves and pace, for the shell too.
 local preset = require("lib.motion")[animStyle]
 local calm = animStyle == "smooth" or animStyle == "snappy" or preset ~= nil
