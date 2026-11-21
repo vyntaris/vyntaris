@@ -30,7 +30,7 @@ kinds() {
         assert(s.display.scale == 'auto' or (type(s.display.scale) == 'number' and s.display.scale >= 0.5 and s.display.scale <= 4), 'scale')
         for _, m in ipairs(s.display.monitors) do assert(m.scale == nil or m.scale == 'auto' or type(m.scale) == 'number', 'monitor scale') end
         for _, m in ipairs(s.display.monitors) do assert(m.transform == nil or m.transform == 1 or m.transform == 2 or m.transform == 3, 'monitor rotation') end
-        assert(s.theme.animationSpeed > 0, 'speed')
+        assert(s.theme.animationSpeed >= 0, 'speed')
         assert(s.apps.terminal:match('%S'), 'terminal')
         for _, m in ipairs(s.display.monitors) do assert(type(m.name) == 'string' and m.name ~= '', 'monitor') end"
 }
@@ -67,6 +67,16 @@ config '{"display":{"monitors":[{"name":"DP-1","transform":1},{"name":"DP-2","tr
 check "Rotation: 90 degrees kept, anything else dropped" eval 'HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); assert(s.display.monitors[1].transform == 1 and s.display.monitors[2].transform == nil)"'
 config '{"display":{"monitors":[{"name":"DP-1","color":"hdr","sdrBrightness":9,"icc":"/home/a/m.icc"},{"name":"DP-2","color":"neon","bitdepth":12,"icc":"m.icc"}]}}'
 check "Colors: HDR, brightness held to 3 and a full ICC path kept, the rest dropped" eval 'HOME="$T/home" XDG_CONFIG_HOME="$T/home/.config" "$LUA" -e "package.path = [[$REPO/config/hypr/?.lua;]] .. package.path; local s = require([[lib.settings]]).load(); local a, b = s.display.monitors[1], s.display.monitors[2]; assert(a.color == [[hdr]] and a.sdrBrightness == 3 and a.icc == [[/home/a/m.icc]] and b.color == nil and b.bitdepth == nil and b.icc == nil)"'
+config '{"theme":{"animationSpeed":0}}'
+check "Animations off: Hyprland's are off too"     grep -qxF ANIMATIONS=false "$T/out"
+config '{"theme":{"animationSpeed":1}}'
+check "Animations on: Hyprland's are on"           grep -qxF ANIMATIONS=true "$T/out"
+config '{"theme":{"animationStyle":"calm","workspaceSlide":"vertical"}}'
+check "Workspaces slide up and down when asked"    grep -qxF ANIM=workspaces:slidevert "$T/out"
+config '{"theme":{"animationStyle":"snappy","workspaceSlide":"horizontal"}}'
+check "… and sideways"                             grep -qxF ANIM=workspaces:slide "$T/out"
+config '{"theme":{"animationStyle":"lift"}}'
+check "… else the style's own"                     grep -qxF ANIM=workspaces:slidevert "$T/out"
 echo ":: shortcuts"
 config '{"shortcuts":{"SUPER + E":"SUPER + SHIFT + F"}}'
 check "other keys: bound to them"            bound "SUPER + SHIFT + F"

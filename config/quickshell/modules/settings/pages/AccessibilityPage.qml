@@ -27,11 +27,7 @@ SettingsPage {
     }
     SettingsRow {
         title: Tr.t("Animations")
-        Choice {
-            options: [{ value: 0, label: Tr.t("Off") }, { value: 1, label: Tr.t("Normal") }, { value: 1.5, label: Tr.t("Quick") }]
-            current: Config.theme.animationSpeed
-            onPicked: v => { Config.theme.animationSpeed = v; Config.saveSoon(); }
-        }
+        Switch { checked: Config.theme.animationSpeed > 0; onToggled: on => { Config.theme.animationSpeed = on ? 1.5 : 0; Config.saveSoon(); } }
     }
     SettingsRow {
         title: Tr.t("Volume above 100%")

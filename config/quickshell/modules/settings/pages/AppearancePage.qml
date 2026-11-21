@@ -135,7 +135,7 @@ SettingsPage {
         Behavior on reveal {
             Anim {
                 duration: customRow.shown ? Theme.durationSlow : Theme.durationNormal
-                easing.bezierCurve: Theme.curveStandard
+                easing.bezierCurve: customRow.shown ? Theme.curveStandard : Theme.curveAccelerate
             }
         }
         RowLayout {
@@ -221,11 +221,7 @@ SettingsPage {
     SettingsSection { text: Tr.t("Motion") }
     SettingsRow {
         title: Tr.t("Animations")
-        Choice {
-            options: [{ value: 0, label: Tr.t("Off") }, { value: 1, label: Tr.t("Normal") }, { value: 1.5, label: Tr.t("Quick") }]
-            current: Config.theme.animationSpeed
-            onPicked: v => { Config.theme.animationSpeed = v; Config.saveSoon(); }
-        }
+        Switch { checked: Config.theme.animationSpeed > 0; onToggled: on => { Config.theme.animationSpeed = on ? 1.5 : 0; Config.saveSoon(); } }
     }
     // Vyntaris's own three, then Motion.js's presets: each moves the windows and the shell alike.
     readonly property var styles: [
@@ -262,6 +258,14 @@ SettingsPage {
             page.open = "";
         }
         onClosed: page.open = ""
+    }
+    SettingsRow {
+        title: Tr.t("Workspaces slide")
+        Choice {
+            options: [{ value: "horizontal", label: Tr.t("Sideways") }, { value: "vertical", label: Tr.t("Up and down") }]
+            current: Theme.workspacesVertical ? "vertical" : "horizontal"
+            onPicked: v => { Config.theme.workspaceSlide = v; Config.saveSoon(); }
+        }
     }
     SettingsSection { text: Tr.t("Sound") }
     SettingsRow {

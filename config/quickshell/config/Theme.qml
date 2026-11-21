@@ -184,7 +184,11 @@ Singleton {
     // Beyond Vyntaris's own three, a style is one of Motion.js's presets: the same curves and pace as the windows.
     readonly property var preset: Motion.presets[animStyle] ?? null
     readonly property bool calm: animStyle === "smooth" || animStyle === "snappy" || preset !== null
-    readonly property real speed: Config.theme.animationSpeed * (animStyle === "snappy" ? 1.45 : preset ? preset.speed : 1)
+    // On or off: the pace is the style's.
+    readonly property real speed: (Config.theme.animationSpeed > 0 ? 1.5 : 0) * (animStyle === "snappy" ? 1.45 : preset ? preset.speed : 1)
+    // How workspaces slide: the setting, else the style's own (Vyntaris's three rise).
+    readonly property bool workspacesVertical: Config.theme.workspaceSlide ? Config.theme.workspaceSlide === "vertical"
+        : (preset ? preset.workspaces === "slidevert" : true)
     function duration(ms) {
         return speed > 0 ? Math.round(ms / speed) : 0;
     }
@@ -196,6 +200,8 @@ Singleton {
 
     readonly property var curveStandard:   [0.2, 0, 0, 1, 1, 1]
     readonly property var curveDecelerate: [0.05, 0.7, 0.1, 1, 1, 1]
+    // Speeds up to the end: something going away doesn't linger as a sliver.
+    readonly property var curveAccelerate: [0.3, 0, 0.8, 0.15, 1, 1]
     readonly property var curveSpring: preset ? preset.open.concat([1, 1]) : animStyle === "snappy" ? [0.2, 1, 0.3, 1, 1, 1]
         : calm ? [0.25, 0.8, 0.25, 1, 1, 1] : [0.34, 1.32, 0.64, 1, 1, 1]
 

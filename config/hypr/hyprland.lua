@@ -20,7 +20,8 @@ local palette = palettes[settings.theme.flavor] or palettes.mocha
 local accentName = settings.theme.flavor == "latte" and settings.theme.accentLight or settings.theme.accent
 local accent  = require("lib.colors").accent(palette, accentName)
 
-local animSpeed = tonumber(settings.theme.animationSpeed) or 1
+-- On or off: the pace is the motion style's, the same base as the shell's.
+local animSpeed = (tonumber(settings.theme.animationSpeed) or 1) > 0 and 1.5 or 0
 
 local function rgba(hex)
     return "rgba(" .. hex .. "ff)"
@@ -172,6 +173,9 @@ end
 -- How windows open and workspaces switch is part of the motion style: a preset's own, or rising for Vyntaris's three.
 local winStyle = ({ slidevert = "slidevert", slide = "slide", popin = "popin 85%" })[preset and preset.windows or ""] or "slidevert"
 local wsStyle = ({ slidevert = "slidevert", slide = "slide", fade = "fade" })[preset and preset.workspaces or ""] or "slidevert"
+-- Settings can say which way workspaces slide, whatever the style.
+local wsSlide = settings.theme.workspaceSlide
+if wsSlide == "vertical" then wsStyle = "slidevert" elseif wsSlide == "horizontal" then wsStyle = "slide" end
 
 animation({ leaf = "global",           enabled = true, speed = 6,   bezier = "default" })
 animation({ leaf = "windows",          enabled = true, speed = 2.2, bezier = "snappyReturn", style = winStyle })

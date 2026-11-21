@@ -194,8 +194,11 @@ Singleton {
                 property string fontFamily: "Inter"
                 property string monoFamily: "JetBrains Mono"
                 property int fontSize: 13
+                // 0 is off; anything else is on, at the style's own pace.
                 property real animationSpeed: 1.5
                 property string animationStyle: "snappy"
+                // "horizontal" or "vertical"; empty is the style's own.
+                property string workspaceSlide: ""
 
                 property bool syncApps: true
                 property string gtkThemeDark: "adw-gtk3-dark"
