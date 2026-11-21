@@ -22,7 +22,6 @@ ShellRoot {
     property string pass: ""
     property string pass2: ""
     property string disk: ""
-    property string fs: "btrfs"
     property string mode: "erase"
     property string part: ""
     readonly property bool preview: Quickshell.env("USER") !== "root"
@@ -399,7 +398,7 @@ ShellRoot {
             INSTALL_YES: "1", INSTALL_DISK: root.disk, INSTALL_USER: root.user, INSTALL_PASSWORD: root.pass,
             INSTALL_FULLNAME: root.fullName, INSTALL_HOSTNAME: root.host, INSTALL_TIMEZONE: root.timezone,
             INSTALL_KEYMAP: root.keymap, INSTALL_KBVARIANT: root.variant, INSTALL_LOCALE: root.locale,
-            INSTALL_FS: root.fs, INSTALL_MODE: root.mode, INSTALL_PART: root.part
+            INSTALL_MODE: root.mode, INSTALL_PART: root.part
         })
         stdout: SplitParser { onRead: line => root.onLine(line) }
         onExited: code => {
@@ -933,17 +932,6 @@ ShellRoot {
                                     text: (root.diskRisky ? "⚠  " : "") + root.diskEffect
                                         + (root.mode !== "erase" && root.diskEsp !== "" && !root.foreignBoot ? "  At start you choose Vyntaris or the other system. If Windows uses BitLocker, keep its recovery key at hand." : "")
                                 }
-                                RowLayout {
-                                    Layout.topMargin: Theme.space6
-                                    spacing: Theme.space14
-                                    Caption { text: Tr.t("File system") }
-                                    Choice {
-                                        options: [{ value: "btrfs", label: "Btrfs" }, { value: "ext4", label: "ext4" }]
-                                        current: root.fs
-                                        onPicked: v => root.fs = v
-                                    }
-                                    Label { color: Theme.subtext0; text: root.fs === "btrfs" ? Tr.t("Btrfs: instant snapshots, compression") : Tr.t("ext4: the classic") }
-                                }
                                 Item { Layout.fillHeight: true }
                             }
                         }
@@ -962,7 +950,7 @@ ShellRoot {
                                     wrapMode: Text.WordWrap
                                     text: (root.diskInfo ? root.diskInfo.model + ", " + root.sizeOf(root.diskInfo.size) + ", " + root.disk : "")
                                         + "\n" + (root.mode === "erase" ? "The whole disk" : root.mode === "free" ? "Its free space, next to the other system" : "In place of " + (root.partInfo ? root.partName(root.partInfo) : root.part))
-                                        + ", " + (root.fs === "btrfs" ? "Btrfs" : "ext4")
+                                        + ", Btrfs"
                                 }
                                 Caption { text: Tr.t("User") }
                                 Label { text: (root.fullName ? root.fullName + ", " : "") + root.user + "@" + root.host }

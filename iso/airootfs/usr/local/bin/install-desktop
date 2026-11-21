@@ -117,7 +117,8 @@ while :; do
     note "$why"; INSTALL_HOSTNAME=""
 done
 
-INSTALL_FS="${INSTALL_FS:-btrfs}"
+# Btrfs only: snapshots and the undo of a bad update depend on it
+[ "${INSTALL_FS:-btrfs}" = btrfs ] || die "only Btrfs is supported, not $INSTALL_FS"
 
 step "Disk"
 live="$(lsblk -no PKNAME "$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null || echo /dev/null)" 2>/dev/null || true)"
@@ -171,7 +172,7 @@ cat <<EOF
                  esac)
      user       $INSTALL_USER on $INSTALL_HOSTNAME
      language   $INSTALL_LOCALE, keyboard $INSTALL_KEYMAP, $INSTALL_TIMEZONE
-     disk       $INSTALL_FS
+     disk       Btrfs
 EOF
 if [ -z "${INSTALL_YES:-}" ]; then
     read -rp "   Type ERASE to continue: " confirm
@@ -225,26 +226,21 @@ else
     wipefs -af "$esp" "$root" >/dev/null
     mkfs.fat -F 32 -n VYNTARIS "$esp" >/dev/null
 fi
-if [ "$INSTALL_FS" = btrfs ]; then
-    mkfs.btrfs -qf -L root "$root"
-    mount "$root" "$MNT"
-    btrfs -q subvolume create "$MNT/@"
-    btrfs -q subvolume create "$MNT/@home"
-    umount "$MNT"
-    opts=noatime,compress=zstd:1
-    mount -o "$opts,subvol=@" "$root" "$MNT"
-    mount --mkdir -o "$opts,subvol=@home" "$root" "$MNT/home"
-else
-    mkfs.ext4 -qF -L root "$root"
-    mount "$root" "$MNT"
-fi
+mkfs.btrfs -qf -L root "$root"
+mount "$root" "$MNT"
+btrfs -q subvolume create "$MNT/@"
+btrfs -q subvolume create "$MNT/@home"
+umount "$MNT"
+opts=noatime,compress=zstd:1
+mount -o "$opts,subvol=@" "$root" "$MNT"
+mount --mkdir -o "$opts,subvol=@home" "$root" "$MNT/home"
 mount --mkdir -o fmask=0077,dmask=0077 "$esp" "$MNT/boot"
 if [ -z "$other_esp" ]; then
-    note "$esp → /boot, $root → / ($INSTALL_FS)"
+    note "$esp → /boot, $root → / (Btrfs)"
 else
     mount --mkdir -o fmask=0077,dmask=0077 "$other_esp" "$MNT/efi"
     rm -f "$MNT"/efi/EFI/Linux/vyntaris*.efi "$MNT"/efi/loader/entries/vyntaris*
-    note "$other_esp → /efi (the other system's, it keeps it), $esp → /boot, $root → / ($INSTALL_FS)"
+    note "$other_esp → /efi (the other system's, it keeps it), $esp → /boot, $root → / (Btrfs)"
 fi
 
 step "Base system"
@@ -333,8 +329,7 @@ chmod 440 "$MNT/etc/sudoers.d/10-wheel"
 
 step "Boot loader (systemd-boot, unified kernel image)"
 root_uuid="$(blkid -s UUID -o value "$root")"
-cmdline="root=UUID=$root_uuid rw rootfstype=$INSTALL_FS"
-[ "$INSTALL_FS" = btrfs ] && cmdline+=" rootflags=subvol=@"
+cmdline="root=UUID=$root_uuid rw rootfstype=btrfs rootflags=subvol=@"
 mkdir -p "$MNT/etc/kernel"
 echo "$cmdline" > "$MNT/etc/kernel/cmdline"
 cat > "$MNT/etc/mkinitcpio.d/linux.preset" <<'PRESET'
