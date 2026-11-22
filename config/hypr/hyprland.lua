@@ -262,9 +262,8 @@ hl.config({
     },
 })
 
--- Swiping goes only through workspaces that have something on them, and past the last one it stops instead of
--- opening a new empty one.
-hl.config({ gestures = { workspace_swipe_create_new = false } })
+-- Swiping goes by number, empty or not: from 2 back to an empty 1, and on to a new empty one past the last.
+hl.config({ gestures = { workspace_swipe_use_r = true, workspace_swipe_create_new = true } })
 hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
 hl.gesture({ fingers = 3, direction = "vertical",   action = "workspace" })
 
