@@ -504,8 +504,47 @@ for _, r in ipairs({
     hl.window_rule({ name = "float-" .. r[1], match = r[2], float = true })
 end
 
+-- Dialogs (rename, "are you sure", a password prompt) block the window they belong to: they float at their own
+-- size over the middle of that window, instead of tiling beside it like a window of their own.
+hl.window_rule({ name = "dialogs", match = { modal = true }, float = true, tag = "+dialog" })
+-- Thunar's own don't say they're dialogs.
+hl.window_rule({
+    name  = "thunar-dialogs",
+    match = { class = "^([Tt]hunar)$", title = [[^(Rename ".*"|Create New Folder|Create New File|Create New Empty File|Attention)$]] },
+    float = true,
+    tag   = "+dialog",
+})
+
+local function hasTag(w, tag)
+    local t = w.tags
+    if type(t) == "table" then
+        for _, v in ipairs(t) do if v == tag or v == tag .. "*" then return true end end
+        return false
+    end
+    return type(t) == "string" and t:find(tag, 1, true) ~= nil
+end
+
+hl.on("window.open", function(w)
+    if not w.floating or not hasTag(w, "dialog") then return end
+    -- Its window: the one used last on the same workspace.
+    local parent
+    for _, o in ipairs(hl.get_windows()) do
+        if o.address ~= w.address and o.mapped and not o.hidden and o.workspace and w.workspace
+            and o.workspace.id == w.workspace.id and (not parent or o.focus_history_id < parent.focus_history_id) then
+            parent = o
+        end
+    end
+    if not parent then return end
+    hl.dispatch(hl.dsp.window.move({
+        x = math.floor(parent.at.x + (parent.size.x - w.size.x) / 2),
+        y = math.floor(parent.at.y + (parent.size.y - w.size.y) / 2),
+        window = "address:" .. w.address,
+    }))
+end)
+
 local browserWindows = {}
-local popupProbeWidth, popupProbeStep, popupProbeWait = 480, 30, 450
+-- A popup is tried at its final size, so deciding it's one doesn't make it grow a moment later.
+local popupProbeWidth, popupProbeStep, popupProbeWait = 520, 30, 450
 local signInWords = {
     "sign in", "sign-in", "signin", "log in", "log-in", "login", "authorize", "authorise", "oauth", "accounts",
     "prijav", "nalog", "anmeld", "connexion", "iniciar", "accedi", "zaloguj", "entrar",
@@ -522,7 +561,7 @@ end
 local function floatAsPopup(w)
     local target = "address:" .. w.address
     hl.dispatch(hl.dsp.window.float({ action = "enable", window = target }))
-    hl.dispatch(hl.dsp.window.resize({ x = 520, y = 720, window = target }))
+    hl.dispatch(hl.dsp.window.resize({ x = popupProbeWidth, y = 720, window = target }))
     hl.dispatch(hl.dsp.window.center({ window = target }))
 end
 
