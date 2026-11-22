@@ -160,25 +160,12 @@ Item {
         spacing: Theme.space8
         opacity: root.reveal
         // Shuts as the lock settles, springs open on the right password.
-        Item {
-            id: padlock
+        Padlock {
             anchors.verticalCenter: parent.verticalCenter
-            width: 14; height: 18
             // Follows the wallpaper: shut by the time it's blurred, open again as it sharpens.
-            readonly property real open: root.leaving ? 1 - root.glass : Math.max(0, 1 - root.glass * 1.25)
-            Rectangle {
-                // the shackle: lifts and swings out from its right leg
-                x: 2; width: 10; height: 12; radius: 5
-                y: 1 - padlock.open * 4
-                color: "transparent"
-                border { width: 2; color: root.leaving ? Theme.success : Theme.accentInk }
-                transform: Rotation { origin.x: 9; origin.y: 12; angle: -28 * padlock.open }
-            }
-            Rectangle {
-                y: 8; width: 14; height: 10; radius: 3
-                color: root.leaving ? Theme.success : Theme.accentInk
-                Behavior on color { ColorAnim {} }
-            }
+            open: root.leaving ? 1 - root.glass : Math.max(0, 1 - root.glass * 1.25)
+            color: root.leaving ? Theme.success : Theme.accentInk
+            Behavior on color { ColorAnim {} }
         }
         Label { anchors.verticalCenter: parent.verticalCenter; font.weight: Font.DemiBold; text: Qt.formatDateTime(clock.date, "ddd d MMM") }
         Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.weight: Font.DemiBold; text: Qt.formatDateTime(clock.date, root.timeFormat) }

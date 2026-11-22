@@ -29,6 +29,28 @@ Scope {
     readonly property bool open: (agent?.isActive ?? false) && flow !== null
     property bool showPassword: false
 
+    // It comes and goes as the lock screen does: the desktop behind blurs and pushes in, the padlock shuts. On the
+    // right password the padlock turns green and opens, the card drops away and the desktop sharpens back to exactly
+    // what's behind, then the window goes. `shown` keeps it up while it leaves.
+    property bool shown: false
+    property bool succeeded: false
+    property real glass: 0
+    property real leave: 0
+    NumberAnimation { id: glassIn; target: root; property: "glass"; to: 1; duration: Theme.duration(450); easing.type: Easing.OutCubic }
+    SequentialAnimation {
+        id: away
+        ParallelAnimation {
+            NumberAnimation { target: root; property: "leave"; to: 1; duration: Theme.duration(420); easing.type: Easing.InCubic }
+            NumberAnimation { target: root; property: "glass"; to: 0; duration: Theme.duration(520); easing.type: Easing.InOutCubic }
+        }
+        ScriptAction { script: { root.shown = false; root.succeeded = false; } }
+    }
+    // polkit lets go of the request at once: what the card says is kept for the way out.
+    property string lastMessage: ""
+    property string lastName: ""
+    Binding { target: root; property: "lastMessage"; value: root.flow?.message ?? ""; when: root.flow !== null }
+    Binding { target: root; property: "lastName"; value: root.flow?.selectedIdentity?.displayName || Quickshell.env("USER") || ""; when: root.flow !== null }
+
     // Without Enter, as on the lock screen: when typing stops for a moment a hidden password is checked quietly, and
     // a wrong one shows nothing. Each check is a try for the lockout, so not for a few letters or twice for the same.
     readonly property bool checkWhenPaused: Config.lock.autoUnlock && !(flow?.responseVisible ?? false)
@@ -56,6 +78,7 @@ Scope {
     Connections {
         target: root.flow
         function onAuthenticationFailed() { if (!root.quiet) shake.restart(); }
+        function onAuthenticationSucceeded() { root.succeeded = true; }
         // Ready for another: typing went on during a quiet check, so check what's there now.
         function onIsResponseRequiredChanged() { if (root.flow?.isResponseRequired) { focusTimer.restart(); if (root.quiet) pause.restart(); } }
     }
@@ -63,12 +86,23 @@ Scope {
         showPassword = false;
         quiet = false;
         checked = "";
-        if (open) focusTimer.restart(); else field.text = "";
+        if (open) {
+            away.stop();
+            glassIn.stop();
+            leave = 0;
+            glass = 0;
+            succeeded = false;
+            shown = true;
+            focusTimer.restart();
+        } else {
+            field.text = "";
+            if (shown) { glassIn.stop(); away.restart(); }
+        }
     }
 
     PanelWindow {
         id: win
-        visible: root.open
+        visible: root.shown
         screen: Quickshell.screens.find(s => s.name === Monitors.focused?.name) ?? Quickshell.screens[0]
         WlrLayershell.namespace: "quickshell-auth"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -80,24 +114,26 @@ Scope {
         ScreencopyView {
             id: shot
             anchors.fill: parent
-            captureSource: root.open ? win.screen : null
+            captureSource: root.shown ? win.screen : null
             live: false
             visible: false
+            onHasContentChanged: if (hasContent && root.open) glassIn.restart()
         }
+        // The desktop as it was: sharp and in place at 0, so the window can go without a jump.
         Item {
             anchors.fill: parent
-            opacity: root.open && shot.hasContent ? 1 : 0
-            Behavior on opacity { Anim {} }
+            visible: shot.hasContent
             MultiEffect {
                 anchors.fill: parent
                 source: shot
                 autoPaddingEnabled: false
+                scale: 1 + 0.05 * root.glass
                 blurEnabled: true
-                blur: 1.0
+                blur: root.glass
                 blurMax: 64
                 blurMultiplier: 0.6
             }
-            Rectangle { anchors.fill: parent; color: Theme.alpha(Theme.base, 0.32) }
+            Rectangle { anchors.fill: parent; color: Theme.alpha(Theme.base, 0.32); opacity: root.glass }
         }
         MouseArea { anchors.fill: parent }
 
@@ -108,11 +144,12 @@ Scope {
             width: 420
             height: body.implicitHeight + 48
             radius: Theme.r(20)
-            border { width: 1; color: root.flow?.failed && !root.quiet ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
+            border { width: 1; color: root.succeeded ? Theme.tint(parent, Theme.success, 0.7) : root.flow?.failed && !root.quiet ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
             color: Theme.isDark ? Theme.crust : Theme.base
-            transform: Translate { id: shakeShift }
-            scale: root.open ? 1 : 0.94
-            Behavior on scale { Anim { duration: Theme.durationNormal; easing.bezierCurve: Theme.curveSpring } }
+            transform: [ Translate { id: shakeShift }, Translate { y: 50 * root.leave } ]
+            // Comes up with the blur, drops away as it leaves.
+            opacity: Math.min(1, root.glass * 1.6) * (1 - root.leave)
+            scale: (0.94 + 0.06 * Math.min(1, root.glass * 1.4)) * (1 - 0.06 * root.leave)
 
             SequentialAnimation {
                 id: shake
@@ -133,8 +170,14 @@ Scope {
                         implicitWidth: 44
                         implicitHeight: 44
                         radius: 22
-                        color: Theme.accent
-                        Icon { anchors.centerIn: parent; name: "lock"; size: 18; color: Theme.textOnAccent }
+                        color: root.succeeded ? Theme.success : Theme.accent
+                        Behavior on color { ColorAnim {} }
+                        Padlock {
+                            anchors.centerIn: parent
+                            size: 20
+                            color: Theme.textOnAccent
+                            open: root.succeeded ? 1 - root.glass : Math.max(0, 1 - root.glass * 1.25)
+                        }
                     }
                     ColumnLayout {
                         spacing: Theme.space2
@@ -143,7 +186,7 @@ Scope {
                         Label {
                             color: Theme.subtext0
                             font.pixelSize: Theme.fontSizeSmall
-                            text: root.flow?.selectedIdentity?.displayName || Quickshell.env("USER") || ""
+                            text: root.lastName
                         }
                     }
                 }
@@ -151,7 +194,7 @@ Scope {
                 Label {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
-                    text: root.flow?.message ?? ""
+                    text: root.lastMessage
                 }
 
                 // More than one may answer (several admins): the password is that of the one picked here.
