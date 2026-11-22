@@ -264,8 +264,8 @@ hl.config({
 
 -- Swiping goes by number, empty or not: from 2 back to an empty 1, and on to a new empty one past the last.
 hl.config({ gestures = { workspace_swipe_use_r = true, workspace_swipe_create_new = true } })
-hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace" })
-hl.gesture({ fingers = 3, direction = "vertical",   action = "workspace" })
+-- The swipe goes the way workspaces slide (Settings, Appearance, Workspaces slide): up and down, or sideways.
+hl.gesture({ fingers = 3, direction = wsStyle == "slidevert" and "vertical" or "horizontal", action = "workspace" })
 
 local mainMod = "SUPER"
 local qs = function(args) return hl.dsp.exec_cmd("qs -c vyntaris ipc call " .. args) end
