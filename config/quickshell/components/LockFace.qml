@@ -21,6 +21,8 @@ Item {
     // The other people who can log in here ({ name, full }), to switch to; `userPicked` says who.
     property var others: []
     property bool active: true
+    // The right password went in: everything leaves and the wallpaper sharpens, the way the desktop shows it.
+    property bool leaving: false
     // Without Enter: when typing stops for a moment, what's there is checked quietly (quietSubmit); nothing shows
     // if it's wrong. Nothing about the password is kept to know when.
     property bool checkWhenPaused: false
@@ -70,19 +72,37 @@ Item {
         onTriggered: if (!input.activeFocus) input.forceActiveFocus()
     }
 
+    // 0: the wallpaper sharp and whole, as on the desktop; 1: blurred, veiled and pushed in, behind the lock.
+    // Locking it goes 0 to 1, unlocking back to 0, so the lock seems to settle over the desktop and lift off it.
+    property real glass: 0
+    NumberAnimation {
+        id: glassIn
+        target: root; property: "glass"; to: 1
+        duration: Theme.duration(700); easing.type: Easing.OutCubic
+    }
+    // What leaves as it unlocks: the clock up into the island, the card down, the padlock opens.
+    property real leave: 0
+    onLeavingChanged: if (leaving) { glassIn.stop(); leaveAnim.restart(); }
+    ParallelAnimation {
+        id: leaveAnim
+        NumberAnimation { target: root; property: "leave"; to: 1; duration: Theme.duration(520); easing.type: Easing.InCubic }
+        NumberAnimation { target: root; property: "glass"; to: 0; duration: Theme.duration(650); easing.type: Easing.InOutCubic }
+    }
+
     Rectangle { anchors.fill: parent; color: Theme.crust }
-    CircleReveal {
-        id: wallReveal
+    BlurredWallpaper {
+        id: wall
         anchors.fill: parent
-        progress: 0
-        clip: true
-        BlurredWallpaper {
-            anchors.fill: parent
-            margin: -48
-            source: root.wallpaper ? "file://" + root.wallpaper : ""
-            cache: false
-            onStatusChanged: if (status === Image.Ready) wallReveal.run()
-        }
+        // Pushed in rather than resized (a new size would load the picture again): it also keeps the blur's
+        // dark edge off the screen.
+        scale: 1 + 0.06 * root.glass
+        blur: root.glass
+        veil: Qt.rgba(Theme.wallpaperVeil.r, Theme.wallpaperVeil.g, Theme.wallpaperVeil.b, Theme.wallpaperVeil.a * root.glass)
+        source: root.wallpaper ? "file://" + root.wallpaper : ""
+        // Kept, so it's there the moment the screen locks instead of after a read from disk.
+        cache: true
+        opacity: status === Image.Ready ? 1 : 0
+        onStatusChanged: if (status === Image.Ready && !root.leaving) glassIn.restart()
     }
 
     SystemClock { id: clock; precision: SystemClock.Seconds }
@@ -139,6 +159,27 @@ Item {
         height: Theme.barHeight + Theme.notchDepth
         spacing: Theme.space8
         opacity: root.reveal
+        // Shuts as the lock settles, springs open on the right password.
+        Item {
+            id: padlock
+            anchors.verticalCenter: parent.verticalCenter
+            width: 14; height: 18
+            // Follows the wallpaper: shut by the time it's blurred, open again as it sharpens.
+            readonly property real open: root.leaving ? 1 - root.glass : Math.max(0, 1 - root.glass * 1.25)
+            Rectangle {
+                // the shackle: lifts and swings out from its right leg
+                x: 2; width: 10; height: 12; radius: 5
+                y: 1 - padlock.open * 4
+                color: "transparent"
+                border { width: 2; color: root.leaving ? Theme.success : Theme.accentInk }
+                transform: Rotation { origin.x: 9; origin.y: 12; angle: -28 * padlock.open }
+            }
+            Rectangle {
+                y: 8; width: 14; height: 10; radius: 3
+                color: root.leaving ? Theme.success : Theme.accentInk
+                Behavior on color { ColorAnim {} }
+            }
+        }
         Label { anchors.verticalCenter: parent.verticalCenter; font.weight: Font.DemiBold; text: Qt.formatDateTime(clock.date, "ddd d MMM") }
         Label { anchors.verticalCenter: parent.verticalCenter; mono: true; font.weight: Font.DemiBold; text: Qt.formatDateTime(clock.date, root.timeFormat) }
     }
@@ -149,7 +190,8 @@ Item {
         anchors.bottom: card.top
         anchors.bottomMargin: Theme.space36
         spacing: Theme.space2
-        opacity: root.reveal
+        opacity: root.reveal * (1 - root.leave)
+        transform: Translate { y: -70 * root.leave }
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: Qt.formatDateTime(clock.date, root.timeFormat)
@@ -181,12 +223,13 @@ Item {
         id: card
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.horizontalCenterOffset: root.shakeX
-        y: root.height * 0.56 - height / 2 + (1 - root.reveal) * 40
-        opacity: root.reveal
+        y: root.height * 0.56 - height / 2 + (1 - root.reveal) * 40 + root.leave * 60
+        opacity: root.reveal * (1 - root.leave)
+        scale: 1 - 0.06 * root.leave
         width: 400
         height: cardColumn.implicitHeight + 44
         radius: Theme.r(20)
-        border { width: 1; color: root.wrong ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
+        border { width: 1; color: root.leaving ? Theme.tint(parent, Theme.success, 0.7) : root.wrong ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
         color: Theme.isDark ? Theme.crust : Theme.base
         Behavior on border.color { ColorAnim {} }
 

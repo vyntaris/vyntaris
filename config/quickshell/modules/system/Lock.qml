@@ -127,6 +127,7 @@ Scope {
                 active: surface.primary
                 status: root.status
                 checkWhenPaused: Config.lock.autoUnlock
+                leaving: LockState.opening
                 onSubmit: pw => root.tryUnlock(pw)
                 onQuietSubmit: pw => root.tryQuietly(pw)
             }
