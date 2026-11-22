@@ -18,9 +18,22 @@ Singleton {
         Quickshell.execDetached(["touch", marker]);
         locked = true;
     }
+    // The right password: the lock screen plays its way out first (it ends on the sharp wallpaper, as the desktop
+    // looks), then the session unlocks. The compositor shows nothing behind a lock, so it can't fade into it.
+    property bool opening: false
     function unlocked() {
-        Quickshell.execDetached(["rm", "-f", marker]);
-        locked = false;
+        if (!locked || opening) return;
+        opening = true;
+        openTimer.interval = Theme.duration(650);
+        openTimer.restart();
+    }
+    Timer {
+        id: openTimer
+        onTriggered: {
+            Quickshell.execDetached(["rm", "-f", root.marker]);
+            root.opening = false;
+            root.locked = false;
+        }
     }
 
     Process {
