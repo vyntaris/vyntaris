@@ -92,8 +92,9 @@ Scope {
     }
 
     function applyFastfetch() {
-        const from = LogoArt.turn(hex(Theme.accent), 0, 0.1), to = LogoArt.turn(hex(Theme.accent), 70, 0.15);
-        const svg = LogoArt.full(from, to, hex(Theme.base), 600, false, to);
+        // The system's own colours, as the logo in the shell has them: the accent and a deeper shade of it.
+        const accent = hex(Theme.accent);
+        const svg = LogoArt.full(accent, LogoArt.mix(accent, "#000000", 0.18), hex(Theme.base), 600, false);
         Quickshell.execDetached(["sh", "-c", 'mkdir -p "$1" && printf "%s" "$2" > "$1/logo.svg" && '
             + 'rsvg-convert "$1/logo.svg" -o "$1/logo.png.new" && mv "$1/logo.png.new" "$1/logo.png" && rm -rf "$3"',
             "sh", cacheHome + "/vyntaris", svg, cacheHome + "/fastfetch/images" + cacheHome + "/vyntaris"]);

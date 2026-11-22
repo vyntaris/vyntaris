@@ -1,0 +1,6 @@
+# What the files here leave out is refused. PAM reads this for any part a service doesn't set (the lock screen's
+# "password" sets only auth and account); without it every unlock logged "no default config other".
+auth     required  pam_deny.so
+account  required  pam_deny.so
+password required  pam_deny.so
+session  required  pam_deny.so
