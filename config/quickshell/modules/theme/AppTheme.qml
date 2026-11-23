@@ -191,9 +191,9 @@ Scope {
         iconsFor = appIcons;
         const base = dark ? Config.theme.iconThemeDark : Config.theme.iconThemeLight;
         Quickshell.execDetached(["sh", "-c",
-            '"$1" "$2" "$3" "$4" >/dev/null && gsettings set org.gnome.desktop.interface icon-theme "$5"',
+            '"$1" "$2" "$3" "$4" "$6" >/dev/null && gsettings set org.gnome.desktop.interface icon-theme "$5"',
             "sh", "/usr/lib/vyntaris/icon-theme", Quickshell.env("HOME") + "/.local/share/icons",
-            base, hex(Theme.accent), root.iconTheme]);
+            base, hex(Theme.accent), root.iconTheme, hex(Theme.accentInk)]);
     }
 
     function gsettings(key, value) {
@@ -240,6 +240,7 @@ Scope {
             // The file picker's line icons (places, path bar, its buttons) in the accent, not the text colour.
             + `filechooser image, placessidebar image, dialog headerbar button image { color: @accent_color; }\n`
             + `filechooser row:selected image, placessidebar row:selected image, filechooser button.suggested-action image { color: @accent_fg_color; }\n`
+            + `filechooser treeview.view:selected, filechooser treeview.view:selected:focus { background-color: mix(@accent_bg_color, @view_bg_color, 0.55); color: @view_fg_color; }\n`
             // Search fields look like the shell's: a pill with the magnifier in an accent circle.
             + `entry.search, .search-bar entry, searchbar entry { border-radius: 9999px; min-height: 36px; padding-left: 5px; background-color: ${hex(t.mantle)}; box-shadow: inset 0 0 0 1px ${hex(t.surface1)}; }\n`
             + `entry.search:focus-within, entry.search:focus, searchbar entry:focus-within { box-shadow: inset 0 0 0 2px @accent_color; outline: none; }\n`

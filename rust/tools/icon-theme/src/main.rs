@@ -174,7 +174,14 @@ fn link(to: &Path, at: &Path) -> bool {
     std::os::unix::fs::symlink(to, at).is_ok()
 }
 
-fn link_base(icons: &Path, base: &str, work: &Path, written: &mut BTreeMap<String, Vec<String>>) {
+pub fn text_in(svg: &str, accent: &str) -> Option<String> {
+    let key = ".ColorScheme-Text { color:";
+    let at = svg.find(key)? + key.len();
+    let end = at + svg[at..].find(';')?;
+    Some(format!("{}{accent}{}", &svg[..at], &svg[end..]))
+}
+
+fn link_base(icons: &Path, base: &str, ink: &str, work: &Path, written: &mut BTreeMap<String, Vec<String>>) {
     let sections = theme_dirs(icons, base);
     let wanted = installed_icons();
     let index = fs::read_to_string(icons.join(base).join("index.theme")).unwrap_or_default();
@@ -196,8 +203,14 @@ fn link_base(icons: &Path, base: &str, work: &Path, written: &mut BTreeMap<Strin
                     } else {
                         wanted.contains(name) || is_generic(name)
                     };
-                    if let (true, Ok(to)) = (take, fs::canonicalize(e.path())) {
-                        link(&to, &at.join(&file));
+                    let Ok(to) = fs::canonicalize(e.path()) else { continue };
+                    if !take {
+                        continue;
+                    }
+                    let plain = places.then(|| fs::read_to_string(&to).ok()).flatten();
+                    match plain.as_deref().and_then(|svg| text_in(svg, ink)) {
+                        Some(svg) => drop(fs::write(at.join(&file), svg)),
+                        None => drop(link(&to, &at.join(&file))),
                     }
                 }
                 true
@@ -223,14 +236,16 @@ fn write_qt_theme(out_root: &Path, base: &str) {
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let [out_root, base, accent] = &args[..] else {
-        eprintln!("icon-theme OUT_ROOT BASE_THEME ACCENT(#rrggbb)");
+    let [out_root, base, accent, rest @ ..] = &args[..] else {
+        eprintln!("icon-theme OUT_ROOT BASE_THEME ACCENT(#rrggbb) [INK(#rrggbb)]");
         std::process::exit(2);
     };
     let icons = PathBuf::from(std::env::var("VYNTARIS_ICONS").unwrap_or_else(|_| "/usr/share/icons".into()));
+    // Line icons (the small places) take the ink: the accent, made readable on a light theme.
+    let ink = rest.first().unwrap_or(accent);
     let out_root = Path::new(out_root);
     write_qt_theme(out_root, base);
-    let written_from = written_from(&icons, base, accent);
+    let written_from = written_from(&icons, base, &format!("{accent} {ink}"));
     let mark = out_root.join(NAME).join(".written-from");
     if fs::read_to_string(&mark).is_ok_and(|was| was == written_from) && out_root.join(NAME).join("index.theme").is_file() {
         println!("{}: as it was", out_root.join(NAME).display());
@@ -268,7 +283,7 @@ fn main() {
     }
 
     let inherits = if source.is_some() && icons.join(base).is_dir() {
-        link_base(&icons, base, &work, &mut written);
+        link_base(&icons, base, ink, &work, &mut written);
         "Adwaita,hicolor".to_string()
     } else {
         format!("{base},hicolor")
@@ -299,7 +314,7 @@ fn main() {
     println!("{}: written", final_dir.display());
 }
 
-const HOW: u32 = 1;
+const HOW: u32 = 2;
 fn written_from(icons: &Path, base: &str, accent: &str) -> String {
     let installed = |theme: &str| {
         fs::metadata(icons.join(theme).join("index.theme"))
@@ -325,6 +340,14 @@ mod tests {
         assert!(out.contains(&format!("fill=\"{}\"", map[1].1)));
         assert!(out.contains("#5294e2aa"), "not a whole colour: left");
         assert!(is_blue("folder-blue.svg") && is_blue("user-blue-home.svg") && !is_blue("folder-bluegrass.svg"));
+    }
+
+    #[test]
+    fn one_colour_places_take_the_accent() {
+        let svg = r##"<style>.ColorScheme-Text { color:#dfdfdf; } .ColorScheme-Highlight { color:#4285f4; }</style>"##;
+        let out = text_in(svg, "#cba6f7").unwrap();
+        assert!(out.contains(".ColorScheme-Text { color:#cba6f7; }") && out.contains("#4285f4"));
+        assert_eq!(text_in("<path fill=\"#5294e2\"/>", "#cba6f7"), None);
     }
 
     #[test]
