@@ -122,8 +122,8 @@ PanelWindow {
 
     readonly property string mode: !primary ? "clock"
         : Recorder.counting ? "countdown"
-        : Screenshot.shown ? "screenshot"
-        : Passwords.offer ? "passoffer"
+        // A panel opened by a key or a click comes first: it takes the keyboard, so it has to show
+        // (under a screenshot's preview it held the keys unseen, and nothing seemed to answer)
         : Panels.launcherOpen ? "launcher"
         : Panels.overviewOpen ? "overview"
         : Panels.powerOpen ? "power"
@@ -152,6 +152,8 @@ PanelWindow {
         : Panels.soundOpen ? "sound"
         : Panels.systemOpen ? "system"
         : Panels.batteryOpen ? "battery"
+        : Screenshot.shown ? "screenshot"
+        : Passwords.offer ? "passoffer"
         : Activities.shown ? "activity"
         : Osd.shown ? "osd"
         : Notifications.current ? "notification"
