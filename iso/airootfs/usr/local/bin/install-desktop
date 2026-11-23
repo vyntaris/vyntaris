@@ -132,14 +132,30 @@ XBOOTLDR_TYPE=bc13c2ff-59e6-4262-a352-b275fd6f7172
 BOOT_LABEL="Vyntaris boot"
 if [ -z "${INSTALL_MODE:-}" ]; then
     lsblk -pno NAME,SIZE,FSTYPE,LABEL "$INSTALL_DISK" | sed 's/^/   /'
-    note "erase: the whole disk; free: only its free space; partition: only one partition (the rest stays)"
+    note "erase: the whole disk; free: only its free space; partition: only one partition (the rest stays);"
+    note "shrink: make another system's partition smaller (Windows, ext4, Btrfs), its files stay;"
+    note "reinstall: a new Vyntaris over the one on this disk, keeping /home"
 fi
-ask INSTALL_MODE "How (erase, free, partition)" "erase"
-case "$INSTALL_MODE" in erase|free|partition) ;; *) die "how: erase, free or partition" ;; esac
+ask INSTALL_MODE "How (erase, free, partition, shrink, reinstall)" "erase"
+case "$INSTALL_MODE" in erase|free|partition|shrink|reinstall) ;; *) die "how: erase, free, partition, shrink or reinstall" ;; esac
 sector="$(blockdev --getss "$INSTALL_DISK")"
 other_esp=""
 old_boots=()
-if [ "$INSTALL_MODE" != erase ]; then
+if [ "$INSTALL_MODE" = reinstall ]; then
+    # The Vyntaris already here: its Btrfs root, with @ (the system) and @home, and the boot partitions its fstab names
+    ask INSTALL_PART "Its root partition (Btrfs)" "$(lsblk -lnpo NAME,FSTYPE,LABEL "$INSTALL_DISK" | awk '$2 == "btrfs" && $3 == "root" {print $1; exit}')"
+    [ "$(lsblk -no FSTYPE "$INSTALL_PART" 2>/dev/null)" = btrfs ] || die "$INSTALL_PART isn't a Btrfs partition"
+    umount -R "$MNT" 2>/dev/null || true
+    mount -o subvolid=5 "$INSTALL_PART" "$MNT" || die "$INSTALL_PART can't be mounted"
+    if [ ! -d "$MNT/@" ] || [ ! -d "$MNT/@home" ] || [ ! -f "$MNT/@/etc/fstab" ]; then umount "$MNT"; die "$INSTALL_PART doesn't hold a Vyntaris (no @, @home and fstab)"; fi
+    uuid_of() { awk -v m="$1" '$2 == m && $1 ~ /^UUID=/ {sub(/^UUID=/, "", $1); print $1; exit}' "$MNT/@/etc/fstab"; }
+    boot_uuid="$(uuid_of /boot)"; efi_uuid="$(uuid_of /efi)"
+    umount "$MNT"
+    [ -n "$boot_uuid" ] && [ -b "/dev/disk/by-uuid/$boot_uuid" ] || die "the boot partition that Vyntaris used isn't there"
+    esp="$(readlink -f "/dev/disk/by-uuid/$boot_uuid")"
+    other_esp=""; [ -z "$efi_uuid" ] || other_esp="$(readlink -f "/dev/disk/by-uuid/$efi_uuid")"
+    room=$(lsblk -bdno SIZE "$INSTALL_PART")
+elif [ "$INSTALL_MODE" != erase ]; then
     [ "$(lsblk -dno PTTYPE "$INSTALL_DISK")" = gpt ] || die "$INSTALL_DISK uses the old MBR layout (or has no partition table), and Vyntaris can't install next to it: use the whole disk, or a disk with GPT"
     other_esp="$(lsblk -lnpo NAME,PARTTYPE "$INSTALL_DISK" | awk -v t="$ESP_TYPE" 'tolower($2) == t && !e {e = $1} END {print e}')"
     mapfile -t old_boots < <(lsblk -lnpo NAME,PARTTYPE,PARTLABEL "$INSTALL_DISK" | awk -v t="$XBOOTLDR_TYPE" -v l="$BOOT_LABEL" 'tolower($2) == t && substr($0, index($0, $3)) == l {print $1}')
@@ -147,7 +163,30 @@ if [ "$INSTALL_MODE" != erase ]; then
     [ -z "$foreign_boot" ] || die "$foreign_boot is another system's boot partition, and only one can start from a disk: use another disk, or the whole disk"
     [ "${#old_boots[@]}" = 0 ] || note "${old_boots[0]} holds the boot files of an earlier Vyntaris: they're replaced, and that Vyntaris stops starting"
     [ -n "$other_esp" ] || note "$INSTALL_DISK has no EFI partition, so Vyntaris makes its own. To start the other system, use the computer's boot menu."
-    if [ "$INSTALL_MODE" = partition ]; then
+    if [ "$INSTALL_MODE" = shrink ]; then
+        ask INSTALL_PART "Which partition gives the room (its files stay)" ""
+        [ -b "$INSTALL_PART" ] && [ "$(lsblk -no PKNAME "$INSTALL_PART")" = "$(basename "$INSTALL_DISK")" ] ||
+            die "$INSTALL_PART isn't a partition of $INSTALL_DISK"
+        partnum="$(cat "/sys/class/block/$(basename "$INSTALL_PART")/partition")"
+        declare -A sh=()
+        while IFS='=' read -r k v; do sh[$k]="$v"; done < <(vyntaris-shrink-info "$INSTALL_PART")
+        case "${sh[problem]:-}" in
+            "") ;;
+            bitlocker) die "BitLocker encrypts $INSTALL_PART: in Windows, turn it off for this drive (Settings › Privacy & security › Device encryption), wait until it's done, then try again" ;;
+            hibernated) die "Windows on $INSTALL_PART is hibernated or uses Fast Startup: in Windows turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then try again" ;;
+            unclean) die "$INSTALL_PART wasn't shut down cleanly: start that system and shut it down properly (on Windows, chkdsk C: /f), then try again" ;;
+            mounted) die "$INSTALL_PART is in use here: unmount it first" ;;
+            unsupported) die "only Windows (NTFS), ext4 and Btrfs partitions can be made smaller, not ${sh[fs]:-this one}" ;;
+            *) die "$INSTALL_PART can't be read, so it isn't made smaller" ;;
+        esac
+        most=$(( (sh[size] - sh[min]) / 1000000000 ))
+        [ "$most" -ge 30 ] || die "$INSTALL_PART can give only $most GB (its files need the rest); Vyntaris needs 30"
+        ask INSTALL_ROOM "How many GB for Vyntaris (30 to $most)" "$(( most < 100 ? most : 100 ))"
+        printf '%s' "$INSTALL_ROOM" | grep -qxE '[0-9]+' && [ "$INSTALL_ROOM" -ge 30 ] && [ "$INSTALL_ROOM" -le "$most" ] ||
+            die "between 30 and $most GB"
+        shrink_keep=$(( sh[size] - INSTALL_ROOM * 1000000000 ))
+        room=$(( INSTALL_ROOM * 1000000000 ))
+    elif [ "$INSTALL_MODE" = partition ]; then
         ask INSTALL_PART "Which partition (only it is erased)" ""
         [ -b "$INSTALL_PART" ] && [ "$(lsblk -no PKNAME "$INSTALL_PART")" = "$(basename "$INSTALL_DISK")" ] ||
             die "$INSTALL_PART isn't a partition of $INSTALL_DISK"
@@ -158,7 +197,7 @@ if [ "$INSTALL_MODE" != erase ]; then
     else
         first="$(sgdisk -F "$INSTALL_DISK" | tail -n1)"; last="$(sgdisk -E "$INSTALL_DISK" | tail -n1)"
     fi
-    room=$(( (last - first + 1) * sector ))
+    [ "$INSTALL_MODE" = shrink ] || room=$(( (last - first + 1) * sector ))
     [ "$room" -ge 30000000000 ] || die "that's $((room / 1000000000)) GB; Vyntaris needs at least 30"
 fi
 
@@ -169,6 +208,8 @@ cat <<EOF
                     erase) echo "$INSTALL_DISK ($(lsblk -dno SIZE "$INSTALL_DISK")) — ${c_err}all of it erased${c_off}" ;;
                     free) echo "$((room / 1000000000)) GB of free space on $INSTALL_DISK — nothing on it is touched" ;;
                     partition) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) — ${c_err}erased${c_off}, the rest stays" ;;
+                    shrink) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) gives $INSTALL_ROOM GB — its files stay" ;;
+                    reinstall) echo "the Vyntaris on $INSTALL_PART — a new system, /home kept, the old one set aside" ;;
                  esac)
      user       $INSTALL_USER on $INSTALL_HOSTNAME
      language   $INSTALL_LOCALE, keyboard $INSTALL_KEYMAP, $INSTALL_TIMEZONE
@@ -182,7 +223,18 @@ fi
 step "Partitions"
 umount -R "$MNT" 2>/dev/null || true
 settle() { partprobe "$INSTALL_DISK" 2>/dev/null || true; udevadm settle; }
-if [ "$INSTALL_MODE" = erase ]; then
+if [ "$INSTALL_MODE" = reinstall ]; then
+    root="$INSTALL_PART"
+    mount -o subvolid=5 "$root" "$MNT"
+    old="@old-$(date +%Y%m%d-%H%M)"
+    mv "$MNT/@" "$MNT/$old"
+    btrfs -q subvolume create "$MNT/@"
+    umount "$MNT"
+    note "the old system is kept as the subvolume $old; /home is as it was"
+    label="$(lsblk -no LABEL "$esp")"
+    umount "$esp" 2>/dev/null || true
+    mkfs.fat -F 32 -n "${label:-VYNTARIS}" "$esp" >/dev/null
+elif [ "$INSTALL_MODE" = erase ]; then
     wipefs -af "$INSTALL_DISK" >/dev/null
     sgdisk -Z "$INSTALL_DISK" >/dev/null
     sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:root "$INSTALL_DISK" >/dev/null
@@ -191,6 +243,11 @@ if [ "$INSTALL_MODE" = erase ]; then
     esp="${parts[0]}"; root="${parts[1]}"
     mkfs.fat -F 32 -n EFI "$esp" >/dev/null
 else
+    if [ "$INSTALL_MODE" = shrink ]; then
+        note "making $INSTALL_PART smaller (this can take a while)"
+        read -r first last < <(vyntaris-shrink "$INSTALL_DISK" "$partnum" "$shrink_keep") || die "$INSTALL_PART couldn't be made smaller; nothing else was changed"
+        [ "${sh[fs]}" != ntfs ] || note "Windows checks its disk once at its next start: that's expected"
+    fi
     if [ "$INSTALL_MODE" = partition ]; then
         umount "$INSTALL_PART" 2>/dev/null || true
         wipefs -af "$INSTALL_PART" >/dev/null
@@ -226,11 +283,13 @@ else
     wipefs -af "$esp" "$root" >/dev/null
     mkfs.fat -F 32 -n VYNTARIS "$esp" >/dev/null
 fi
-mkfs.btrfs -qf -L root "$root"
-mount "$root" "$MNT"
-btrfs -q subvolume create "$MNT/@"
-btrfs -q subvolume create "$MNT/@home"
-umount "$MNT"
+if [ "$INSTALL_MODE" != reinstall ]; then
+    mkfs.btrfs -qf -L root "$root"
+    mount "$root" "$MNT"
+    btrfs -q subvolume create "$MNT/@"
+    btrfs -q subvolume create "$MNT/@home"
+    umount "$MNT"
+fi
 opts=noatime,compress=zstd:1
 mount -o "$opts,subvol=@" "$root" "$MNT"
 mount --mkdir -o "$opts,subvol=@home" "$root" "$MNT/home"
@@ -321,7 +380,9 @@ printf '127.0.0.1 localhost\n::1 localhost\n127.0.1.1 %s\n' "$INSTALL_HOSTNAME" 
 inside systemctl enable NetworkManager.service systemd-timesyncd.service >/dev/null
 
 step "User $INSTALL_USER"
-inside useradd -m -G wheel -s /usr/bin/zsh ${INSTALL_FULLNAME:+-c "$INSTALL_FULLNAME"} "$INSTALL_USER"
+inside useradd -m -G wheel -s /usr/bin/zsh ${INSTALL_FULLNAME:+-c "$INSTALL_FULLNAME"} "$INSTALL_USER" 2> >(grep -v "already exists\|Not copying" >&2)
+# A home kept from the system before: its files belong to the new user (who may have another id)
+[ "$INSTALL_MODE" != reinstall ] || inside chown -R "$INSTALL_USER:$INSTALL_USER" "/home/$INSTALL_USER"
 printf '%s:%s\n' "$INSTALL_USER" "$password" | inside chpasswd
 inside passwd -l root >/dev/null
 echo '%wheel ALL=(ALL:ALL) ALL' > "$MNT/etc/sudoers.d/10-wheel"
@@ -374,6 +435,10 @@ printf '{\n  "input": { "kbLayout": "%s", "kbVariant": "%s" }\n}\n' \
 inside chown -R "$INSTALL_USER:$INSTALL_USER" "/home/$INSTALL_USER/.config"
 
 inside vyntaris-setup --user "$INSTALL_USER" ${INSTALL_AUTOLOGIN:+--autologin}
+# Hibernation: a swap file as large as half the memory (at most 8 GB), and the kernel told where it is
+if [ -n "${INSTALL_HIBERNATE:-}" ]; then
+    inside vyntaris-hibernate >/dev/null 2>&1 || note "hibernation couldn't be turned on; Settings › Power can do it later"
+fi
 inside runuser -u "$INSTALL_USER" -- env HOME="/home/$INSTALL_USER" LANG=C.UTF-8 vyntaris-user-setup
 
 step "Checking that it will start"

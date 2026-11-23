@@ -42,6 +42,8 @@ jobs:
         run: tools/check-paths.sh
       - name: Safe updates, on a stand-in system (an update undone, one that proves itself)
         run: tools/test-update-guard.sh
+      - name: Room next to another system (NTFS and ext4 made smaller on image files)
+        run: sudo apt-get install -y ntfs-3g gdisk e2fsprogs && tools/test-shrink.sh
       - name: Games (multilib turned on; the island's FPS from MangoHud's log or the sensors)
         run: tools/test-gaming.sh
       - name: The session's watchdog (a crashed desktop comes back as itself, never Hyprland's safe mode)

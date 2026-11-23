@@ -4,6 +4,8 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT="${VM_OUT:-$REPO/tools/vm-test}"
 ISO="${1:-$(ls -t "$REPO"/iso/out/*.iso 2>/dev/null | head -n1)}"
 STAGE="${STAGE:-all}"
+# VM_SHRINK: the other system fills the disk, and the installer makes room by shrinking it (a VM_DUAL test)
+[ -z "${VM_SHRINK:-}" ] || VM_DUAL=1
 USER_NAME=tester
 USER_PASS="test"
 OVMF_CODE=/usr/share/edk2/x64/OVMF_CODE.4m.fd
@@ -95,7 +97,8 @@ if [ "$STAGE" = all ]; then
     if [ -z "${ISO_ONLY:-}" ]; then
         "$REPO/tools/package.sh" >/dev/null
         cp "$(ls -t "$REPO"/pkg/vyntaris-*.pkg.tar.zst | head -n1)" "$(ls -t "$REPO"/pkg/yay-bin-*.pkg.tar.zst | head -n1)" \
-            "$REPO/iso/airootfs/usr/local/bin/install-desktop" \
+            "$REPO/iso/airootfs/usr/local/bin/install-desktop" "$REPO/iso/airootfs/usr/local/bin/vyntaris-shrink" \
+            "$REPO/iso/airootfs/usr/local/bin/vyntaris-shrink-info" \
             "$REPO/packages.txt" "$REPO/iso/base-packages" "$OUT/current/"
         tar -C "$OUT/current" -czf "$OUT/current.tar.gz" .
     fi
@@ -108,7 +111,7 @@ if curl -fsSo /tmp/current.tar.gz http://10.0.2.2:8123/current.tar.gz; then
     mkdir -p /tmp/current && tar -C /tmp/current -xzf /tmp/current.tar.gz
     rm -f /opt/vyntaris-repo/*.pkg.tar.* && cp /tmp/current/*.pkg.tar.zst /opt/vyntaris-repo/
     repo-add -q -R /opt/vyntaris-repo/vyntaris.db.tar.gz /opt/vyntaris-repo/*.pkg.tar.zst
-    install -m755 /tmp/current/install-desktop /usr/local/bin/install-desktop
+    install -m755 /tmp/current/install-desktop /tmp/current/vyntaris-shrink /tmp/current/vyntaris-shrink-info /usr/local/bin/
     install -m644 /tmp/current/packages.txt /tmp/current/base-packages /usr/share/desktop-installer/
     echo "using the package and installer from the host's tree"
 fi
@@ -120,13 +123,17 @@ fi
 mode=erase
 if [ -n "${VM_DUAL:-}" ]; then
     sgdisk -Z /dev/vda >/dev/null
-    sgdisk -n 1:0:+300M -t 1:ef00 -c 1:EFI -n 2:0:+6G -t 2:8300 -c 2:other /dev/vda >/dev/null
+    sgdisk -n 1:0:+300M -t 1:ef00 -c 1:EFI -n 2:0:$([ -n "${VM_SHRINK:-}" ] && echo 0 || echo +6G) -t 2:8300 -c 2:other /dev/vda >/dev/null
     partprobe /dev/vda; udevadm settle
     mkfs.fat -F 32 /dev/vda1 >/dev/null; mkfs.ext4 -qF -L other /dev/vda2
     mount /dev/vda1 /mnt && mkdir -p /mnt/EFI/Microsoft/Boot && cp /usr/share/edk2-shell/x64/Shell_Full.efi /mnt/EFI/Microsoft/Boot/bootmgfw.efi && umount /mnt
     mount /dev/vda2 /mnt && echo "the other system's" > /mnt/marker && umount /mnt
     mode=free
     echo "dual boot: another system on /dev/vda1-2, Vyntaris into the free space"
+    if [ -n "${VM_SHRINK:-}" ]; then
+        mode=shrink; export INSTALL_PART=/dev/vda2 INSTALL_ROOM=30
+        echo "… which fills the disk: the installer makes 30 GB by shrinking it"
+    fi
 fi
 INSTALL_MODE=\$mode \\
 INSTALL_DISK=/dev/vda INSTALL_USER=$USER_NAME INSTALL_PASSWORD=$USER_PASS INSTALL_HOSTNAME=vmtest \\
