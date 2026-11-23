@@ -9,7 +9,8 @@ T() { /usr/lib/vyntaris/json tr "$@" 2>/dev/null || printf '%s' "$1"; }
 end() {
     echo "$1" > "$state/result"
     case "$1" in
-        ok) notify-send -a "$(T "Updates")" -i system-software-update "$(T "Up to date")" "$2" ;;
+        # Done: no "Up to date" note, the bar's updates icon going away says it. Only what's left to do is said.
+        ok) [ -n "$2" ] && notify-send -a "$(T "Updates")" -i dialog-information "$(T "Updates")" "$2" ;;
         failed) notify-send -a "$(T "Updates")" -i dialog-warning -u critical "$(T "The update didn't finish")" \
             "${2:+$2. }$(T "Open Updates to see it through in a terminal.")" ;;
     esac
@@ -36,4 +37,4 @@ fi
 if [ -n "$helper" ] && command -v "$helper" >/dev/null && [ -n "$("$helper" -Qua 2>/dev/null)" ]; then
     end ok "$(T "The system is updated. Apps from the AUR wait for you to look at their changes, in Updates.")"
 fi
-end ok "$(T "Everything is updated.")"
+end ok

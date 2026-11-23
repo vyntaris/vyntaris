@@ -216,7 +216,7 @@ Item {
         width: 400
         height: cardColumn.implicitHeight + 44
         radius: Theme.r(20)
-        border { width: 1; color: root.leaving ? Theme.tint(parent, Theme.success, 0.7) : root.wrong ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
+        border { width: 1; color: root.wrong && !root.leaving ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
         color: Theme.isDark ? Theme.crust : Theme.base
         Behavior on border.color { ColorAnim {} }
 

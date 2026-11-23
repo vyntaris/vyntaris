@@ -500,10 +500,17 @@ for _, r in ipairs({
     { "nm-editor",    { class = "^(nm-connection-editor)$" } },
     { "spotify",      { class = "^([Ss]potify)$" } },
     { "calculator",   { class = "^(galculator|org.gnome.Calculator)$" } },
-    { "portal",       { class = "^(xdg-desktop-portal-gtk)$" } },
-    { "dlg-open",     { title = "^(Open|Open File|Choose Files|Save As|Confirm to replace files|File Operation Progress)$" } },
 }) do
     hl.window_rule({ name = "float-" .. r[1], match = r[2], float = true })
+end
+
+-- The file picker (an app's Open and Save As) floats in the middle of the screen, never by a corner.
+local filePickerTitles = "^(Open|Open File|Open Files|Open Folder|Select Folder|Choose Files|Save As|Save File|File Upload|Enter name of file to save to.*|Confirm to replace files|File Operation Progress)$"
+for _, r in ipairs({
+    { "portal",   { class = "^(xdg-desktop-portal-gtk)$" } },
+    { "dlg-open", { title = filePickerTitles } },
+}) do
+    hl.window_rule({ name = "float-" .. r[1], match = r[2], float = true, center = true, tag = "+filepicker" })
 end
 
 -- Dialogs (rename, "are you sure", a password prompt) block the window they belong to: they float at their own
@@ -527,7 +534,24 @@ local function hasTag(w, tag)
 end
 
 hl.on("window.open", function(w)
-    if not w.floating or not hasTag(w, "dialog") then return end
+    if not w.floating then return end
+    -- The file picker goes to the middle of the screen (its rule), even when it's another app's dialog.
+    if hasTag(w, "filepicker") then
+        -- GTK sizes it a moment after it opens: centred again while its size settles.
+        local target, size, waited, check = "address:" .. w.address, nil, 0, nil
+        hl.dispatch(hl.dsp.window.center({ window = target }))
+        check = hl.timer(function()
+            waited = waited + 50
+            local now = w.size and (w.size.x .. "x" .. w.size.y)
+            if now and now ~= size then
+                size = now
+                hl.dispatch(hl.dsp.window.center({ window = target }))
+            end
+            if waited >= 600 then check:set_enabled(false) end
+        end, { timeout = 50, type = "repeat" })
+        return
+    end
+    if not hasTag(w, "dialog") then return end
     -- Its window: the one used last on the same workspace.
     local parent
     for _, o in ipairs(hl.get_windows()) do
