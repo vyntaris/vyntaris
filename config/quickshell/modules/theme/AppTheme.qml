@@ -74,7 +74,9 @@ Scope {
         applyBtop();
 
         const css = gtkCss();
-        writeGenerated(configHome + "/gtk-3.0/gtk.css", css);
+        // GTK3 reads gtk.css once, so the portal's file picker is restarted to pick up a new accent.
+        writeGenerated(configHome + "/gtk-3.0/gtk.css", css,
+            'hyprctl clients | grep -q "class: xdg-desktop-portal-gtk" || systemctl --user try-restart xdg-desktop-portal-gtk');
         writeGenerated(configHome + "/gtk-4.0/gtk.css", css);
         writeGenerated(configHome + "/gtk-3.0/settings.ini", gtkSettings(dark, pt));
 
@@ -200,11 +202,12 @@ Scope {
         Quickshell.execDetached(["gsettings", "set", "org.gnome.desktop.interface", key, value]);
     }
 
-    function writeGenerated(path, content) {
+    function writeGenerated(path, content, changed) {
         Quickshell.execDetached(["sh", "-c",
             'if [ -e "$1" ] && ! grep -q "$3" "$1"; then exit 0; fi; ' +
-            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1"',
-            "sh", path, content, marker]);
+            'printf "%s" "$2" | cmp -s - "$1" && exit 0; ' +
+            'mkdir -p "$(dirname "$1")" && printf "%s" "$2" > "$1" && eval "$4"',
+            "sh", path, content, marker, changed || ""]);
     }
 
     function hex(c) {
