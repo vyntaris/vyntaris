@@ -240,6 +240,7 @@ Scope {
             // The file picker's line icons (places, path bar, its buttons) in the accent, not the text colour.
             + `filechooser image, placessidebar image, dialog headerbar button image { color: @accent_color; }\n`
             + `filechooser row:selected image, placessidebar row:selected image, filechooser button.suggested-action image { color: @accent_fg_color; }\n`
+            + `filechooser treeview.view:selected, filechooser treeview.view:selected:focus { background-color: alpha(@accent_bg_color, 0.22); color: @view_fg_color; }\n`
             // Search fields look like the shell's: a pill with the magnifier in an accent circle.
             + `entry.search, .search-bar entry, searchbar entry { border-radius: 9999px; min-height: 36px; padding-left: 5px; background-color: ${hex(t.mantle)}; box-shadow: inset 0 0 0 1px ${hex(t.surface1)}; }\n`
             + `entry.search:focus-within, entry.search:focus, searchbar entry:focus-within { box-shadow: inset 0 0 0 2px @accent_color; outline: none; }\n`
