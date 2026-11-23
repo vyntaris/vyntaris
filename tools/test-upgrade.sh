@@ -38,7 +38,7 @@ export CALLS="$T/calls" INSTALLED="$T/installed" XDG_RUNTIME_DIR="$T/run" PATH="
 
 up() { : > "$CALLS"; printf 'base\n' > "$INSTALLED"; env "$@" sh "$SCRIPTS/upgrade.sh" yay; cat "$T/run/vyntaris-upgrade/result" 2>/dev/null; }
 echo ":: updating"
-check "done: ok, and said"                         test "$(up)" = ok -a -n "$(grep '^notify .*Up to date' "$CALLS")"
+check "done: ok, and nothing said"                test "$(up)" = ok -a -z "$(grep '^notify' "$CALLS")"
 check "… through pkexec, not sudo in a terminal"   grep -q '^pkexec pacman -Syu --noconfirm' "$CALLS"
 check "… the AUR not built when nothing changed"   bash -c "! grep -q '^yay -Sua' '$CALLS'"
 check "the password dialog closed: cancelled"      test "$(up PKEXEC=126)" = cancelled
