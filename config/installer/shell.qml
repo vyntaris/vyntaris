@@ -26,6 +26,27 @@ ShellRoot {
     property string part: ""
     // Next to another system: what its partition can give (vyntaris-shrink-info), and how much Vyntaris takes, in GB
     property var shrinkInfo: null
+    // The computer itself: a battery (a laptop), whether it's plugged in, and its memory in GB
+    property bool hasBattery: false
+    property bool onBattery: false
+    property real ramGb: 8
+    property bool hibernate: false
+    onHasBatteryChanged: hibernate = hasBattery
+    Process {
+        running: true
+        command: ["sh", "-c", "for d in /sys/class/power_supply/*; do t=$(cat $d/type 2>/dev/null); "
+            + "[ \"$t\" = Battery ] && echo battery; [ \"$t\" = Mains ] && [ \"$(cat $d/online 2>/dev/null)\" = 1 ] && echo plugged; done; "
+            + "awk '/^MemTotal/ {print \"ram \" $2}' /proc/meminfo"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = text.split("\n");
+                root.hasBattery = lines.includes("battery");
+                root.onBattery = root.hasBattery && !lines.includes("plugged");
+                const ram = lines.find(l => l.startsWith("ram "));
+                if (ram) root.ramGb = Number(ram.slice(4)) / 1048576;
+            }
+        }
+    }
     property int room: 0
     readonly property int roomMost: shrinkInfo && !shrinkInfo.problem ? Math.floor((shrinkInfo.size - shrinkInfo.min) / 1e9) : 0
     readonly property var shrinkable: parts.filter(p => ["ntfs", "ext4", "ext3", "btrfs", "BitLocker"].includes(p.fstype))
@@ -437,7 +458,8 @@ ShellRoot {
             INSTALL_YES: "1", INSTALL_DISK: root.disk, INSTALL_USER: root.user, INSTALL_PASSWORD: root.pass,
             INSTALL_FULLNAME: root.fullName, INSTALL_HOSTNAME: root.host, INSTALL_TIMEZONE: root.timezone,
             INSTALL_KEYMAP: root.keymap, INSTALL_KBVARIANT: root.variant, INSTALL_LOCALE: root.locale,
-            INSTALL_MODE: root.mode, INSTALL_PART: root.part, INSTALL_ROOM: String(root.room)
+            INSTALL_MODE: root.mode, INSTALL_PART: root.part, INSTALL_ROOM: String(root.room),
+            INSTALL_HIBERNATE: root.hibernate ? "1" : ""
         })
         stdout: SplitParser { onRead: line => root.onLine(line) }
         onExited: code => {
@@ -652,6 +674,22 @@ ShellRoot {
                                     wrapMode: Text.WordWrap
                                     color: Theme.subtext0
                                     text: Tr.t("Hyprland and Quickshell, in Catppuccin colors. A few questions and it installs on its own.")
+                                }
+                                Label {
+                                    visible: root.onBattery
+                                    Layout.fillWidth: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    wrapMode: Text.WordWrap
+                                    color: Theme.warning
+                                    text: "⚠  " + Tr.t("This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.")
+                                }
+                                Label {
+                                    visible: root.ramGb < 3.5
+                                    Layout.fillWidth: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    wrapMode: Text.WordWrap
+                                    color: Theme.warning
+                                    text: "⚠  " + Tr.t("This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.")
                                 }
                             }
                         }
@@ -1057,6 +1095,17 @@ ShellRoot {
                                 Label { text: root.keymap + (root.variant ? ", " + root.variant : "") }
                                 Caption { text: Tr.t("Time zone") }
                                 Label { text: root.timezone.replace(/_/g, " ") }
+                                Caption { text: Tr.t("Hibernation") }
+                                RowLayout {
+                                    spacing: Theme.space10
+                                    Switch { checked: root.hibernate; label: Tr.t("Hibernation"); onToggled: on => root.hibernate = on }
+                                    Label {
+                                        Layout.fillWidth: true
+                                        wrapMode: Text.WordWrap
+                                        color: Theme.subtext0
+                                        text: Tr.t("Sleep that uses no power: what's open is saved to the disk. Takes ") + Math.min(8, Math.max(1, Math.round(root.ramGb / 2))) + Tr.t(" GB of it.")
+                                    }
+                                }
                                 Item { implicitHeight: 4; Layout.columnSpan: 2 }
                                 Label {
                                     Layout.columnSpan: 2
@@ -1376,8 +1425,8 @@ ShellRoot {
                         Button {
                             visible: root.page === 6
                             primary: true
-                            danger: true
-                            text: (root.mode === "free" ? Tr.t("Install") : Tr.t("Erase and install"))
+                            danger: root.mode !== "free" && root.mode !== "shrink"
+                            text: (root.mode === "free" || root.mode === "shrink" ? Tr.t("Install") : Tr.t("Erase and install"))
                             onClicked: root.install()
                         }
                         Button {

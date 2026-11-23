@@ -1192,5 +1192,9 @@
  "This partition wasn't shut down cleanly. Start that system and shut it down properly (on Windows, run chkdsk C: /f first), then try again.": "Esta partição não foi desligada corretamente. Inicie esse sistema e desligue-o como deve ser (no Windows, execute antes chkdsk C: /f) e tente de novo.",
  "Vyntaris": "Vyntaris",
  "Vyntaris gets": "O Vyntaris fica com",
- "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "O Windows está em hibernação ou usa o arranque rápido. No Windows, desative o arranque rápido (Painel de Controlo › Opções de Energia › Escolher o que fazem os botões de energia), desligue (não reinicie) e abra o instalador de novo."
+ "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "O Windows está em hibernação ou usa o arranque rápido. No Windows, desative o arranque rápido (Painel de Controlo › Opções de Energia › Escolher o que fazem os botões de energia), desligue (não reinicie) e abra o instalador de novo.",
+ "This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.": "Este computador está a usar a bateria. Ligue o carregador: uma instalação interrompida a meio deixa o disco inutilizável.",
+ "Sleep that uses no power: what's open is saved to the disk. Takes ": "Suspensão sem consumo: o que está aberto é guardado no disco. Ocupa ",
+ " GB of it.": " GB dele.",
+ "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "Este computador tem menos de 4 GB de memória. O Vyntaris instala-se, mas vai ser lento."
 }

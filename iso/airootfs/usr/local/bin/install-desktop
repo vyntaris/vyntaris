@@ -404,6 +404,10 @@ printf '{\n  "input": { "kbLayout": "%s", "kbVariant": "%s" }\n}\n' \
 inside chown -R "$INSTALL_USER:$INSTALL_USER" "/home/$INSTALL_USER/.config"
 
 inside vyntaris-setup --user "$INSTALL_USER" ${INSTALL_AUTOLOGIN:+--autologin}
+# Hibernation: a swap file as large as half the memory (at most 8 GB), and the kernel told where it is
+if [ -n "${INSTALL_HIBERNATE:-}" ]; then
+    inside vyntaris-hibernate >/dev/null 2>&1 || note "hibernation couldn't be turned on; Settings › Power can do it later"
+fi
 inside runuser -u "$INSTALL_USER" -- env HOME="/home/$INSTALL_USER" LANG=C.UTF-8 vyntaris-user-setup
 
 step "Checking that it will start"

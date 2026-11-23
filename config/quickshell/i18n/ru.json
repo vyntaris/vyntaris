@@ -1192,5 +1192,9 @@
  "This partition wasn't shut down cleanly. Start that system and shut it down properly (on Windows, run chkdsk C: /f first), then try again.": "Этот раздел не был правильно выключен. Запустите ту систему и выключите её как следует (в Windows сначала выполните chkdsk C: /f), затем попробуйте снова.",
  "Vyntaris": "Vyntaris",
  "Vyntaris gets": "Vyntaris получает",
- "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "Windows в режиме гибернации или использует быстрый запуск. В Windows отключите быстрый запуск (Панель управления › Электропитание › Действия кнопок питания), выключите компьютер (не перезагрузка) и снова запустите установщик."
+ "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "Windows в режиме гибернации или использует быстрый запуск. В Windows отключите быстрый запуск (Панель управления › Электропитание › Действия кнопок питания), выключите компьютер (не перезагрузка) и снова запустите установщик.",
+ "This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.": "Компьютер работает от батареи. Подключите зарядку: установка, прерванная на середине, оставит диск непригодным.",
+ "Sleep that uses no power: what's open is saved to the disk. Takes ": "Сон без расхода энергии: открытое сохраняется на диск. Занимает ",
+ " GB of it.": " ГБ на нём.",
+ "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "У компьютера меньше 4 ГБ памяти. Vyntaris установится, но будет работать медленно."
 }

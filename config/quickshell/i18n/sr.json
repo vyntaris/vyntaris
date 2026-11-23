@@ -1192,5 +1192,9 @@
  "This partition wasn't shut down cleanly. Start that system and shut it down properly (on Windows, run chkdsk C: /f first), then try again.": "Ova particija nije ugašena kako treba. Pokreni taj sistem i ugasi ga normalno (na Windows-u prvo pokreni chkdsk C: /f), pa pokušaj ponovo.",
  "Vyntaris": "Vyntaris",
  "Vyntaris gets": "Vyntaris dobija",
- "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "Windows je u hibernaciji ili koristi Brzo pokretanje. U Windows-u isključi Brzo pokretanje (Kontrolna tabla › Opcije napajanja › Izaberite šta rade dugmad za napajanje), ugasi računar (ne restart), pa ponovo pokreni installer."
+ "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "Windows je u hibernaciji ili koristi Brzo pokretanje. U Windows-u isključi Brzo pokretanje (Kontrolna tabla › Opcije napajanja › Izaberite šta rade dugmad za napajanje), ugasi računar (ne restart), pa ponovo pokreni installer.",
+ "This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.": "Računar radi na bateriji. Uključi punjač: instalacija koja stane na pola ostavlja disk neupotrebljivim.",
+ "Sleep that uses no power: what's open is saved to the disk. Takes ": "Spavanje bez potrošnje struje: ono što je otvoreno čuva se na disk. Zauzima ",
+ " GB of it.": " GB diska.",
+ "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "Računar ima manje od 4 GB memorije. Vyntaris će se instalirati, ali će biti spor."
 }
