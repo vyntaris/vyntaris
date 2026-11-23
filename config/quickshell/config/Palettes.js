@@ -236,3 +236,32 @@ function readableOn(fill, light, dark) {
     if (contrast(light, fill) >= 4.5) return light;
     return contrast("#ffffff", fill) >= contrast(dark, fill) ? "#ffffff" : dark;
 }
+
+// A Craft theme (VDoc and the other Craft apps, ~/.config/ArtCraft/themes) from a palette and its
+// accent: the same surfaces and text as the shell in the mode of the palette; the other mode is derived
+// from the seeds.
+function craftTheme(p, accent, dark) {
+    function pins(p, a) {
+        return {
+            "accent.solid": a, "accent.soft": a + (dark ? "3c" : "28"), "accent.border": a + "82",
+            "surface.background": p.mantle, "surface.panel": p.base, "surface.canvas": p.crust,
+            "surface.sunken": p.mantle, "surface.shadow": "#0000002d",
+            "line.border": p.surface1, "line.control_edge": p.surface2, "line.divider": p.surface0,
+            "state.hover": p.surface0, "state.pressed": p.surface1,
+            "state.selected": "{accent.soft}", "state.selected_hover": "{accent.soft}",
+            "text.normal": p.text, "text.muted": p.subtext1, "text.faint": p.overlay2,
+            "text.on_accent": readableOn(a, "#ffffff", "#11111b"),
+            "caption.close_hover": p.surface1, "caption.close_text": p.text
+        };
+    }
+    // On a light theme the pastel accent is deepened until it reads as text, as the shell's ink.
+    if (!dark) accent = deepen(accent, p.base, 4.5);
+    var t = {
+        schema: "craft-design-theme", schema_version: 1, id: "vyntaris", name: "Vyntaris", version: 1,
+        variants: "both", contrast_intent: "standard",
+        seeds: { accent: accent, neutral: p.overlay0,
+                 status: { good: p.green, warn: p.yellow, bad: p.red, info: p.blue } }
+    };
+    t[dark ? "dark" : "light"] = pins(p, accent);
+    return t;
+}

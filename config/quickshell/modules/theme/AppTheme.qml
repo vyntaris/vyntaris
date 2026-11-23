@@ -2,6 +2,7 @@ import Quickshell
 import QtQuick
 import qs.config
 import "../../components/LogoArt.js" as LogoArt
+import "../../config/Palettes.js" as Palettes
 
 Scope {
     id: root
@@ -72,6 +73,7 @@ Scope {
         applyVscode();
         applyFastfetch();
         applyBtop();
+        applyCraft(dark);
 
         const css = gtkCss();
         // GTK3 reads gtk.css once, so the portal's file picker is restarted to pick up a new accent.
@@ -86,6 +88,21 @@ Scope {
             'pkill -USR1 -x kitty; true',
             "sh", configHome + "/kitty/theme.conf", kittyTheme(),
             configHome + "/kitty/kitty.conf", kittyBase()]);
+    }
+
+    // VDoc and the other Craft apps: the shell's colours as the Craft theme "vyntaris", which they
+    // follow live. The suite selection is only written when there is none, so a theme the user
+    // picked in the app stays theirs.
+    function applyCraft(dark) {
+        const dir = configHome + "/ArtCraft/themes";
+        const theme = JSON.stringify(Palettes.craftTheme(Theme.palette, hex(Theme.accent), dark), null, 2) + "\n";
+        const selection = JSON.stringify({ schema_version: 2, revision: 1, library_revision: 1,
+            suite: { theme: { light: "vyntaris", dark: "vyntaris" }, mode: "system" } }) + "\n";
+        Quickshell.execDetached(["sh", "-c",
+            'mkdir -p "$1/library" && printf "%s" "$2" > "$1/library/.vyntaris.json.new" && ' +
+            'mv "$1/library/.vyntaris.json.new" "$1/library/vyntaris.json" && ' +
+            '{ [ -e "$1/selection.json" ] || printf "%s" "$3" > "$1/selection.json"; }',
+            "sh", dir, theme, selection]);
     }
 
     function writeAlways(path, content) {
