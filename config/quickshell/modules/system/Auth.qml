@@ -144,7 +144,7 @@ Scope {
             width: 420
             height: body.implicitHeight + 48
             radius: Theme.r(20)
-            border { width: 1; color: root.succeeded ? Theme.tint(parent, Theme.success, 0.7) : root.flow?.failed && !root.quiet ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
+            border { width: 1; color: root.flow?.failed && !root.quiet && !root.succeeded ? Theme.tint(parent, Theme.error, 0.6) : Theme.edgeOn(parent) }
             color: Theme.isDark ? Theme.crust : Theme.base
             transform: [ Translate { id: shakeShift }, Translate { y: 50 * root.leave } ]
             // Comes up with the blur, drops away as it leaves.
