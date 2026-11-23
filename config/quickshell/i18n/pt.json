@@ -1196,5 +1196,10 @@
  "This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.": "Este computador está a usar a bateria. Ligue o carregador: uma instalação interrompida a meio deixa o disco inutilizável.",
  "Sleep that uses no power: what's open is saved to the disk. Takes ": "Suspensão sem consumo: o que está aberto é guardado no disco. Ocupa ",
  " GB of it.": " GB dele.",
- "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "Este computador tem menos de 4 GB de memória. O Vyntaris instala-se, mas vai ser lento."
+ "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "Este computador tem menos de 4 GB de memória. O Vyntaris instala-se, mas vai ser lento.",
+ "Reinstall, keep files": "Reinstalar, manter ficheiros",
+ "A new Vyntaris replaces ": "Um Vyntaris novo substitui ",
+ "Reinstall": "Reinstalar",
+ " on ": " em ",
+ ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Os seus ficheiros em /home ficam: use o mesmo nome de utilizador de antes para continuarem seus. O sistema antigo é posto de lado, não apagado."
 }

@@ -1196,5 +1196,10 @@
  "This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.": "Računar radi na bateriji. Uključi punjač: instalacija koja stane na pola ostavlja disk neupotrebljivim.",
  "Sleep that uses no power: what's open is saved to the disk. Takes ": "Spavanje bez potrošnje struje: ono što je otvoreno čuva se na disk. Zauzima ",
  " GB of it.": " GB diska.",
- "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "Računar ima manje od 4 GB memorije. Vyntaris će se instalirati, ali će biti spor."
+ "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "Računar ima manje od 4 GB memorije. Vyntaris će se instalirati, ali će biti spor.",
+ "Reinstall, keep files": "Ponovo instaliraj, zadrži fajlove",
+ "A new Vyntaris replaces ": "Novi Vyntaris zamenjuje ",
+ "Reinstall": "Ponovo instaliraj",
+ " on ": " na ",
+ ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Tvoji fajlovi u /home ostaju: unesi isto korisničko ime kao ranije da bi ostali tvoji. Stari sistem se sklanja, ne briše."
 }

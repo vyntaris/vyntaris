@@ -1196,5 +1196,10 @@
  "This computer runs on its battery. Plug in the charger: an installation that stops halfway leaves the disk unusable.": "Компьютер работает от батареи. Подключите зарядку: установка, прерванная на середине, оставит диск непригодным.",
  "Sleep that uses no power: what's open is saved to the disk. Takes ": "Сон без расхода энергии: открытое сохраняется на диск. Занимает ",
  " GB of it.": " ГБ на нём.",
- "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "У компьютера меньше 4 ГБ памяти. Vyntaris установится, но будет работать медленно."
+ "This computer has less than 4 GB of memory. Vyntaris installs, but it will be slow.": "У компьютера меньше 4 ГБ памяти. Vyntaris установится, но будет работать медленно.",
+ "Reinstall, keep files": "Переустановить, сохранив файлы",
+ "A new Vyntaris replaces ": "Новый Vyntaris заменяет ",
+ "Reinstall": "Переустановить",
+ " on ": " на ",
+ ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Ваши файлы в /home останутся: укажите прежнее имя пользователя, чтобы они остались вашими. Старая система откладывается, а не удаляется."
 }

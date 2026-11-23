@@ -51,6 +51,22 @@ ShellRoot {
     readonly property int roomMost: shrinkInfo && !shrinkInfo.problem ? Math.floor((shrinkInfo.size - shrinkInfo.min) / 1e9) : 0
     readonly property var shrinkable: parts.filter(p => ["ntfs", "ext4", "ext3", "btrfs", "BitLocker"].includes(p.fstype))
     onPartChanged: { shrinkInfo = null; if (mode === "shrink" && part) shrinkProbe.running = true; }
+    // A Vyntaris already on the chosen disk, to install again over it keeping /home (repair-desktop finds it)
+    property var installed: null
+    Process {
+        id: installedScan
+        command: root.preview ? ["sh", "-c", "printf '/dev/nvme0n1p2\\tbtrfs\\tVyntaris 0.2.0\\tvyntaris\\t2\\n'"]
+                              : ["repair-desktop", "list"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const found = text.trim().split("\n").filter(l => l).map(l => l.split("\t"))
+                    .filter(f => f[1] === "btrfs" && f[0].startsWith(root.disk))
+                    .map(f => ({ dev: f[0], name: f[2], host: f[3] }));
+                root.installed = found.length ? found[0] : null;
+                if (root.mode === "reinstall") root.part = root.installed ? root.installed.dev : "";
+            }
+        }
+    }
     readonly property bool preview: Quickshell.env("USER") !== "root"
     readonly property var pages: ["Welcome", "Internet", "Language & keyboard", "Time zone", "You", "Disk", "Summary", "Installing"]
     // INSTALLER_PAGE and INSTALLER_MODE open a preview (not root) on one page, for screenshots
@@ -69,7 +85,8 @@ ShellRoot {
         if (p === 1) return online || preview || offlineReady;
         if (p === 4) return userOk && hostOk && passOk;
         if (p === 5) return disk !== "" && (mode === "erase" || (diskTable === "gpt" && !foreignBoot
-            && (mode === "free" ? freeBytes >= minRoom : mode === "shrink" ? roomMost >= 30 && room >= 30 : part !== "")));
+            && (mode === "free" ? freeBytes >= minRoom : mode === "shrink" ? roomMost >= 30 && room >= 30 : part !== "")))
+            || (p === 5 && mode === "reinstall" && !!installed && part === installed.dev);
         return true;
     }
     function slugOf(name) {
@@ -255,7 +272,10 @@ ShellRoot {
     property bool foreignBoot: false
     readonly property real minRoom: 30e9
     readonly property var partInfo: parts.find(p => p.path === part) ?? null
-    onDiskChanged: { part = ""; parts = []; diskEsp = ""; diskTable = ""; freeBytes = 0; earlierVyntaris = false; foreignBoot = false; if (disk) partProbe.running = true; }
+    onDiskChanged: {
+        part = ""; parts = []; diskEsp = ""; diskTable = ""; freeBytes = 0; earlierVyntaris = false; foreignBoot = false; installed = null;
+        if (disk) { partProbe.running = true; installedScan.running = true; }
+    }
     onModeChanged: if (disk) partProbe.running = true
     Component.onCompleted: if (disk) partProbe.running = true
     Process {
@@ -323,6 +343,8 @@ ShellRoot {
         return (p.label || p.fstype || p.path.replace("/dev/", "")) + ", " + sizeOf(p.size);
     }
     readonly property string diskEffect: mode === "erase" ? "Everything on this disk will be erased."
+        : mode === "reinstall" ? (installed ? Tr.t("A new Vyntaris replaces ") + installed.name + Tr.t(" on ") + installed.dev
+            + Tr.t(". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.") : "")
         : foreignBoot ? Tr.t("Another system's boot partition is on this disk, and only one can start from a disk: use another disk, or the whole disk.")
         : (earlierVyntaris ? Tr.t("A Vyntaris already on this disk stops starting; its files stay.") + "  " : "")
         + (mode === "free" ? (freeBytes >= minRoom
@@ -335,7 +357,7 @@ ShellRoot {
             : (partInfo.label || partInfo.fstype || part) + Tr.t(" keeps its files and goes from ") + sizeOf(shrinkInfo.size) + Tr.t(" to ") + sizeOf(shrinkInfo.size - room * 1e9) + Tr.t("; Vyntaris gets ") + room + " GB.")
         : partInfo ? Tr.t("Only ") + partName(partInfo) + " (" + part + Tr.t(") will be erased; the rest stays.")
         : Tr.t("Pick the partition to replace."))
-    readonly property bool diskRisky: mode === "erase" || (mode === "partition" && part !== "") || (mode === "shrink" && !!shrinkInfo && (!!shrinkInfo.problem || roomMost < 30)) || (mode !== "erase" && (earlierVyntaris || foreignBoot))
+    readonly property bool diskRisky: mode !== "reinstall" && (mode === "erase" || (mode === "partition" && part !== "") || (mode === "shrink" && !!shrinkInfo && (!!shrinkInfo.problem || roomMost < 30)) || (mode !== "erase" && (earlierVyntaris || foreignBoot)))
 
     property real progress: 0
     property string stepName: ""
@@ -526,7 +548,7 @@ ShellRoot {
             if (root.mode === "erase") return [{ name: ours, size: total, ours: true }];
             const out = [];
             for (const p of root.parts) {
-                if (p.path === root.part && root.mode === "partition") out.push({ name: ours, size: p.size, ours: true });
+                if (p.path === root.part && (root.mode === "partition" || root.mode === "reinstall")) out.push({ name: ours, size: p.size, ours: true });
                 else if (p.path === root.part && root.mode === "shrink" && root.shrinkInfo && root.room >= 30) {
                     out.push({ name: root.partName({ label: p.label, fstype: p.fstype, path: p.path, size: p.size - root.room * 1e9 }), size: p.size - root.room * 1e9, ours: false });
                     out.push({ name: ours, size: root.room * 1e9, ours: true });
@@ -1015,10 +1037,11 @@ ShellRoot {
                                     spacing: Theme.space14
                                     Caption { text: Tr.t("How") }
                                     Choice {
-                                        options: [{ value: "erase", label: Tr.t("Whole disk") }, { value: "free", label: Tr.t("Free space") },
-                                                  { value: "shrink", label: Tr.t("Next to another system") }, { value: "partition", label: Tr.t("One partition") }]
+                                        options: (root.installed ? [{ value: "reinstall", label: Tr.t("Reinstall, keep files") }] : [])
+                                            .concat([{ value: "erase", label: Tr.t("Whole disk") }, { value: "free", label: Tr.t("Free space") },
+                                                  { value: "shrink", label: Tr.t("Next to another system") }, { value: "partition", label: Tr.t("One partition") }])
                                         current: root.mode
-                                        onPicked: v => { root.mode = v; root.part = ""; }
+                                        onPicked: v => { root.mode = v; root.part = v === "reinstall" && root.installed ? root.installed.dev : ""; }
                                     }
                                 }
                                 Label {
@@ -1084,7 +1107,7 @@ ShellRoot {
                                     Layout.fillWidth: true
                                     wrapMode: Text.WordWrap
                                     text: (root.diskInfo ? root.diskInfo.model + ", " + root.sizeOf(root.diskInfo.size) + ", " + root.disk : "")
-                                        + "\n" + (root.mode === "erase" ? "The whole disk" : root.mode === "free" ? "Its free space, next to the other system" : root.mode === "shrink" ? root.room + " GB made from " + (root.partInfo ? root.partName(root.partInfo) : root.part) + ", whose files stay" : "In place of " + (root.partInfo ? root.partName(root.partInfo) : root.part))
+                                        + "\n" + (root.mode === "erase" ? "The whole disk" : root.mode === "free" ? "Its free space, next to the other system" : root.mode === "shrink" ? root.room + " GB made from " + (root.partInfo ? root.partName(root.partInfo) : root.part) + ", whose files stay" : root.mode === "reinstall" ? "Over the Vyntaris on " + root.part + ", /home kept" : "In place of " + (root.partInfo ? root.partName(root.partInfo) : root.part))
                                         + ", Btrfs"
                                 }
                                 Caption { text: Tr.t("User") }
@@ -1425,8 +1448,8 @@ ShellRoot {
                         Button {
                             visible: root.page === 6
                             primary: true
-                            danger: root.mode !== "free" && root.mode !== "shrink"
-                            text: (root.mode === "free" || root.mode === "shrink" ? Tr.t("Install") : Tr.t("Erase and install"))
+                            danger: root.mode !== "free" && root.mode !== "shrink" && root.mode !== "reinstall"
+                            text: (root.mode === "free" || root.mode === "shrink" ? Tr.t("Install") : root.mode === "reinstall" ? Tr.t("Reinstall") : Tr.t("Erase and install"))
                             onClicked: root.install()
                         }
                         Button {

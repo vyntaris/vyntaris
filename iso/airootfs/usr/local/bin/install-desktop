@@ -133,14 +133,29 @@ BOOT_LABEL="Vyntaris boot"
 if [ -z "${INSTALL_MODE:-}" ]; then
     lsblk -pno NAME,SIZE,FSTYPE,LABEL "$INSTALL_DISK" | sed 's/^/   /'
     note "erase: the whole disk; free: only its free space; partition: only one partition (the rest stays);"
-    note "shrink: make another system's partition smaller (Windows, ext4, Btrfs), its files stay"
+    note "shrink: make another system's partition smaller (Windows, ext4, Btrfs), its files stay;"
+    note "reinstall: a new Vyntaris over the one on this disk, keeping /home"
 fi
-ask INSTALL_MODE "How (erase, free, partition, shrink)" "erase"
-case "$INSTALL_MODE" in erase|free|partition|shrink) ;; *) die "how: erase, free, partition or shrink" ;; esac
+ask INSTALL_MODE "How (erase, free, partition, shrink, reinstall)" "erase"
+case "$INSTALL_MODE" in erase|free|partition|shrink|reinstall) ;; *) die "how: erase, free, partition, shrink or reinstall" ;; esac
 sector="$(blockdev --getss "$INSTALL_DISK")"
 other_esp=""
 old_boots=()
-if [ "$INSTALL_MODE" != erase ]; then
+if [ "$INSTALL_MODE" = reinstall ]; then
+    # The Vyntaris already here: its Btrfs root, with @ (the system) and @home, and the boot partitions its fstab names
+    ask INSTALL_PART "Its root partition (Btrfs)" "$(lsblk -lnpo NAME,FSTYPE,LABEL "$INSTALL_DISK" | awk '$2 == "btrfs" && $3 == "root" {print $1; exit}')"
+    [ "$(lsblk -no FSTYPE "$INSTALL_PART" 2>/dev/null)" = btrfs ] || die "$INSTALL_PART isn't a Btrfs partition"
+    umount -R "$MNT" 2>/dev/null || true
+    mount -o subvolid=5 "$INSTALL_PART" "$MNT" || die "$INSTALL_PART can't be mounted"
+    if [ ! -d "$MNT/@" ] || [ ! -d "$MNT/@home" ] || [ ! -f "$MNT/@/etc/fstab" ]; then umount "$MNT"; die "$INSTALL_PART doesn't hold a Vyntaris (no @, @home and fstab)"; fi
+    uuid_of() { awk -v m="$1" '$2 == m && $1 ~ /^UUID=/ {sub(/^UUID=/, "", $1); print $1; exit}' "$MNT/@/etc/fstab"; }
+    boot_uuid="$(uuid_of /boot)"; efi_uuid="$(uuid_of /efi)"
+    umount "$MNT"
+    [ -n "$boot_uuid" ] && [ -b "/dev/disk/by-uuid/$boot_uuid" ] || die "the boot partition that Vyntaris used isn't there"
+    esp="$(readlink -f "/dev/disk/by-uuid/$boot_uuid")"
+    other_esp=""; [ -z "$efi_uuid" ] || other_esp="$(readlink -f "/dev/disk/by-uuid/$efi_uuid")"
+    room=$(lsblk -bdno SIZE "$INSTALL_PART")
+elif [ "$INSTALL_MODE" != erase ]; then
     [ "$(lsblk -dno PTTYPE "$INSTALL_DISK")" = gpt ] || die "$INSTALL_DISK uses the old MBR layout (or has no partition table), and Vyntaris can't install next to it: use the whole disk, or a disk with GPT"
     other_esp="$(lsblk -lnpo NAME,PARTTYPE "$INSTALL_DISK" | awk -v t="$ESP_TYPE" 'tolower($2) == t && !e {e = $1} END {print e}')"
     mapfile -t old_boots < <(lsblk -lnpo NAME,PARTTYPE,PARTLABEL "$INSTALL_DISK" | awk -v t="$XBOOTLDR_TYPE" -v l="$BOOT_LABEL" 'tolower($2) == t && substr($0, index($0, $3)) == l {print $1}')
@@ -194,6 +209,7 @@ cat <<EOF
                     free) echo "$((room / 1000000000)) GB of free space on $INSTALL_DISK — nothing on it is touched" ;;
                     partition) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) — ${c_err}erased${c_off}, the rest stays" ;;
                     shrink) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) gives $INSTALL_ROOM GB — its files stay" ;;
+                    reinstall) echo "the Vyntaris on $INSTALL_PART — a new system, /home kept, the old one set aside" ;;
                  esac)
      user       $INSTALL_USER on $INSTALL_HOSTNAME
      language   $INSTALL_LOCALE, keyboard $INSTALL_KEYMAP, $INSTALL_TIMEZONE
@@ -207,7 +223,18 @@ fi
 step "Partitions"
 umount -R "$MNT" 2>/dev/null || true
 settle() { partprobe "$INSTALL_DISK" 2>/dev/null || true; udevadm settle; }
-if [ "$INSTALL_MODE" = erase ]; then
+if [ "$INSTALL_MODE" = reinstall ]; then
+    root="$INSTALL_PART"
+    mount -o subvolid=5 "$root" "$MNT"
+    old="@old-$(date +%Y%m%d-%H%M)"
+    mv "$MNT/@" "$MNT/$old"
+    btrfs -q subvolume create "$MNT/@"
+    umount "$MNT"
+    note "the old system is kept as the subvolume $old; /home is as it was"
+    label="$(lsblk -no LABEL "$esp")"
+    umount "$esp" 2>/dev/null || true
+    mkfs.fat -F 32 -n "${label:-VYNTARIS}" "$esp" >/dev/null
+elif [ "$INSTALL_MODE" = erase ]; then
     wipefs -af "$INSTALL_DISK" >/dev/null
     sgdisk -Z "$INSTALL_DISK" >/dev/null
     sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:root "$INSTALL_DISK" >/dev/null
@@ -256,11 +283,13 @@ else
     wipefs -af "$esp" "$root" >/dev/null
     mkfs.fat -F 32 -n VYNTARIS "$esp" >/dev/null
 fi
-mkfs.btrfs -qf -L root "$root"
-mount "$root" "$MNT"
-btrfs -q subvolume create "$MNT/@"
-btrfs -q subvolume create "$MNT/@home"
-umount "$MNT"
+if [ "$INSTALL_MODE" != reinstall ]; then
+    mkfs.btrfs -qf -L root "$root"
+    mount "$root" "$MNT"
+    btrfs -q subvolume create "$MNT/@"
+    btrfs -q subvolume create "$MNT/@home"
+    umount "$MNT"
+fi
 opts=noatime,compress=zstd:1
 mount -o "$opts,subvol=@" "$root" "$MNT"
 mount --mkdir -o "$opts,subvol=@home" "$root" "$MNT/home"
@@ -351,7 +380,9 @@ printf '127.0.0.1 localhost\n::1 localhost\n127.0.1.1 %s\n' "$INSTALL_HOSTNAME" 
 inside systemctl enable NetworkManager.service systemd-timesyncd.service >/dev/null
 
 step "User $INSTALL_USER"
-inside useradd -m -G wheel -s /usr/bin/zsh ${INSTALL_FULLNAME:+-c "$INSTALL_FULLNAME"} "$INSTALL_USER"
+inside useradd -m -G wheel -s /usr/bin/zsh ${INSTALL_FULLNAME:+-c "$INSTALL_FULLNAME"} "$INSTALL_USER" 2> >(grep -v "already exists\|Not copying" >&2)
+# A home kept from the system before: its files belong to the new user (who may have another id)
+[ "$INSTALL_MODE" != reinstall ] || inside chown -R "$INSTALL_USER:$INSTALL_USER" "/home/$INSTALL_USER"
 printf '%s:%s\n' "$INSTALL_USER" "$password" | inside chpasswd
 inside passwd -l root >/dev/null
 echo '%wheel ALL=(ALL:ALL) ALL' > "$MNT/etc/sudoers.d/10-wheel"
