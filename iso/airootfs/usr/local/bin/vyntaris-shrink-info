@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# vyntaris-shrink-info <partition>: how far another system's partition can shrink to make room for
+# Vyntaris, as key=value lines for the installer:
+#   fs=ntfs|ext4|btrfs   size=<bytes>   min=<bytes the files need, with room to breathe>
+#   problem=<word>       only when it can't shrink: bitlocker, hibernated, unclean, mounted, unsupported, unreadable
+# Nothing is changed. Runs as root on the ISO.
+set -u
+part="${1:?usage: vyntaris-shrink-info <partition>}"
+size="$(blockdev --getsize64 "$part" 2>/dev/null || stat -c %s "$part")"
+fs="$(blkid -o value -s TYPE "$part" 2>/dev/null || true)"
+echo "size=$size"
+say() { echo "fs=$fs"; [ -n "${1:-}" ] && echo "problem=$1"; [ -n "${2:-}" ] && echo "min=$2"; exit 0; }
+
+# What the files need plus room for them to grow: a tenth more, and at least 2 GiB
+breathe() { local used=$1 extra=$(( $1 / 10 )); [ "$extra" -ge 2147483648 ] || extra=2147483648; echo $(( used + extra )); }
+
+[ -b "$part" ] && findmnt -rno SOURCE | grep -qx "$part" && say mounted
+case "$fs" in
+    BitLocker) fs=ntfs; say bitlocker ;;
+    ntfs)
+        # ntfs-3g's own verdict on the Windows side: 14 hibernated (or Fast Startup), 15 not shut down cleanly
+        ntfs-3g.probe --readwrite "$part" >/dev/null 2>&1; rc=$?
+        case "$rc" in 0) ;; 14) say hibernated ;; 15) say unclean ;; *) say unreadable ;; esac
+        info="$(ntfsresize --info --force --no-action "$part" 2>&1)" || say unclean
+        least="$(sed -n 's/.*You might resize at \([0-9]*\) bytes.*/\1/p' <<<"$info")"
+        [ -n "$least" ] || say unreadable
+        say "" "$(breathe "$least")" ;;
+    ext4|ext3|ext2)
+        fs=ext4
+        block="$(dumpe2fs -h "$part" 2>/dev/null | awk -F: '/^Block size/ {gsub(/ /, "", $2); print $2}')"
+        state="$(dumpe2fs -h "$part" 2>/dev/null | awk -F: '/^Filesystem state/ {gsub(/^ +/, "", $2); print $2}')"
+        [ "$state" = clean ] || say unclean
+        least="$(resize2fs -P "$part" 2>/dev/null | awk -F: '/minimum size/ {gsub(/ /, "", $2); print $2}')"
+        [ -n "$block" ] && [ -n "$least" ] || say unreadable
+        say "" "$(breathe $(( least * block )))" ;;
+    btrfs)
+        mnt="$(mktemp -d)"
+        mount -o ro "$part" "$mnt" 2>/dev/null || { rmdir "$mnt"; say unreadable; }
+        least="$(btrfs inspect-internal min-dev-size "$mnt" 2>/dev/null | awk '{print $1}')"
+        umount "$mnt"; rmdir "$mnt"
+        [ -n "$least" ] || say unreadable
+        say "" "$(breathe "$least")" ;;
+    *) say unsupported ;;
+esac

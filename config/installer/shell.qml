@@ -22,11 +22,18 @@ ShellRoot {
     property string pass: ""
     property string pass2: ""
     property string disk: ""
-    property string mode: "erase"
+    property string mode: preview && Quickshell.env("INSTALLER_MODE") ? Quickshell.env("INSTALLER_MODE") : "erase"
     property string part: ""
+    // Next to another system: what its partition can give (vyntaris-shrink-info), and how much Vyntaris takes, in GB
+    property var shrinkInfo: null
+    property int room: 0
+    readonly property int roomMost: shrinkInfo && !shrinkInfo.problem ? Math.floor((shrinkInfo.size - shrinkInfo.min) / 1e9) : 0
+    readonly property var shrinkable: parts.filter(p => ["ntfs", "ext4", "ext3", "btrfs", "BitLocker"].includes(p.fstype))
+    onPartChanged: { shrinkInfo = null; if (mode === "shrink" && part) shrinkProbe.running = true; }
     readonly property bool preview: Quickshell.env("USER") !== "root"
     readonly property var pages: ["Welcome", "Internet", "Language & keyboard", "Time zone", "You", "Disk", "Summary", "Installing"]
-    property int page: 0
+    // INSTALLER_PAGE and INSTALLER_MODE open a preview (not root) on one page, for screenshots
+    property int page: preview ? Number(Quickshell.env("INSTALLER_PAGE") || 0) : 0
 
     readonly property var systemUsers: ["root", "bin", "daemon", "mail", "ftp", "http", "nobody", "dbus", "polkitd",
         "rtkit", "avahi", "colord", "git", "greeter", "uuidd", "dhcpcd", "tss", "alpm", "usbmux", "geoclue",
@@ -40,7 +47,8 @@ ShellRoot {
     function canLeave(p) {
         if (p === 1) return online || preview || offlineReady;
         if (p === 4) return userOk && hostOk && passOk;
-        if (p === 5) return disk !== "" && (mode === "erase" || (diskTable === "gpt" && !foreignBoot && (mode === "free" ? freeBytes >= minRoom : part !== "")));
+        if (p === 5) return disk !== "" && (mode === "erase" || (diskTable === "gpt" && !foreignBoot
+            && (mode === "free" ? freeBytes >= minRoom : mode === "shrink" ? roomMost >= 30 && room >= 30 : part !== "")));
         return true;
     }
     function slugOf(name) {
@@ -260,9 +268,35 @@ ShellRoot {
                     root.parts = [{ path: "/dev/nvme0n1p3", size: 380e9, fstype: "ntfs", label: Tr.t("Windows"), esp: false },
                                   { path: "/dev/nvme0n1p5", size: 120e9, fstype: "ntfs", label: "Data", esp: false }];
                     root.freeBytes = 96e9;
+                    if (Quickshell.env("INSTALLER_PART")) root.part = Quickshell.env("INSTALLER_PART");
                 }
             }
         }
+    }
+    Process {
+        id: shrinkProbe
+        command: root.preview ? ["sh", "-c", "echo fs=ntfs; echo size=380000000000; echo min=142000000000"]
+                              : ["vyntaris-shrink-info", root.part]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const info = { fs: "", size: 0, min: 0, problem: "" };
+                for (const line of text.split("\n")) {
+                    const i = line.indexOf("=");
+                    if (i > 0) info[line.slice(0, i)] = /^(size|min)$/.test(line.slice(0, i)) ? Number(line.slice(i + 1)) : line.slice(i + 1);
+                }
+                root.shrinkInfo = info;
+                const most = Math.floor((info.size - info.min) / 1e9);
+                root.room = info.problem ? 0 : Math.max(30, Math.min(most, Math.min(100, Math.round(most / 2))));
+            }
+        }
+    }
+    function shrinkProblem(p) {
+        return p === "bitlocker" ? Tr.t("BitLocker encrypts this partition. In Windows, turn BitLocker off for it (Settings › Privacy & security › Device encryption), wait until it's done, then start the installer again.")
+            : p === "hibernated" ? Tr.t("Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.")
+            : p === "unclean" ? Tr.t("This partition wasn't shut down cleanly. Start that system and shut it down properly (on Windows, run chkdsk C: /f first), then try again.")
+            : p === "mounted" ? Tr.t("This partition is in use.")
+            : p === "unsupported" ? Tr.t("Only Windows (NTFS), ext4 and Btrfs partitions can be made smaller.")
+            : Tr.t("This partition can't be read, so it isn't made smaller.");
     }
     function partName(p) {
         return (p.label || p.fstype || p.path.replace("/dev/", "")) + ", " + sizeOf(p.size);
@@ -273,9 +307,14 @@ ShellRoot {
         + (mode === "free" ? (freeBytes >= minRoom
             ? Tr.t("Uses its free space (") + sizeOf(freeBytes) + (earlierVyntaris ? ")." : Tr.t("); nothing on the disk is touched."))
             : Tr.t("Only ") + sizeOf(freeBytes) + Tr.t(" free; Vyntaris needs ") + sizeOf(minRoom) + Tr.t(". Make room in the other system first (Windows: Disk Management → Shrink volume)."))
+        : mode === "shrink" ? (!partInfo ? Tr.t("Pick the system to make room next to.")
+            : shrinkProbe.running || !shrinkInfo ? Tr.t("Looking at how much room it has…")
+            : shrinkInfo.problem ? shrinkProblem(shrinkInfo.problem)
+            : roomMost < 30 ? Tr.t("Its files leave only ") + roomMost + Tr.t(" GB free; Vyntaris needs 30.")
+            : (partInfo.label || partInfo.fstype || part) + Tr.t(" keeps its files and goes from ") + sizeOf(shrinkInfo.size) + Tr.t(" to ") + sizeOf(shrinkInfo.size - room * 1e9) + Tr.t("; Vyntaris gets ") + room + " GB.")
         : partInfo ? Tr.t("Only ") + partName(partInfo) + " (" + part + Tr.t(") will be erased; the rest stays.")
         : Tr.t("Pick the partition to replace."))
-    readonly property bool diskRisky: mode === "erase" || (mode === "partition" && part !== "") || (mode !== "erase" && (earlierVyntaris || foreignBoot))
+    readonly property bool diskRisky: mode === "erase" || (mode === "partition" && part !== "") || (mode === "shrink" && !!shrinkInfo && (!!shrinkInfo.problem || roomMost < 30)) || (mode !== "erase" && (earlierVyntaris || foreignBoot))
 
     property real progress: 0
     property string stepName: ""
@@ -398,7 +437,7 @@ ShellRoot {
             INSTALL_YES: "1", INSTALL_DISK: root.disk, INSTALL_USER: root.user, INSTALL_PASSWORD: root.pass,
             INSTALL_FULLNAME: root.fullName, INSTALL_HOSTNAME: root.host, INSTALL_TIMEZONE: root.timezone,
             INSTALL_KEYMAP: root.keymap, INSTALL_KBVARIANT: root.variant, INSTALL_LOCALE: root.locale,
-            INSTALL_MODE: root.mode, INSTALL_PART: root.part
+            INSTALL_MODE: root.mode, INSTALL_PART: root.part, INSTALL_ROOM: String(root.room)
         })
         stdout: SplitParser { onRead: line => root.onLine(line) }
         onExited: code => {
@@ -453,6 +492,49 @@ ShellRoot {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             spacing: Theme.space2
+        }
+    }
+    // The disk as it will be: Vyntaris in the accent, what stays in grey.
+    component DiskBar: Item {
+        id: bar
+        implicitHeight: 34
+        readonly property real total: (root.disks.find(d => d.path === root.disk) ?? { size: 1 }).size
+        readonly property var segments: {
+            const ours = Tr.t("Vyntaris");
+            if (root.mode === "erase") return [{ name: ours, size: total, ours: true }];
+            const out = [];
+            for (const p of root.parts) {
+                if (p.path === root.part && root.mode === "partition") out.push({ name: ours, size: p.size, ours: true });
+                else if (p.path === root.part && root.mode === "shrink" && root.shrinkInfo && root.room >= 30) {
+                    out.push({ name: root.partName({ label: p.label, fstype: p.fstype, path: p.path, size: p.size - root.room * 1e9 }), size: p.size - root.room * 1e9, ours: false });
+                    out.push({ name: ours, size: root.room * 1e9, ours: true });
+                } else out.push({ name: root.partName(p), size: p.size, ours: false });
+            }
+            if (root.mode === "free" && root.freeBytes > 0) out.push({ name: ours, size: root.freeBytes, ours: true });
+            return out;
+        }
+        Row {
+            anchors.fill: parent
+            spacing: 2
+            Repeater {
+                model: bar.segments
+                Rectangle {
+                    required property var modelData
+                    height: bar.height
+                    width: Math.max(6, (bar.width - 2 * (bar.segments.length - 1)) * modelData.size / Math.max(1, bar.total))
+                    radius: Theme.r(6)
+                    color: modelData.ours ? Theme.accent : Theme.surface1
+                    Label {
+                        anchors { fill: parent; leftMargin: 6; rightMargin: 6 }
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                        visible: parent.width > 50
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: modelData.ours ? Theme.textOnAccent : Theme.text
+                        text: modelData.ours ? modelData.name + ", " + root.sizeOf(modelData.size) : modelData.name
+                    }
+                }
+            }
         }
     }
 
@@ -896,9 +978,9 @@ ShellRoot {
                                     Caption { text: Tr.t("How") }
                                     Choice {
                                         options: [{ value: "erase", label: Tr.t("Whole disk") }, { value: "free", label: Tr.t("Free space") },
-                                                  { value: "partition", label: Tr.t("One partition") }]
+                                                  { value: "shrink", label: Tr.t("Next to another system") }, { value: "partition", label: Tr.t("One partition") }]
                                         current: root.mode
-                                        onPicked: v => root.mode = v
+                                        onPicked: v => { root.mode = v; root.part = ""; }
                                     }
                                 }
                                 Label {
@@ -909,21 +991,36 @@ ShellRoot {
                                     text: root.diskTable !== "gpt" ? Tr.t("This disk uses the old MBR layout, and Vyntaris can't install next to it. Use the whole disk, or a disk with GPT.") : Tr.t("This disk has no EFI partition, so Vyntaris makes its own. To start the other system, use your computer's boot menu.")
                                 }
                                 PickList {
-                                    visible: root.mode === "partition" && root.diskTable === "gpt"
+                                    visible: (root.mode === "partition" || root.mode === "shrink") && root.diskTable === "gpt"
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: Math.min(150, Math.max(60, root.parts.length * 50 + 12))
-                                    model: root.parts
+                                    readonly property var list: root.mode === "shrink" ? root.shrinkable : root.parts
+                                    Layout.preferredHeight: Math.min(150, Math.max(60, list.length * 50 + 12))
+                                    model: list
                                     delegate: Pick {
                                         required property var modelData
                                         width: ListView.view.width
                                         icon: "folder"
                                         text: root.partName(modelData)
-                                        sub: modelData.path + (modelData.fstype ? ", " + modelData.fstype : "") + (modelData.size < root.minRoom ? ", " + "too small" : "")
-                                        dim: modelData.size < root.minRoom
+                                        sub: modelData.path + (modelData.fstype ? ", " + modelData.fstype : "") + (root.mode !== "shrink" && modelData.size < root.minRoom ? ", " + "too small" : "")
+                                        dim: root.mode !== "shrink" && modelData.size < root.minRoom
                                         selected: root.part === modelData.path
                                         onClicked: root.part = modelData.path
                                     }
                                 }
+                                RowLayout {
+                                    visible: root.mode === "shrink" && root.roomMost >= 30
+                                    Layout.fillWidth: true
+                                    spacing: Theme.space14
+                                    Caption { text: Tr.t("Vyntaris gets") }
+                                    Slider {
+                                        Layout.fillWidth: true
+                                        label: Tr.t("Room for Vyntaris")
+                                        value: root.roomMost > 30 ? (root.room - 30) / (root.roomMost - 30) : 1
+                                        onMoved: v => root.room = Math.round(30 + v * (root.roomMost - 30))
+                                    }
+                                    Label { Layout.minimumWidth: 60; horizontalAlignment: Text.AlignRight; font.weight: Font.DemiBold; text: root.room + " GB" }
+                                }
+                                DiskBar { visible: root.disk !== "" && (root.mode === "erase" || root.diskTable === "gpt"); Layout.fillWidth: true }
                                 Label {
                                     visible: root.disk !== "" && (root.mode === "erase" || root.diskTable === "gpt")
                                     Layout.fillWidth: true
@@ -949,7 +1046,7 @@ ShellRoot {
                                     Layout.fillWidth: true
                                     wrapMode: Text.WordWrap
                                     text: (root.diskInfo ? root.diskInfo.model + ", " + root.sizeOf(root.diskInfo.size) + ", " + root.disk : "")
-                                        + "\n" + (root.mode === "erase" ? "The whole disk" : root.mode === "free" ? "Its free space, next to the other system" : "In place of " + (root.partInfo ? root.partName(root.partInfo) : root.part))
+                                        + "\n" + (root.mode === "erase" ? "The whole disk" : root.mode === "free" ? "Its free space, next to the other system" : root.mode === "shrink" ? root.room + " GB made from " + (root.partInfo ? root.partName(root.partInfo) : root.part) + ", whose files stay" : "In place of " + (root.partInfo ? root.partName(root.partInfo) : root.part))
                                         + ", Btrfs"
                                 }
                                 Caption { text: Tr.t("User") }

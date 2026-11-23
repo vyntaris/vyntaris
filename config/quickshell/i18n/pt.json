@@ -1175,5 +1175,22 @@
  "Your settings couldn't be read": "Não foi possível ler suas configurações",
  "{0} is in Arch's 32-bit repository (multilib), which is turned off. Type “set up games” in the launcher to turn it on.": "{0} está no repositório de 32 bits do Arch (multilib), que está desligado. Escreve «set up games» no lançador para o ligar.",
  "{0} is in Arch's “{1}” repository, which is turned off in /etc/pacman.conf.": "{0} está no repositório «{1}» do Arch, que está desligado em /etc/pacman.conf.",
- "Rotation": "Rotação"
+ "Rotation": "Rotação",
+ " GB free; Vyntaris needs 30.": " GB livres; o Vyntaris precisa de 30.",
+ " keeps its files and goes from ": " mantém os ficheiros e passa de ",
+ " to ": " para ",
+ "; Vyntaris gets ": "; o Vyntaris fica com ",
+ "BitLocker encrypts this partition. In Windows, turn BitLocker off for it (Settings › Privacy & security › Device encryption), wait until it's done, then start the installer again.": "O BitLocker cifra esta partição. No Windows, desative o BitLocker para ela (Definições › Privacidade e segurança › Encriptação do dispositivo), espere até terminar e abra o instalador de novo.",
+ "Its files leave only ": "Os ficheiros deixam só ",
+ "Looking at how much room it has…": "A ver quanto espaço tem…",
+ "Next to another system": "Ao lado de outro sistema",
+ "Only Windows (NTFS), ext4 and Btrfs partitions can be made smaller.": "Só partições do Windows (NTFS), ext4 e Btrfs podem ser reduzidas.",
+ "Pick the system to make room next to.": "Escolha o sistema ao lado do qual fazer espaço.",
+ "Room for Vyntaris": "Espaço para o Vyntaris",
+ "This partition can't be read, so it isn't made smaller.": "Esta partição não se consegue ler, por isso não é reduzida.",
+ "This partition is in use.": "Esta partição está em uso.",
+ "This partition wasn't shut down cleanly. Start that system and shut it down properly (on Windows, run chkdsk C: /f first), then try again.": "Esta partição não foi desligada corretamente. Inicie esse sistema e desligue-o como deve ser (no Windows, execute antes chkdsk C: /f) e tente de novo.",
+ "Vyntaris": "Vyntaris",
+ "Vyntaris gets": "O Vyntaris fica com",
+ "Windows is hibernated or uses Fast Startup. In Windows, turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then start the installer again.": "O Windows está em hibernação ou usa o arranque rápido. No Windows, desative o arranque rápido (Painel de Controlo › Opções de Energia › Escolher o que fazem os botões de energia), desligue (não reinicie) e abra o instalador de novo."
 }

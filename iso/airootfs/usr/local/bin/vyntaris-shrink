@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# vyntaris-shrink <disk> <partition number> <bytes to keep>: shrinks that partition's file system (NTFS,
+# ext4 or Btrfs), then the partition itself, keeping its start, type, GUID, name and attributes, so the
+# system on it starts as before. Prints the first and last sector of the room it made.
+# SHRINK_DEV names the file system's device when it isn't the partition's (tests on image files).
+set -euo pipefail
+disk="$1" num="$2" keep="$3"
+die() { echo "vyntaris-shrink: $*" >&2; exit 1; }
+dev="${SHRINK_DEV:-}"
+if [ -z "$dev" ]; then
+    dev="$(lsblk -lnpo NAME "$disk" | while read -r p; do
+        [ -e "/sys/class/block/$(basename "$p")/partition" ] && [ "$(cat "/sys/class/block/$(basename "$p")/partition")" = "$num" ] && echo "$p"
+    done | head -n1)"
+fi
+[ -n "$dev" ] || die "no partition $num on $disk"
+
+sector="$(blockdev --getss "$disk" 2>/dev/null || echo 512)"
+info="$(sgdisk -i "$num" "$disk")"
+field() { sed -n "s/^$1: *//p" <<<"$info"; }
+type="$(field 'Partition GUID code' | awk '{print $1}')"
+guid="$(field 'Partition unique GUID')"
+first="$(field 'First sector' | awk '{print $1}')"
+last="$(field 'Last sector' | awk '{print $1}')"
+flags="$(field 'Attribute flags')"
+name="$(field 'Partition name' | sed "s/^'//; s/'\$//")"
+[ -n "$first" ] && [ -n "$last" ] || die "can't read partition $num of $disk"
+
+# The partition ends on a 1 MiB boundary past the file system, so the room after it starts aligned
+align=$(( 1048576 / sector ))
+end=$(( ( (first + (keep + sector - 1) / sector + align - 1) / align ) * align - 1 ))
+[ "$end" -lt "$last" ] || die "partition $num is already that small"
+keep=$(( (end - first + 1) * sector ))
+
+fs="$(blkid -o value -s TYPE "$dev" 2>/dev/null || true)"
+case "$fs" in
+    ntfs)
+        echo y | ntfsresize --force --no-action --no-progress-bar --size "$keep" "$dev" >/dev/null || die "NTFS can't shrink to $keep bytes"
+        echo y | ntfsresize --force --no-progress-bar --size "$keep" "$dev" >/dev/null ;;
+    ext2|ext3|ext4)
+        e2fsck -fy "$dev" >/dev/null || [ $? -le 1 ] || die "the file system on $dev has errors"
+        resize2fs "$dev" "$(( keep / 1024 ))K" >/dev/null 2>&1 || die "ext4 can't shrink to $keep bytes" ;;
+    btrfs)
+        mnt="$(mktemp -d)"
+        mount "$dev" "$mnt"
+        btrfs filesystem resize "$keep" "$mnt" >/dev/null || { umount "$mnt"; rmdir "$mnt"; die "Btrfs can't shrink to $keep bytes"; }
+        umount "$mnt"; rmdir "$mnt" ;;
+    *) die "can't shrink ${fs:-an unknown file system}" ;;
+esac
+
+# The partition again, smaller: everything but its end as it was
+args=(-d "$num" -n "$num:$first:$end" -t "$num:$type" -u "$num:$guid")
+[ -z "$name" ] || args+=(-c "$num:$name")
+bits=$(( 16#${flags:-0} ))
+for b in $(seq 0 63); do [ $(( (bits >> b) & 1 )) = 0 ] || args+=(-A "$num:set:$b"); done
+sgdisk "${args[@]}" "$disk" >/dev/null
+partprobe "$disk" 2>/dev/null || true
+udevadm settle 2>/dev/null || true
+echo "$((end + 1)) $last"

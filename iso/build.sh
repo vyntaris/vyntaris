@@ -31,7 +31,7 @@ for extra in "$(dirname "$pkgfile")"/yay-bin-[0-9]*.pkg.tar.zst; do
 done
 repo-add -q "$repo/vyntaris.db.tar.gz" "$repo"/*.pkg.tar.zst
 
-for p in efibootmgr git hyprland quickshell kitty inter-font ttf-jetbrains-mono noto-fonts networkmanager; do
+for p in ntfs-3g ntfsprogs gptfdisk e2fsprogs efibootmgr git hyprland quickshell kitty inter-font ttf-jetbrains-mono noto-fonts networkmanager; do
     grep -qx "$p" "$profile/packages.x86_64" || echo "$p" >> "$profile/packages.x86_64"
 done
 

@@ -132,10 +132,11 @@ XBOOTLDR_TYPE=bc13c2ff-59e6-4262-a352-b275fd6f7172
 BOOT_LABEL="Vyntaris boot"
 if [ -z "${INSTALL_MODE:-}" ]; then
     lsblk -pno NAME,SIZE,FSTYPE,LABEL "$INSTALL_DISK" | sed 's/^/   /'
-    note "erase: the whole disk; free: only its free space; partition: only one partition (the rest stays)"
+    note "erase: the whole disk; free: only its free space; partition: only one partition (the rest stays);"
+    note "shrink: make another system's partition smaller (Windows, ext4, Btrfs), its files stay"
 fi
-ask INSTALL_MODE "How (erase, free, partition)" "erase"
-case "$INSTALL_MODE" in erase|free|partition) ;; *) die "how: erase, free or partition" ;; esac
+ask INSTALL_MODE "How (erase, free, partition, shrink)" "erase"
+case "$INSTALL_MODE" in erase|free|partition|shrink) ;; *) die "how: erase, free, partition or shrink" ;; esac
 sector="$(blockdev --getss "$INSTALL_DISK")"
 other_esp=""
 old_boots=()
@@ -147,7 +148,30 @@ if [ "$INSTALL_MODE" != erase ]; then
     [ -z "$foreign_boot" ] || die "$foreign_boot is another system's boot partition, and only one can start from a disk: use another disk, or the whole disk"
     [ "${#old_boots[@]}" = 0 ] || note "${old_boots[0]} holds the boot files of an earlier Vyntaris: they're replaced, and that Vyntaris stops starting"
     [ -n "$other_esp" ] || note "$INSTALL_DISK has no EFI partition, so Vyntaris makes its own. To start the other system, use the computer's boot menu."
-    if [ "$INSTALL_MODE" = partition ]; then
+    if [ "$INSTALL_MODE" = shrink ]; then
+        ask INSTALL_PART "Which partition gives the room (its files stay)" ""
+        [ -b "$INSTALL_PART" ] && [ "$(lsblk -no PKNAME "$INSTALL_PART")" = "$(basename "$INSTALL_DISK")" ] ||
+            die "$INSTALL_PART isn't a partition of $INSTALL_DISK"
+        partnum="$(cat "/sys/class/block/$(basename "$INSTALL_PART")/partition")"
+        declare -A sh=()
+        while IFS='=' read -r k v; do sh[$k]="$v"; done < <(vyntaris-shrink-info "$INSTALL_PART")
+        case "${sh[problem]:-}" in
+            "") ;;
+            bitlocker) die "BitLocker encrypts $INSTALL_PART: in Windows, turn it off for this drive (Settings › Privacy & security › Device encryption), wait until it's done, then try again" ;;
+            hibernated) die "Windows on $INSTALL_PART is hibernated or uses Fast Startup: in Windows turn off Fast Startup (Control Panel › Power Options › Choose what the power buttons do), shut down (not restart), then try again" ;;
+            unclean) die "$INSTALL_PART wasn't shut down cleanly: start that system and shut it down properly (on Windows, chkdsk C: /f), then try again" ;;
+            mounted) die "$INSTALL_PART is in use here: unmount it first" ;;
+            unsupported) die "only Windows (NTFS), ext4 and Btrfs partitions can be made smaller, not ${sh[fs]:-this one}" ;;
+            *) die "$INSTALL_PART can't be read, so it isn't made smaller" ;;
+        esac
+        most=$(( (sh[size] - sh[min]) / 1000000000 ))
+        [ "$most" -ge 30 ] || die "$INSTALL_PART can give only $most GB (its files need the rest); Vyntaris needs 30"
+        ask INSTALL_ROOM "How many GB for Vyntaris (30 to $most)" "$(( most < 100 ? most : 100 ))"
+        printf '%s' "$INSTALL_ROOM" | grep -qxE '[0-9]+' && [ "$INSTALL_ROOM" -ge 30 ] && [ "$INSTALL_ROOM" -le "$most" ] ||
+            die "between 30 and $most GB"
+        shrink_keep=$(( sh[size] - INSTALL_ROOM * 1000000000 ))
+        room=$(( INSTALL_ROOM * 1000000000 ))
+    elif [ "$INSTALL_MODE" = partition ]; then
         ask INSTALL_PART "Which partition (only it is erased)" ""
         [ -b "$INSTALL_PART" ] && [ "$(lsblk -no PKNAME "$INSTALL_PART")" = "$(basename "$INSTALL_DISK")" ] ||
             die "$INSTALL_PART isn't a partition of $INSTALL_DISK"
@@ -158,7 +182,7 @@ if [ "$INSTALL_MODE" != erase ]; then
     else
         first="$(sgdisk -F "$INSTALL_DISK" | tail -n1)"; last="$(sgdisk -E "$INSTALL_DISK" | tail -n1)"
     fi
-    room=$(( (last - first + 1) * sector ))
+    [ "$INSTALL_MODE" = shrink ] || room=$(( (last - first + 1) * sector ))
     [ "$room" -ge 30000000000 ] || die "that's $((room / 1000000000)) GB; Vyntaris needs at least 30"
 fi
 
@@ -169,6 +193,7 @@ cat <<EOF
                     erase) echo "$INSTALL_DISK ($(lsblk -dno SIZE "$INSTALL_DISK")) — ${c_err}all of it erased${c_off}" ;;
                     free) echo "$((room / 1000000000)) GB of free space on $INSTALL_DISK — nothing on it is touched" ;;
                     partition) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) — ${c_err}erased${c_off}, the rest stays" ;;
+                    shrink) echo "$INSTALL_PART ($(lsblk -no SIZE,FSTYPE,LABEL "$INSTALL_PART" | xargs)) gives $INSTALL_ROOM GB — its files stay" ;;
                  esac)
      user       $INSTALL_USER on $INSTALL_HOSTNAME
      language   $INSTALL_LOCALE, keyboard $INSTALL_KEYMAP, $INSTALL_TIMEZONE
@@ -191,6 +216,11 @@ if [ "$INSTALL_MODE" = erase ]; then
     esp="${parts[0]}"; root="${parts[1]}"
     mkfs.fat -F 32 -n EFI "$esp" >/dev/null
 else
+    if [ "$INSTALL_MODE" = shrink ]; then
+        note "making $INSTALL_PART smaller (this can take a while)"
+        read -r first last < <(vyntaris-shrink "$INSTALL_DISK" "$partnum" "$shrink_keep") || die "$INSTALL_PART couldn't be made smaller; nothing else was changed"
+        [ "${sh[fs]}" != ntfs ] || note "Windows checks its disk once at its next start: that's expected"
+    fi
     if [ "$INSTALL_MODE" = partition ]; then
         umount "$INSTALL_PART" 2>/dev/null || true
         wipefs -af "$INSTALL_PART" >/dev/null
