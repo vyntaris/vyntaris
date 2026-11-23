@@ -38,7 +38,7 @@ Singleton {
 
     Process {
         id: pick
-        command: ["sh", "-c", 'slurp -d -b "#00000080" -s "#00000000" -c "$1" -w 2 < /dev/null', "sh", String(Theme.red) + "ff"]
+        command: ["sh", "-c", 'exec slurp -d -b "#00000080" -s "#00000000" -c "$1" -w 2 < /dev/null', "sh", String(Theme.red) + "ff"]
         stdout: StdioCollector { id: picked }
         onExited: code => {
             if (code !== 0 || !picked.text.trim()) return;

@@ -37,8 +37,14 @@ Item {
     readonly property bool last: { const n = neighbour(1); return !(n && n.isCardRow === true); }
 
     Layout.fillWidth: true
-    // Cards touch: the page's spacing is taken back between rows of one card.
-    Layout.topMargin: first ? Theme.space4 : -(parent?.spacing ?? 0)
+    // Cards touch: the page's spacing is taken back between rows of one card. A row above that is
+    // rolling out and still shorter than that spacing can't give it back (the layout won't size a
+    // row below zero), so this one takes the rest, and the rows under it don't jump.
+    readonly property real gapLeft: {
+        const b = neighbour(-1);
+        return b && b.isCardRow === true && b.reveal < 1 ? Math.max(0, (parent?.spacing ?? 0) - b.revealHeight) : 0;
+    }
+    Layout.topMargin: first ? Theme.space4 : -(parent?.spacing ?? 0) - gapLeft
     implicitHeight: Math.max(52, row.implicitHeight + 2 * Theme.space10)
     // Whole pixels: the rows under it move with it, and halves of one make them shimmer.
     readonly property int revealHeight: Math.round(implicitHeight * Math.max(0, reveal))
