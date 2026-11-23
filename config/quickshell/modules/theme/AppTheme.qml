@@ -191,9 +191,9 @@ Scope {
         iconsFor = appIcons;
         const base = dark ? Config.theme.iconThemeDark : Config.theme.iconThemeLight;
         Quickshell.execDetached(["sh", "-c",
-            '"$1" "$2" "$3" "$4" >/dev/null && gsettings set org.gnome.desktop.interface icon-theme "$5"',
+            '"$1" "$2" "$3" "$4" "$6" >/dev/null && gsettings set org.gnome.desktop.interface icon-theme "$5"',
             "sh", "/usr/lib/vyntaris/icon-theme", Quickshell.env("HOME") + "/.local/share/icons",
-            base, hex(Theme.accent), root.iconTheme]);
+            base, hex(Theme.accent), root.iconTheme, hex(Theme.accentInk)]);
     }
 
     function gsettings(key, value) {
