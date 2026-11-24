@@ -231,6 +231,7 @@ Singleton {
                 property bool tapToClick: true
                 property real sensitivity: 0
                 property bool mouseAccel: false
+                property bool numlock: false
             }
 
             property JsonObject windows: JsonObject {

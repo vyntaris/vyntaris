@@ -76,6 +76,11 @@ SettingsPage {
         onPicked: v => page.setOptions(page.options.includes(v) ? page.options.filter(o => o !== v) : page.options.concat([v]))
         onClosed: page.open = ""
     }
+    // Off by default: on laptops whose number pad sits on the letters it turns U I O J K L M into digits
+    SettingsRow {
+        title: Tr.t("Num Lock on at start")
+        Switch { checked: Config.input.numlock; onToggled: on => { Config.input.numlock = on; Config.saveSoon(); } }
+    }
     // Changed where they're all listed: click one's keys there and press others.
     SettingsRow {
         title: Tr.t("Shortcuts")

@@ -928,6 +928,7 @@
  "The defaults are in use. What the file held is kept in": "Используются значения по умолчанию. Содержимое файла сохранено в",
  "The desktop restarted": "Рабочий стол перезапустился",
  "The details below say why. Fix it in a terminal (fix-keyring for key errors), then try again.": "Причина написана ниже. Исправь в терминале (fix-keyring для ошибок ключей), затем попробуй снова.",
+ "The details below say why. Fix it in a terminal, then try again.": "Подробности ниже объясняют почему. Исправьте это в терминале и попробуйте снова.",
  "The disk isn't checked for damage": "Диск не проверяется на повреждения",
  "The disk reported errors": "Диск сообщил об ошибках",
  "The disk reported no read or write errors since the last start.": "С последнего запуска диск не сообщал об ошибках чтения или записи.",
@@ -1201,5 +1202,6 @@
  "A new Vyntaris replaces ": "Новый Vyntaris заменяет ",
  "Reinstall": "Переустановить",
  " on ": " на ",
- ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Ваши файлы в /home останутся: укажите прежнее имя пользователя, чтобы они остались вашими. Старая система откладывается, а не удаляется."
+ ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Ваши файлы в /home останутся: укажите прежнее имя пользователя, чтобы они остались вашими. Старая система откладывается, а не удаляется.",
+ "Num Lock on at start": "Num Lock включён при запуске"
 }

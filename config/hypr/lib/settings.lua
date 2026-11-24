@@ -8,7 +8,7 @@ local defaults = {
                 cursorTheme = "Bibata-Modern-Ice", cursorSize = 24 },
     apps    = { terminal = "kitty", terminalRun = "kitty", fileManager = "thunar", browser = "firefox", editor = "code" },
     input   = { kbLayout = "us", kbVariant = "", kbOptions = "",
-                naturalScroll = true, tapToClick = true, sensitivity = 0, mouseAccel = false },
+                naturalScroll = true, tapToClick = true, sensitivity = 0, mouseAccel = false, numlock = false },
     windows = { rounding = 10, gapsIn = 5, border = 2 },
     display = { scale = 1, monitors = {} },
     audio   = { boost = false },

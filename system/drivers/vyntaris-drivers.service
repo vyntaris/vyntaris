@@ -8,3 +8,6 @@ Type=oneshot
 ExecStart=/usr/lib/vyntaris/drivers --install --auto
 Nice=10
 IOSchedulingClass=idle
+# Shutdown waits for pacman and the boot image instead of killing them halfway
+KillSignal=SIGCONT
+TimeoutStopSec=5min

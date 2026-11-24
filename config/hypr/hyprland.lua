@@ -90,6 +90,8 @@ env("XCURSOR_THEME", settings.theme.cursorTheme)
 env("XCURSOR_SIZE", tostring(settings.theme.cursorSize))
 env("HYPRCURSOR_SIZE", tostring(settings.theme.cursorSize))
 env("MOZ_ENABLE_WAYLAND", "1")
+-- Electron apps draw for Wayland, sharp at any scale
+env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
 env("QT_QPA_PLATFORM", "wayland;xcb")
 env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
 env("QT_QPA_PLATFORMTHEME", "qt6ct")
@@ -250,7 +252,7 @@ hl.config({
         kb_rules   = "",
 
         follow_mouse = 1,
-        numlock_by_default = true,
+        numlock_by_default = settings.input.numlock,
         force_no_accel = not settings.input.mouseAccel,
         sensitivity = settings.input.sensitivity,
 

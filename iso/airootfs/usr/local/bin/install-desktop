@@ -12,6 +12,8 @@ c_acc=$'\033[1;35m'; c_dim=$'\033[2m'; c_bold=$'\033[1m'; c_err=$'\033[1;31m'; c
 step() { printf '\n%s::%s %s%s%s\n' "$c_acc" "$c_off" "$c_bold" "$*" "$c_off"; }
 note() { printf '   %s%s%s\n' "$c_dim" "$*" "$c_off"; }
 die()  { printf '\n%serror:%s %s\n' "$c_err" "$c_off" "$*" >&2; exit 1; }
+# Whatever stops it says where, never a silent end
+trap 'printf "\n%serror:%s stopped at line %s: %s\n" "$c_err" "$c_off" "$LINENO" "$BASH_COMMAND" >&2' ERR
 
 ask() {
     local var="$1" question="$2" default="${3:-}" answer
@@ -320,6 +322,8 @@ if [ -z "$from_usb" ]; then
         tail -n 5 /tmp/fix-keyring.log | sed 's/^/   /' || true
     }
 fi
+# pacman's own key errors; not "checking keyring...", which every install says (the same in shell.qml)
+key_error='invalid or corrupted (package|database)|signature from|(unknown|marginal) trust|could not be (looked up|imported)|missing from keyring|keyring is not writable|GPGME error'
 mapfile -t apps < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$APPS" | grep -v '^$')
 # Reading text in pictures in the system's language (online; from a USB stick only English).
 if [ -z "$from_usb" ]; then
@@ -351,7 +355,7 @@ for try in 1 2 3 4 5; do
         continue
     fi
     [ "$try" -ge 4 ] && die "could not download the base system (log: /tmp/pacstrap.log). Open a terminal, run fix-keyring --reset, then try again"
-    if grep -qiE 'signature|keyring|unknown trust|could not be looked up|corrupted package' /tmp/pacstrap.log; then
+    if grep -qiE "$key_error" /tmp/pacstrap.log; then
         note "package signatures failed, rebuilding the keyring ($try)"
         fix-keyring --reset >/tmp/fix-keyring.log 2>&1 || tail -n 5 /tmp/fix-keyring.log | sed 's/^/   /' || true
         gpgconf --homedir "$MNT/etc/pacman.d/gnupg" --kill all 2>/dev/null || true
@@ -389,7 +393,9 @@ echo '%wheel ALL=(ALL:ALL) ALL' > "$MNT/etc/sudoers.d/10-wheel"
 chmod 440 "$MNT/etc/sudoers.d/10-wheel"
 
 step "Boot loader (systemd-boot, unified kernel image)"
-root_uuid="$(blkid -s UUID -o value "$root")"
+root_uuid="$(blkid -p -s UUID -o value "$root" 2>/dev/null || true)"
+[ -n "$root_uuid" ] || root_uuid="$(lsblk -dno UUID "$root" 2>/dev/null || true)"
+[ -n "$root_uuid" ] || die "couldn't read the UUID of $root"
 cmdline="root=UUID=$root_uuid rw rootfstype=btrfs rootflags=subvol=@"
 mkdir -p "$MNT/etc/kernel"
 echo "$cmdline" > "$MNT/etc/kernel/cmdline"
@@ -413,10 +419,12 @@ rm -f "$MNT"/boot/initramfs-*.img
 # On our own EFI partition its EFI/BOOT/BOOTX64.EFI starts it anyway, but on Windows' that file is Windows', so without
 # the entry the computer never sees Vyntaris. So the entry is checked, and made, from out here.
 loader_part="${other_esp:-$esp}"
-loader_partuuid="$(blkid -s PARTUUID -o value "$loader_part" | tr '[:upper:]' '[:lower:]')"
+loader_partuuid="$({ blkid -p -s PART_ENTRY_UUID -o value "$loader_part" 2>/dev/null || lsblk -dno PARTUUID "$loader_part" 2>/dev/null || true; } | tr '[:upper:]' '[:lower:]')"
+# efibootmgr can fail on a firmware's odd entries, and awk leaving early would cut it off: neither ends the install
 boot_entry() {
-    efibootmgr -v 2>/dev/null | awk -v u="$loader_partuuid" '{ l = tolower($0) }
-        l ~ /^boot[0-9a-f][0-9a-f][0-9a-f][0-9a-f]/ && u != "" && index(l, u) && index(l, "\\efi\\systemd\\systemd-bootx64.efi") { print substr($1, 5, 4); exit }'
+    { efibootmgr -v 2>/dev/null || true; } | awk -v u="$loader_partuuid" '{ l = tolower($0) }
+        !e && l ~ /^boot[0-9a-f][0-9a-f][0-9a-f][0-9a-f]/ && u != "" && index(l, u) && index(l, "\\efi\\systemd\\systemd-bootx64.efi") { e = substr($1, 5, 4) }
+        END { if (e) print e }'
 }
 entry="$(boot_entry)"
 if [ -z "$entry" ]; then

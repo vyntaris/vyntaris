@@ -373,11 +373,14 @@ ShellRoot {
         ["First Timeshift", 0.97, Tr.t("First snapshot")], ["Cleaning up", 0.98, Tr.t("Finishing")]
     ]
     property int markIndex: -1
+    // Only then is fix-keyring the answer
+    property bool keyError: false
     property string liveLine: ""
     function onLine(raw) {
         const line = raw.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "").replace(/[\r\n]/g, "");
         if (!line.trim()) return;
         liveLine = line;
+        if (/invalid or corrupted (package|database)|signature from|(unknown|marginal) trust|could not be (looked up|imported)|missing from keyring|keyring is not writable|GPGME error/i.test(line)) keyError = true;
         const c = line.match(/\(\s*(\d+)\/(\d+)\)/);
         if (c && markIndex >= 0 && Number(c[2]) > 0) {
             const f = Number(c[1]) / Number(c[2]);
@@ -468,14 +471,14 @@ ShellRoot {
     }
 
     function install() {
-        page = 7; progress = 0.01; stepName = Tr.t("Preparing"); log.clear(); liveLine = ""; markIndex = -1; result = -1;
+        page = 7; progress = 0.01; stepName = Tr.t("Preparing"); log.clear(); liveLine = ""; markIndex = -1; result = -1; keyError = false;
         installer.running = true;
     }
     Process {
         id: installer
         command: root.preview
             ? ["sh", "-c", "for s in Partitions 'Base system' Settings 'User x' 'Boot loader' Vyntaris Services Firewall Graphics Timeshift 'Login screen' 'Quiet boot' 'Boot splash' 'Boot images' 'First Timeshift snapshot' 'Cleaning up'; do printf ':: %s\\n' \"$s\"; for i in 1 2 3; do echo \"   preview: $s $i\"; sleep 0.4; done; done; echo ':: Done'"]
-            : ["bash", "-c", "set -o pipefail; script -qefc 'install-desktop < /dev/null' /dev/null | tr '\\r' '\\n'"]
+            : ["bash", "-c", "set -o pipefail; script -qefc 'install-desktop < /dev/null' /dev/null | stdbuf -oL tr '\\r' '\\n'"]
         environment: ({
             INSTALL_YES: "1", INSTALL_DISK: root.disk, INSTALL_USER: root.user, INSTALL_PASSWORD: root.pass,
             INSTALL_FULLNAME: root.fullName, INSTALL_HOSTNAME: root.host, INSTALL_TIMEZONE: root.timezone,
@@ -1274,7 +1277,7 @@ ShellRoot {
                                 Label {
                                     Layout.alignment: Qt.AlignHCenter
                                     color: Theme.subtext0
-                                    text: root.result === 0 ? Tr.t("Remove the USB stick, then restart.") : root.result > 0 ? Tr.t("The details below say why. Fix it in a terminal (fix-keyring for key errors), then try again.") : Tr.t("This takes a while. The computer can stay alone.")
+                                    text: root.result === 0 ? Tr.t("Remove the USB stick, then restart.") : root.result > 0 ? (root.keyError ? Tr.t("The details below say why. Fix it in a terminal (fix-keyring for key errors), then try again.") : Tr.t("The details below say why. Fix it in a terminal, then try again.")) : Tr.t("This takes a while. The computer can stay alone.")
                                 }
                                 Row {
                                     id: segs
