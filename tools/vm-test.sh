@@ -110,7 +110,15 @@ exec > >(tee /dev/ttyS0) 2>&1
 if curl -fsSo /tmp/current.tar.gz http://10.0.2.2:8123/current.tar.gz; then
     mkdir -p /tmp/current && tar -C /tmp/current -xzf /tmp/current.tar.gz
     rm -f /opt/vyntaris-repo/*.pkg.tar.* && cp /tmp/current/*.pkg.tar.zst /opt/vyntaris-repo/
+    # The ISO's own build may have a higher version: drop it so the tree's is the one installed
+    repo-remove -q /opt/vyntaris-repo/vyntaris.db.tar.gz vyntaris yay-bin 2>/dev/null || true
     repo-add -q -R /opt/vyntaris-repo/vyntaris.db.tar.gz /opt/vyntaris-repo/*.pkg.tar.zst
+    if [ -f /opt/vyntaris-offline/offline.db.tar.gz ]; then
+        repo-remove -q /opt/vyntaris-offline/offline.db.tar.gz vyntaris yay-bin 2>/dev/null || true
+        rm -f /opt/vyntaris-offline/vyntaris-[0-9]*.pkg.tar.* /opt/vyntaris-offline/yay-bin-*.pkg.tar.*
+        cp /tmp/current/*.pkg.tar.zst /opt/vyntaris-offline/
+        repo-add -q /opt/vyntaris-offline/offline.db.tar.gz /opt/vyntaris-offline/vyntaris-[0-9]*.pkg.tar.zst /opt/vyntaris-offline/yay-bin-*.pkg.tar.zst
+    fi
     install -m755 /tmp/current/install-desktop /tmp/current/vyntaris-shrink /tmp/current/vyntaris-shrink-info /usr/local/bin/
     install -m644 /tmp/current/packages.txt /tmp/current/base-packages /usr/share/desktop-installer/
     echo "using the package and installer from the host's tree"

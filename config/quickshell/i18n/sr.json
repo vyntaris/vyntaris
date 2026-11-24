@@ -834,6 +834,7 @@
  "The clock isn't set automatically": "Sat se ne podešava automatski",
  "The desktop restarted": "Radna površina je ponovo pokrenuta",
  "The details below say why. Fix it in a terminal (fix-keyring for key errors), then try again.": "Detalji ispod kažu zašto. Popravi to u terminalu (fix-keyring za greške sa ključevima), pa pokušaj ponovo.",
+ "The details below say why. Fix it in a terminal, then try again.": "Detalji ispod kažu zašto. Popravi to u terminalu, pa pokušaj ponovo.",
  "The disk isn't checked for damage": "Disk se ne proverava na oštećenja",
  "The disk reported errors": "Disk je prijavio greške",
  "The disk reported no read or write errors since the last start.": "Disk nije prijavio greške pri čitanju ili pisanju od poslednjeg pokretanja.",
@@ -1201,5 +1202,6 @@
  "A new Vyntaris replaces ": "Novi Vyntaris zamenjuje ",
  "Reinstall": "Ponovo instaliraj",
  " on ": " na ",
- ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Tvoji fajlovi u /home ostaju: unesi isto korisničko ime kao ranije da bi ostali tvoji. Stari sistem se sklanja, ne briše."
+ ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Tvoji fajlovi u /home ostaju: unesi isto korisničko ime kao ranije da bi ostali tvoji. Stari sistem se sklanja, ne briše.",
+ "Num Lock on at start": "Num Lock uključen pri pokretanju"
 }

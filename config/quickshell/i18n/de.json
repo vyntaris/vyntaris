@@ -834,6 +834,7 @@
  "The clock isn't set automatically": "Die Uhr wird nicht automatisch gestellt",
  "The desktop restarted": "Der Desktop wurde neu gestartet",
  "The details below say why. Fix it in a terminal (fix-keyring for key errors), then try again.": "Die Details unten nennen den Grund. Behebe es in einem Terminal (fix-keyring bei Schlüsselfehlern) und versuche es erneut.",
+ "The details below say why. Fix it in a terminal, then try again.": "Die Details unten sagen warum. Behebe es in einem Terminal und versuche es dann erneut.",
  "The disk isn't checked for damage": "Der Datenträger wird nicht auf Schäden geprüft",
  "The disk reported errors": "Der Datenträger hat Fehler gemeldet",
  "The disk reported no read or write errors since the last start.": "Der Datenträger meldete seit dem letzten Start keine Lese- oder Schreibfehler.",
@@ -1201,5 +1202,6 @@
  "A new Vyntaris replaces ": "Ein neues Vyntaris ersetzt ",
  "Reinstall": "Neu installieren",
  " on ": " auf ",
- ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Deine Dateien in /home bleiben: Gib denselben Benutzernamen wie vorher an, damit sie dir gehören. Das alte System wird beiseitegelegt, nicht gelöscht."
+ ". Your files in /home stay: give the same user name as before to keep them yours. The old system is set aside, not deleted.": ". Deine Dateien in /home bleiben: Gib denselben Benutzernamen wie vorher an, damit sie dir gehören. Das alte System wird beiseitegelegt, nicht gelöscht.",
+ "Num Lock on at start": "Num-Taste beim Start an"
 }

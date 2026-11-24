@@ -191,7 +191,7 @@ shutdown_quick() {
 }
 
 early_kms() {
-    local conn card drv screens="" boot="" early="" m before
+    local conn card drv screens="" boot="" early="" m before gone
     for conn in /sys/class/drm/card*-*; do
         [ "$(cat "$conn/status" 2>/dev/null)" = connected ] || continue
         card="${conn##*/}"; card="${card%%-*}"
@@ -208,13 +208,16 @@ early_kms() {
             nvidia) early="$early nvidia nvidia_modeset nvidia_uvm nvidia_drm" ;;
         esac
     done
+    # Installed from the USB, the screen still runs on nouveau, but NVIDIA's driver takes it from the next start
+    if [[ " $early " == *" nouveau "* ]] && pacman -Qq nvidia-open nvidia-open-dkms nvidia nvidia-dkms nvidia-open-lts nvidia-lts 2>/dev/null | grep -q .; then
+        early="${early/ nouveau/} nvidia nvidia_modeset nvidia_uvm nvidia_drm"
+    fi
     [ -n "${early// }" ] || return 0
     before="$(grep '^MODULES=' /etc/mkinitcpio.conf)"
-    if [[ " $early " != *" nvidia "* ]]; then
-        for m in nvidia_drm nvidia_uvm nvidia_modeset nvidia; do
-            sed -i "/^MODULES=/ { s/\(([^)]*\)\b$m\b/\1/; s/  */ /g; s/( /(/; s/ )/)/ }" /etc/mkinitcpio.conf
-        done
-    fi
+    if [[ " $early " != *" nvidia "* ]]; then gone="nvidia_drm nvidia_uvm nvidia_modeset nvidia"; else gone=nouveau; fi
+    for m in $gone; do
+        sed -i "/^MODULES=/ { s/\(([^)]*\)\b$m\b/\1/; s/  */ /g; s/( /(/; s/ )/)/ }" /etc/mkinitcpio.conf
+    done
     for m in $early; do
         grep -qE "^MODULES=\(.*\b$m\b" /etc/mkinitcpio.conf ||
             sed -i "s/^MODULES=(\(.*\))/MODULES=(\1 $m)/; s/^MODULES=( /MODULES=(/" /etc/mkinitcpio.conf
@@ -372,6 +375,7 @@ if [ "$mode" = refresh ]; then
     kms="$(early_kms)"
     if { safe_updates || [ "$kms" = changed ]; } && [ "$in_chroot" = 0 ]; then
         systemd-run --quiet --collect --on-active=15 --unit="vyntaris-initramfs-$(date +%s)" \
+            -p KillSignal=SIGCONT -p TimeoutStopSec=5min \
             --description="The initramfs, able to undo an update" \
             sh -c 'while [ -e /var/lib/pacman/db.lck ]; do sleep 5; done
                    exec nice -n 19 ionice -c 3 mkinitcpio -P' >/dev/null 2>&1 || true
@@ -381,6 +385,7 @@ if [ "$mode" = refresh ]; then
     if [ "$in_chroot" = 0 ] && [ "$(plymouth-set-default-theme 2>/dev/null)" = island ] &&
        [ "$(cat "$theme/version" 2>/dev/null)" != "$want" ]; then
         systemd-run --quiet --collect --on-active=20 --unit="vyntaris-splash-new-$(date +%s)" \
+            -p KillSignal=SIGCONT -p TimeoutStopSec=5min \
             --description="The boot splash, as this version draws it" \
             sh -c 'while [ -e /var/lib/pacman/db.lck ]; do sleep 5; done
                    exec nice -n 19 ionice -c 3 /usr/bin/vyntaris-setup --splash' >/dev/null 2>&1 || true
