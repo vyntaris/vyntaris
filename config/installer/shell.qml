@@ -380,7 +380,7 @@ ShellRoot {
         const line = raw.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "").replace(/[\r\n]/g, "");
         if (!line.trim()) return;
         liveLine = line;
-        if (/invalid or corrupted package|signature (is|from)|unknown trust|could not be (looked up|imported)/i.test(line)) keyError = true;
+        if (/invalid or corrupted (package|database)|signature from|(unknown|marginal) trust|could not be (looked up|imported)|missing from keyring|keyring is not writable|GPGME error/i.test(line)) keyError = true;
         const c = line.match(/\(\s*(\d+)\/(\d+)\)/);
         if (c && markIndex >= 0 && Number(c[2]) > 0) {
             const f = Number(c[1]) / Number(c[2]);

@@ -322,6 +322,8 @@ if [ -z "$from_usb" ]; then
         tail -n 5 /tmp/fix-keyring.log | sed 's/^/   /' || true
     }
 fi
+# pacman's own key errors; not "checking keyring...", which every install says (the same in shell.qml)
+key_error='invalid or corrupted (package|database)|signature from|(unknown|marginal) trust|could not be (looked up|imported)|missing from keyring|keyring is not writable|GPGME error'
 mapfile -t apps < <(sed -e 's/#.*//' -e 's/[[:space:]]//g' "$APPS" | grep -v '^$')
 # Reading text in pictures in the system's language (online; from a USB stick only English).
 if [ -z "$from_usb" ]; then
@@ -353,7 +355,7 @@ for try in 1 2 3 4 5; do
         continue
     fi
     [ "$try" -ge 4 ] && die "could not download the base system (log: /tmp/pacstrap.log). Open a terminal, run fix-keyring --reset, then try again"
-    if grep -qiE 'signature|keyring|unknown trust|could not be looked up|corrupted package' /tmp/pacstrap.log; then
+    if grep -qiE "$key_error" /tmp/pacstrap.log; then
         note "package signatures failed, rebuilding the keyring ($try)"
         fix-keyring --reset >/tmp/fix-keyring.log 2>&1 || tail -n 5 /tmp/fix-keyring.log | sed 's/^/   /' || true
         gpgconf --homedir "$MNT/etc/pacman.d/gnupg" --kill all 2>/dev/null || true

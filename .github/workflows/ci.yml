@@ -60,6 +60,8 @@ jobs:
         run: tools/test-hibernate.sh
       - name: "What an update may change (vyntaris-setup): the user's firewall and services stay theirs"
         run: tools/test-setup.sh
+      - name: "Installer: its boot entry on any firmware, never a silent stop, key errors, fix-keyring"
+        run: tools/test-installer.sh
       - name: Updates and AUR apps without a terminal (the password asked in the shell, how each ends)
         run: tools/test-upgrade.sh
       - name: The accent is fitted alike in JavaScript, Lua and Python

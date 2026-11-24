@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-GNUPG=/etc/pacman.d/gnupg
+GNUPG="${KEYRING_ROOT:-}/etc/pacman.d/gnupg"
 
 c_acc=$'\033[1;35m'; c_dim=$'\033[2m'; c_bold=$'\033[1m'; c_off=$'\033[0m'
 step() { printf '%s::%s %s%s%s\n' "$c_acc" "$c_off" "$c_bold" "$*" "$c_off"; }
